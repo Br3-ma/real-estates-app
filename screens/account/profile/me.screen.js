@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
+import { fetchUserInfo } from '../../../controllers/auth/userController';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { Button, Grid, TextField } from '@mui/material';
 
-const MeScreen = ({ route }) => {
+const MeScreen = () => {
   const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
   const [editProfileModalVisible, setEditProfileModalVisible] = useState(false);
   const [uploadProfileModalVisible, setUploadProfileModalVisible] = useState(false);
-  const [saving, setSaving] = useState(false); // State to track saving process
+  const [saving, setSaving] = useState(false); // State to track the saving process
+  const [userInfo, setUserInfo] = useState(null); // State to store user info
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await fetchUserInfo();
+      setUserInfo(user);
+    };
+
+    fetchUser();
+  }, []);
 
   const openChangePasswordModal = () => {
     setChangePasswordModalVisible(true);
@@ -28,19 +39,30 @@ const MeScreen = ({ route }) => {
     setSaving(false);
   };
 
+  if (!userInfo) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3498db" />
+      </View>
+    );
+  }
+
+  const placeholderCoverImage = 'https://arteye.co.za/wp-content/uploads/2022/06/Fiona-Rowette-Diptych-140-x-100-cm-003-scaled.jpg';
+  const placeholderProfileImage = 'https://www.shutterstock.com/image-vector/blank-avatar-photo-icon-design-600nw-1682415103.jpg';
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Profile Header with editable cover image */}
       <View style={styles.profileHeader}>
-        <Image source={require('../../../assets/img/cover.jpg')} style={styles.coverImage} />
+        <Image source={{ uri: userInfo.user.cover || placeholderCoverImage }} style={styles.coverImage} />
         <TouchableOpacity onPress={() => alert('Change Cover')} style={styles.editCoverButton}>
           <AntDesign name="edit" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={styles.profileInfo}>
-          <Image source={require('../../../assets/img/avata.jpg')} style={styles.profilePicture} />
+          <Image source={{ uri: userInfo.user.picture || placeholderProfileImage }} style={styles.profilePicture} />
           <View style={styles.profileText}>
-            <Text style={styles.profileName}>John Doe</Text>
-            <Text style={styles.profileBio}>Public User | Agent</Text>
+            <Text style={styles.profileName}>{userInfo.user.name}</Text>
+            <Text style={styles.profileBio}>{userInfo.user.bio}</Text>
           </View>
         </View>
       </View>
@@ -48,19 +70,19 @@ const MeScreen = ({ route }) => {
       {/* Profile Stats */}
       <View style={styles.profileStats}>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>153</Text>
+          <Text style={styles.statNumber}>0</Text>
           <Text style={styles.statText}>Posts</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>27</Text>
+          <Text style={styles.statNumber}>0</Text>
           <Text style={styles.statText}>Properties</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>3.5K</Text>
+          <Text style={styles.statNumber}>0</Text>
           <Text style={styles.statText}>Likes</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>$12.5K</Text>
+          <Text style={styles.statNumber}>0</Text>
           <Text style={styles.statText}>Profit</Text>
         </View>
       </View>
@@ -89,9 +111,9 @@ const MeScreen = ({ route }) => {
             <AntDesign name="arrowleft" size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Change Password</Text>
-          {/* Your form elements for changing password */}
+          {/* Form elements for changing password */}
           <View style={styles.buttonContainer}>
-            <Button variant="contained" color="primary" onPress={saveChanges}>
+            <Button variant="contained" color="primary" onClick={saveChanges}>
               {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text>Save Changes</Text>}
             </Button>
           </View>
@@ -109,7 +131,7 @@ const MeScreen = ({ route }) => {
             <AntDesign name="arrowleft" size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Edit Profile</Text>
-          {/* Your form elements for editing profile */}
+          {/* Form elements for editing profile */}
           <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField label="Full Name" fullWidth />
@@ -120,7 +142,7 @@ const MeScreen = ({ route }) => {
             {/* Add more fields as needed */}
           </Grid>
           <View style={styles.buttonContainer}>
-            <Button variant="contained" color="primary" onPress={saveChanges}>
+            <Button variant="contained" color="primary" onClick={saveChanges}>
               {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text>Save Changes</Text>}
             </Button>
           </View>
@@ -138,9 +160,9 @@ const MeScreen = ({ route }) => {
             <AntDesign name="arrowleft" size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.modalTitle}>Upload Profile Picture</Text>
-          {/* Your image picker and preview */}
+          {/* Image picker and preview */}
           <View style={styles.buttonContainer}>
-            <Button variant="contained" color="primary" onPress={saveChanges}>
+            <Button variant="contained" color="primary" onClick={saveChanges}>
               {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text>Save Changes</Text>}
             </Button>
           </View>
@@ -149,11 +171,10 @@ const MeScreen = ({ route }) => {
 
       {/* Details Container */}
       <View style={styles.detailsContainer}>
-        <Card title="Location" value="New York, USA" />
-        <Card title="Email" value="john.doe@example.com" />
-        <Card title="Website" value="www.example.com" onPress={() => alert('Visit website')} />
+        <Card title="Location" value={userInfo.user.location} />
+        <Card title="Email" value={userInfo.user.email} />
+        <Card title="Website" value={userInfo.user.website} onPress={() => alert('Visit website')} />
       </View>
-
       {/* Add more cards as needed */}
     </ScrollView>
   );
@@ -291,6 +312,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: 'center',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default MeScreen;
+

@@ -34,8 +34,8 @@ const App = () => {
       const phoneNumber = userInfo ? userInfo.user.phone : '0'; // Use '0' if no user info is found
 
       // Make an API request to check if the user is authenticated
-      // const response = await axios.post('http://localhost/eatapp/eat-server/api/connectx', {
-      const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/connectx', {
+      const response = await axios.post('http://localhost/realestserver/est-server/api/connectx', {
+      // const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/connectx', {
         withCredentials: false, // Include credentials (cookies) in the request
         phone: phoneNumber,
       });

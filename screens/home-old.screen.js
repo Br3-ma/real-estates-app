@@ -171,7 +171,7 @@ const HomeScreen = ({ navigation }) => {
           ))}
         </ScrollView>
           {/* Comment Section */}
-          {/* <View style={styles.commentSection}>
+          <View style={styles.commentSection}>
             <ScrollView style={styles.commentsContainer}>
               {messages.map(renderMessage)}
             </ScrollView>
@@ -186,7 +186,7 @@ const HomeScreen = ({ navigation }) => {
                 <MaterialIcons name="send" size={32} color="#2196F3" />
               </TouchableOpacity>
             </View>
-          </View> */}
+          </View>
 
         <View style={{ flex: 1 }}>
 

@@ -14,7 +14,6 @@ import axios from 'axios';
 const { width } = Dimensions.get('window');
 
 const MyPropertyScreen = ({ navigation }) => {
-  const [userInfo, setUserInfo] = useState(null); // State to store user info
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -52,12 +51,6 @@ const MyPropertyScreen = ({ navigation }) => {
       }
     };    
 
-    const fetchUser = async () => {
-      const user = await fetchUserInfo();
-      setUserInfo(user);
-    };
-
-    fetchUser();
     fetchProperties();
   }, []);
 
@@ -192,13 +185,13 @@ const MyPropertyScreen = ({ navigation }) => {
                 style={styles.textarea}
                 onChangeText={(text) => setPropertyDetails({ ...propertyDetails, description: text })}
               />
-              <TextInput
+              <TextField
                 label="Address"
                 placeholder="Address"
                 style={styles.input}
                 onChange={(event) => setPropertyDetails({ ...propertyDetails, location: event.target.value })}
               />
-               <TextInput
+               <TextField
                 label="Price"
                 placeholder="Price"
                 style={styles.input}
@@ -206,7 +199,7 @@ const MyPropertyScreen = ({ navigation }) => {
               />
               <Grid container spacing={2}>
                 <Grid item xs={4}>
-                  <TextInput
+                  <TextField
                     label="Beds"
                     placeholder="Beds"
                     style={styles.input}
@@ -281,13 +274,13 @@ const MyPropertyScreen = ({ navigation }) => {
       const formData = new FormData();
   
       // Append fields to FormData
-      formData.append('title', description);
+      formData.append('title', title);
       formData.append('description', description);
       formData.append('price', price);
       formData.append('location', location);
       formData.append('long', long);
       formData.append('lat', lat);
-      formData.append('user_id', userInfo.user.id);
+      formData.append('user_id', user_id);
       formData.append('property_type_id', property_type_id);
       formData.append('status_id', status_id);
       formData.append('bedrooms', bedrooms);
@@ -584,7 +577,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     marginTop: 20,
     marginRight: 20,
   },
