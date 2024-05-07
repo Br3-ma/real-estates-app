@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
-import { Card, Button, Icon, SearchBar, ButtonGroup } from 'react-native-elements';
+import { Card, Button, Icon, SearchBar, ButtonGroup } from '@rneui/themed';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 const { width } = Dimensions.get('window');
 
@@ -16,7 +17,7 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 2000));  // Simulating fetch delay
         setProperties([
           { id: '1', name: 'Cozy Cottage', images: [require('../assets/house1.jpg'), require('../assets/house2.jpeg'), require('../assets/house3.jpg')], price: '250,000', location: 'Suburb', beds: 3, baths: 2, area: 1200 },
           { id: '2', name: 'Luxury Villa', images: [require('../assets/house1.jpg'), require('../assets/house3.jpg')], price: '950,000', location: 'City Center', beds: 5, baths: 4, area: 3500 },
@@ -28,6 +29,7 @@ const HomeScreen = ({ navigation }) => {
         setLoading(false);
       }
     };
+
     fetchProperties();
   }, []);
 
@@ -46,93 +48,153 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const renderPropertyItem = ({ item }) => (
-    <Card containerStyle={styles.cardContainer}>
-      <Card.Title style={styles.title}>{item.name}</Card.Title>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageContainer}>
+    <Card>
+      <Card.Title>{item.name}</Card.Title>
+  
+      {/* Include overlay on the ScrollView with buttons and ribbon tags */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {item.images.map((img, index) => (
           <TouchableOpacity key={index} onPress={() => showImageViewer(item.images)}>
             <Image source={img} style={getImageStyle(item.images.length)} />
           </TouchableOpacity>
         ))}
-      </ScrollView>
-      <View style={styles.detailsContainer}>
-        <Text style={styles.propertyPrice}>${item.price}</Text>
-        <View style={styles.detailsRow}>
-          <Icon name="bed" type="font-awesome-5" color="#4f9deb" />
-          <Text style={styles.detailText}>{item.beds} Beds</Text>
-          <Icon name="bath" type="font-awesome-5" color="#4f9deb" />
-          <Text style={styles.detailText}>{item.baths} Baths</Text>
-          <Icon name="expand" type="font-awesome-5" color="#4f9deb" />
-          <Text style={styles.detailText}>{item.area} sqft</Text>
+        {/* Overlay with buttons and ribbon ${item.postedHours} */}
+        <View style={styles.overlayStyle}>
+          <Text style={styles.ribbonTag}>{`Posted 2 hours ago`}</Text>
         </View>
-        <Text style={styles.propertyLocation}>{item.location}</Text>
+      </ScrollView>
+      <View>
+        {/* Content align in a row for price and location */}
+        <View style={styles.priceLocationRow}>
+          {/* Stylized price text */}
+          <Text style={styles.priceText}>K{item.price}</Text>
+  
+          {/* Location with a map icon */}
+          <TouchableOpacity onPress={() => navigation.navigate('MapScreen', {location: item.location})}>
+            
+            <Text>
+              <MaterialIcons name="place" size={20} color="#000" /> 
+              {item.location}
+            </Text>
+          </TouchableOpacity>
+        </View>
+  
+        <View style={styles.iconRow}>
+          <View style={styles.iconTextContainer}>
+            <MaterialIcons name="hotel" size={20} color="#000" />
+            <Text style={styles.iconText}>{item.beds} Beds</Text>
+          </View>
+          <View style={styles.iconTextContainer}>
+            <MaterialIcons name="bathtub" size={20} color="#000" />
+            <Text style={styles.iconText}>{item.baths} Baths</Text>
+          </View>
+          <View style={styles.iconTextContainer}>
+            <MaterialIcons name="aspect-ratio" size={20} color="#000" />
+            <Text style={styles.iconText}>{item.area} sqft</Text>
+          </View>
+        </View>
       </View>
-      <View style={styles.actionButtons}>
-        <Button
-          icon={<Icon name="heart" type="font-awesome" color="#f50" />}
-          buttonStyle={{ backgroundColor: 'transparent' }}
-        />
-        <Button
-          icon={<Icon name="comment" type="font-awesome" color="#5b5" />}
-          buttonStyle={{ backgroundColor: 'transparent' }}
-        />
-        <Button
-          icon={<Icon name="share-alt" type="font-awesome" color="#29f" />}
-          buttonStyle={{ backgroundColor: 'transparent' }}
-        />
+      <View style={styles.buttonRow}>
+        <Button type="clear" icon={() => <MaterialIcons name="favorite-border" size={24} color="black" />} />
+        <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="black" />} />
+        <Button type="clear" icon={() => <MaterialIcons name="share" size={24} color="black" />} />
       </View>
     </Card>
   );
 
-  const renderImageViewerModal = () => (
-    <Modal
-      animationType="slide"
-      transparent={false}
-      visible={isImageViewVisible}
-      onRequestClose={() => setImageViewVisible(false)}
-    >
-      <SafeAreaView style={{ flex: 1 }}>
-        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={true}>
-          {currentImages.map((image, index) => (
-            <Image key={index} source={image} style={styles.fullScreenImage} />
-          ))}
-        </ScrollView>
-        <Button
-          title="Close"
-          onPress={() => setImageViewVisible(false)}
-          containerStyle={{ position: 'absolute', top: 20, right: 20 }}
-        />
-      </SafeAreaView>
-    </Modal>
-  );
+  
+  const renderImageViewerModal = () => {
+    if (!isImageViewVisible || selectedIndex === null || !properties[selectedIndex]) {
+      return null; // Safeguard against undefined properties
+    }
+
+    const property = properties[selectedIndex];
+
+    return (
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={isImageViewVisible}
+        onRequestClose={() => setImageViewVisible(false)}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={true}>
+            {currentImages.map((image, index) => (
+              <View key={index} style={{ width, height: width, position: 'relative' }}>
+                <Image source={image} style={{ width, height: width, resizeMode: 'contain' }} />
+                <View style={styles.overlayDetails}>
+                  <Text style={styles.overlayText}>{property.name} - ${property.price}</Text>
+                  <View style={styles.overlayIconRow}>
+                    <Icon name="bed" type="material" size={15} color="#fff" />
+                    <Text style={styles.overlayTextSmall}>{property.beds} Beds</Text>
+                    <Icon name="bathtub" type="material" size={15} color="#fff" />
+                    <Text style={styles.overlayTextSmall}>{property.baths} Baths</Text>
+                    <Icon name="square-foot" type="material" size={15} color="#fff" />
+                    <Text style={styles.overlayTextSmall}>{property.area} sqft</Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+            <View>
+              <Card>
+                <Card.Title>{property.name}</Card.Title>
+                <Card.Divider />
+                <Text style={{ marginBottom: 10 }}>
+                  Discover more about this wonderful property located at {property.location}.
+                </Text>
+                <View style={styles.actionRow}>
+                  <Button
+                    icon={<Icon name="heart" type="font-awesome" color="#f50" />}
+                    type="clear"
+                    onPress={() => console.log('Added to favourites')}
+                  />
+                  <Button
+                    icon={<Icon name="comment" type="font-awesome" color="#5b5" />}
+                    type="clear"
+                    onPress={() => console.log('Comment')}
+                  />
+                  <Button
+                    icon={<Icon name="thumbs-up" type="font-awesome" color="#29f" />}
+                    type="clear"
+                    onPress={() => console.log('Liked')}
+                  />
+                  <Button
+                    icon={<Icon name="share-alt" type="font-awesome" color="#76448A" />}
+                    type="clear"
+                    onPress={() => console.log('Share')}
+                  />
+                </View>
+              </Card>
+            </View>
+          <Button
+            icon={{ name: 'close', color: '#fff' }}
+            type="clear"
+            containerStyle={{ position: 'absolute', top: 20, right: 10 }}
+            onPress={() => setImageViewVisible(false)}
+          />
+        </SafeAreaView>
+      </Modal>
+    );
+  };
+
 
   const getImageStyle = (imageCount) => ({
-    width: imageCount === 1 ? width : (width / Math.min(imageCount, 3)),
+    width: imageCount === 1 ? width : width / Math.min(imageCount, 3),
     height: 250,
     resizeMode: 'cover',
     marginRight: 5,
   });
 
   return (
-    <SafeAreaView style={styles.screenContainer}>
-      <Card containerStyle={styles.topBarCard}>
-        <SearchBar
-          placeholder="Type Here..."
-          onChangeText={updateSearch}
-          value={search}
-          containerStyle={styles.searchBarContainer}
-          inputContainerStyle={styles.searchBarInputContainer}
-        />
-        <ButtonGroup
-          buttons={buttons}
-          selectedIndex={selectedIndex}
-          onPress={updateIndex}
-          containerStyle={styles.buttonGroupContainer}
-        />
+    <SafeAreaView style={{ flex: 1 }}>
+      <Card>
+        <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
+        <ButtonGroup buttons={buttons} selectedIndex={selectedIndex} onPress={updateIndex} />
       </Card>
-      <ScrollView style={styles.scrollViewStyle}>
+      <ScrollView>
         {loading ? (
-          <ShimmerPlaceholder style={styles.shimmerPlaceholder} />
+          <ShimmerPlaceholder />
         ) : (
           properties.map((property) => renderPropertyItem({ item: property }))
         )}
@@ -224,14 +286,76 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 20,
   },
-  // buttonGroupContainer: {
-  //   height: 40,
-  //   marginHorizontal: 10,
-  //   marginBottom: 10,
-  // },
   scrollViewStyle: {
     marginTop: 10,
-  }
+  },
+  overlayDetails: {
+    position: 'absolute',
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: '100%',
+    padding: 10,
+  },
+  overlayText: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  overlayTextSmall: {
+    fontSize: 14,
+    color: '#fff',
+    marginLeft: 5,
+  },
+  overlayIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 10
+  },
+  iconTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center', // Ensures icons and text are aligned vertically
+    justifyContent: 'center' // Centers each icon and text horizontally
+  },
+  iconText: {
+    marginLeft: 5, // Adds space between the icon and the text
+  },
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around', // This will distribute the icon containers evenly
+    alignItems: 'center',          // This will align the icons vertically centered
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  overlayStyle: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 10,
+  },
+  ribbonTag: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  priceLocationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+  },
+  priceText: {
+    fontSize: 18,
+    color: '#4169E1',  // A blueish color
+    fontWeight: 'bold',
+  },
 });
-
 export default HomeScreen;

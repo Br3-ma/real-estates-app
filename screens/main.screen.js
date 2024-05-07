@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Modal } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { TextInput, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from './home.screen';
 import MyFoodScreen from './account/food/my-food.screen';
 import BoxScreen from './account/donation/box.screen';
 import MeScreen from './account/profile/me.screen';
+import MapScreen from './maps/find-property.screen';
 
 const Tab = createBottomTabNavigator();
 
@@ -30,21 +29,16 @@ const MainScreen = () => {
         screenOptions={({ route }) => ({
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
-            let label;
             if (route.name === 'Home') {
               iconName = focused ? 'ios-home' : 'ios-home-outline';
-              label = 'Home';
             } else if (route.name === 'My Property') {
-              iconName = focused ? 'ios-pizza' : 'ios-pizza-outline';
-              label = 'My Property';
+              iconName = focused ? 'ios-home' : 'ios-home-outline'; // Updated to bed icons
             } else if (route.name === 'Notifications') {
               iconName = focused ? 'ios-notifications' : 'ios-notifications-outline';
-              label = 'Notifications';
             } else if (route.name === 'Profile') {
               iconName = focused ? 'ios-person' : 'ios-person-outline';
-              label = 'Profile';
             }
-            return <TabBarIcon name={iconName} size={focused ? 26 : 22} color={color} label={label} />;
+            return <TabBarIcon name={iconName} size={focused ? 26 : 22} color={color} />;
           },
           tabBarActiveTintColor: '#007AFF',
           tabBarInactiveTintColor: 'gray',
@@ -57,6 +51,7 @@ const MainScreen = () => {
       >
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="My Property" component={MyFoodScreen} />
+        {/* <Tab.Screen name="Map" component={MapScreen} /> */}
         <Tab.Screen name="Notifications" component={BoxScreen} />
         <Tab.Screen name="Profile" component={MeScreen} />
       </Tab.Navigator>

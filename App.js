@@ -13,6 +13,7 @@ import SplashScreen from './screens/splash.screen';
 import MainScreen from './screens/main.screen';
 import CartScreen from './screens/cart/my-cart.screen';
 import ProductDetails from './screens/products/product-detail.screen';
+import MapScreen from './screens/maps/find-property.screen';
 
 const Stack = createStackNavigator();
 
@@ -32,11 +33,11 @@ const App = () => {
       const phoneNumber = userInfo ? userInfo.user.phone : '0'; // Use '0' if no user info is found
 
       // Make an API request to check if the user is authenticated
-      const response = await axios.post('http://localhost/eatapp/eat-server/api/connectx', {
-      // const response = await axios.post('https://sms.mightyfinance.co.zm/api/connectx', {
-        withCredentials: false, // Include credentials (cookies) in the request
-        phone: phoneNumber,
-      });
+      // const response = await axios.post('http://localhost/eatapp/eat-server/api/connectx', {
+      // // const response = await axios.post('https://sms.mightyfinance.co.zm/api/connectx', {
+      //   withCredentials: false, // Include credentials (cookies) in the request
+      //   phone: phoneNumber,
+      // });
 
       // If the request is successful, update the authenticated state based on the response
       setAuthenticated(true);
@@ -63,6 +64,7 @@ const App = () => {
         <Stack.Navigator initialRouteName="Main" headerMode="none">
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="Cart" component={CartScreen} />
+          <Stack.Screen name="MapScreen" component={MapScreen} />
           <Stack.Screen name="ProductDetails" component={ProductDetails} />
         </Stack.Navigator>
       ) : (
