@@ -196,7 +196,11 @@ const HomeScreen = ({ navigation }) => {
         {loading ? (
           <ShimmerPlaceholder />
         ) : (
-          properties.map((property) => renderPropertyItem({ item: property }))
+          properties.map((property) => (
+            <React.Fragment key={property.id}>
+              {renderPropertyItem({ item: property })}
+            </React.Fragment>
+          ))
         )}
       </ScrollView>
       {renderImageViewerModal()}
