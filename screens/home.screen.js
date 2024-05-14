@@ -112,69 +112,33 @@ const HomeScreen = ({ navigation }) => {
 
     return (
       <Modal
-        animationType="slide"
-        transparent={false}
-        visible={isImageViewVisible}
-        onRequestClose={() => setImageViewVisible(false)}
-      >
-        <SafeAreaView style={{ flex: 1 }}>
-          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={true}>
-            {currentImages.map((image, index) => (
-              <View key={index} style={{ width, height: width, position: 'relative' }}>
-                <Image source={image} style={{ width, height: width, resizeMode: 'contain' }} />
-                <View style={styles.overlayDetails}>
-                  <Text style={styles.overlayText}>{property.name} - ${property.price}</Text>
-                  <View style={styles.overlayIconRow}>
-                    <Icon name="bed" type="material" size={15} color="#fff" />
-                    <Text style={styles.overlayTextSmall}>{property.beds} Beds</Text>
-                    <Icon name="bathtub" type="material" size={15} color="#fff" />
-                    <Text style={styles.overlayTextSmall}>{property.baths} Baths</Text>
-                    <Icon name="square-foot" type="material" size={15} color="#fff" />
-                    <Text style={styles.overlayTextSmall}>{property.area} sqft</Text>
-                  </View>
+      animationType="slide"
+      transparent={false}
+      visible={isImageViewVisible}
+      onRequestClose={() => setImageViewVisible(false)}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={true}>
+          {currentImages.map((image, index) => (
+            <View key={index} style={{ width, height: width, position: 'relative' }}>
+              <Image source={image} style={{ width, height: width, resizeMode: 'contain' }} />
+              <View style={styles.overlayDetails}>
+                <Text style={styles.overlayText}>{property.name} - ${property.price}</Text>
+                <View style={styles.overlayIconRow}>
+                  <Icon name="bed" type="material" size={15} color="#fff" />
+                  <Text style={styles.overlayTextSmall}>{property.beds} Beds</Text>
+                  <Icon name="bathtub" type="material" size={15} color="#fff" />
+                  <Text style={styles.overlayTextSmall}>{property.baths} Baths</Text>
+                  <Icon name="square-foot" type="material" size={15} color="#fff" />
+                  <Text style={styles.overlayTextSmall}>{property.area} sqft</Text>
                 </View>
               </View>
-            ))}
-          </ScrollView>
-            <View>
-              <Card>
-                <Card.Title>{property.name}</Card.Title>
-                <Card.Divider />
-                <Text style={{ marginBottom: 10 }}>
-                  Discover more about this wonderful property located at {property.location}.
-                </Text>
-                <View style={styles.actionRow}>
-                  <Button
-                    icon={<Icon name="heart" type="font-awesome" color="#f50" />}
-                    type="clear"
-                    onPress={() => console.log('Added to favourites')}
-                  />
-                  <Button
-                    icon={<Icon name="comment" type="font-awesome" color="#5b5" />}
-                    type="clear"
-                    onPress={() => console.log('Comment')}
-                  />
-                  <Button
-                    icon={<Icon name="thumbs-up" type="font-awesome" color="#29f" />}
-                    type="clear"
-                    onPress={() => console.log('Liked')}
-                  />
-                  <Button
-                    icon={<Icon name="share-alt" type="font-awesome" color="#76448A" />}
-                    type="clear"
-                    onPress={() => console.log('Share')}
-                  />
-                </View>
-              </Card>
             </View>
-          <Button
-            icon={{ name: 'close', color: '#fff' }}
-            type="clear"
-            containerStyle={{ position: 'absolute', top: 20, right: 10 }}
-            onPress={() => setImageViewVisible(false)}
-          />
-        </SafeAreaView>
-      </Modal>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+
     );
   };
 

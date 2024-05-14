@@ -1,330 +1,365 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal } from 'react-native';
+import { Card, Button, Icon, SearchBar, ButtonGroup } from '@rneui/themed';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import axios from 'axios';
-import { AntDesign } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
-import Animated, { useAnimatedGestureHandler, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
+const { width } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
-  const [products, setProducts] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cartTotal, setCartTotal] = useState(0);
-  const [cartPosition, setCartPosition] = useState({ x: 0, y: 0 });
+  const [search, setSearch] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isImageViewVisible, setImageViewVisible] = useState(false);
+  const [currentImages, setCurrentImages] = useState([]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProperties = async () => {
       try {
-        const response = await axios.get('http://localhost/eatapp/eat-server/api/products');
-        // const response = await axios.get('https://sms.mightyfinance.co.zm/api/products');
-        setProducts(response.data.products);
-        setLoading(false);
+        await new Promise(resolve => setTimeout(resolve, 2000));  // Simulating fetch delay
+        setProperties([
+          { id: '1', name: 'Cozy Cottage', images: [require('../assets/house1.jpg'), require('../assets/house2.jpeg'), require('../assets/house3.jpg')], price: '250,000', location: 'Suburb', beds: 3, baths: 2, area: 1200 },
+          { id: '2', name: 'Luxury Villa', images: [require('../assets/house1.jpg'), require('../assets/house3.jpg')], price: '950,000', location: 'City Center', beds: 5, baths: 4, area: 3500 },
+          { id: '3', name: '2 Bedroom House in Kalundu', images: [require('../assets/house3.jpg')], price: '950,000', location: 'City Center', beds: 5, baths: 4, area: 3500 },
+        ]);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Failed to fetch properties:', error);
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchProperties();
   }, []);
 
-  useEffect(() => {
-    const updateCartTotal = async () => {
-      const total = await getCartTotal();
-      setCartTotal(total);
-    };
-
-    updateCartTotal();
-  }, []);
-
-  const addToCart = async (item) => {
-    try {
-      let cartItems = [];
-      const existingItems = await AsyncStorage.getItem('cartItems');
-      if (existingItems) {
-        cartItems = JSON.parse(existingItems);
-      }
-      cartItems.push(item);
-      await AsyncStorage.setItem('cartItems', JSON.stringify(cartItems));
-      const total = await getCartTotal();
-      setCartTotal(total);
-    } catch (error) {
-      console.error('Error adding item to cart:', error);
-    }
+  const updateSearch = (search) => {
+    setSearch(search);
   };
 
-  const getCartTotal = async () => {
-    try {
-      const cartItems = await AsyncStorage.getItem('cartItems');
-      if (cartItems) {
-        const parsedCartItems = JSON.parse(cartItems);
-        const total = parsedCartItems.reduce((acc, item) => acc + item.price, 0);
-        return total;
-      } else {
-        return 0;
-      }
-    } catch (error) {
-      console.error('Error getting cart total:', error);
-      return 0;
-    }
+  const buttons = ['Buy', 'Rent', 'Projects'];
+  const updateIndex = (selectedIndex) => {
+    setSelectedIndex(selectedIndex);
   };
 
-  const onGestureEvent = useAnimatedGestureHandler({
-    onStart: (_, context) => {
-      context.startX = cartPosition.x;
-      context.startY = cartPosition.y;
-    },
-    onActive: (event, context) => {
-      setCartPosition({
-        x: context.startX + event.translationX,
-        y: context.startY + event.translationY,
-      });
-    },
-  });
+  const showImageViewer = (images) => {
+    setCurrentImages(images);
+    setImageViewVisible(true);
+  };
 
-  const cartStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateX: withSpring(cartPosition.x) },
-        { translateY: withSpring(cartPosition.y) },
-      ],
-    };
-  }, [cartPosition]); // Specify cartPosition as a dependency
-
-  const renderProductItem = ({ item }) => (
-    <TouchableOpacity
-      style={styles.productContainer}
-      onPress={() => navigation.navigate('ProductDetails', { product: item })}
-    >
-      <Image source={item.image} style={styles.productImage} />
-      <Text style={styles.productName}>{item.name}</Text>
-      <Text style={styles.productPrice}>K{item.price}</Text>
-      <View style={styles.iconButtonsContainer}>
-        <TouchableOpacity style={styles.iconButtonAdd} onPress={() => addToCart(item)}>
-          <AntDesign name="shoppingcart" size={18} color="white" />
-        </TouchableOpacity>
-        <View style={styles.iconGap} />
-        <View style={styles.iconGap} />
-        <TouchableOpacity style={styles.iconButtonShare} onPress={() => {/* Handle share */}}>
-          <AntDesign name="sharealt" size={18} color="white" />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderShimmerProductItem = () => (
-    <View style={styles.productContainer}>
-      <ShimmerPlaceholder style={styles.productImage} />
-      <ShimmerPlaceholder style={[styles.productName, { marginTop: 8, marginBottom: 4 }]} />
-      <ShimmerPlaceholder style={styles.productPrice} />
-    </View>
-  );
-
-  const categories = [
-    { name: 'Groceries', image: require('../assets/a.jpg') },
-    { name: 'Office', image: require('../assets/b.jpg') },
-    { name: 'Medicine', image: require('../assets/c.webp') },
-    { name: 'Fast Foods', image: require('../assets/d.jpg') },
-    { name: 'Fruits', image: require('../assets/e.jpg') },
-    { name: 'Medicine', image: require('../assets/c.webp') },
-    { name: 'Fast Foods', image: require('../assets/d.jpg') },
-    { name: 'Fruits', image: require('../assets/e.jpg') },
-    { name: 'Medicine', image: require('../assets/c.webp') },
-    { name: 'Fast Foods', image: require('../assets/d.jpg') },
-    { name: 'Fruits', image: require('../assets/e.jpg') },
-  ];
-
-  return (
-    <ScrollView style={styles.scrollContainer}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-        {categories.map((category, index) => (
-          <TouchableOpacity key={index} style={styles.categoryTab}>
-            <Image source={category.image} style={styles.categoryImage} />
-            <Text>{category.name}</Text>
+  const renderPropertyItem = ({ item }) => (
+    <Card>
+      <Card.Title>{item.name}</Card.Title>
+  
+      {/* Include overlay on the ScrollView with buttons and ribbon tags */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {item.images.map((img, index) => (
+          <TouchableOpacity key={index} onPress={() => showImageViewer(item.images)}>
+            <Image source={img} style={getImageStyle(item.images.length)} />
           </TouchableOpacity>
         ))}
+        {/* Overlay with buttons and ribbon ${item.postedHours} */}
+        <View style={styles.overlayStyle}>
+          <Text style={styles.ribbonTag}>{`Posted 2 hours ago`}</Text>
+        </View>
       </ScrollView>
-
-      {/* Make this hero banner be an automatic horizontal slider */}
-      <View style={styles.heroBanner}>
-        <Image source={require('../assets/welcome-banner.jpg')} style={styles.heroBannerImage} />
-        <Text style={styles.heroBannerText}>Special Promo Today!</Text>
-        <TouchableOpacity style={styles.heroBannerButton}>
-          <Text style={styles.heroBannerButtonText}>Shop Now</Text>
-        </TouchableOpacity>
+      <View>
+        {/* Content align in a row for price and location */}
+        <View style={styles.priceLocationRow}>
+          {/* Stylized price text */}
+          <Text style={styles.priceText}>K{item.price}</Text>
+  
+          {/* Location with a map icon */}
+          <TouchableOpacity onPress={() => navigation.navigate('MapScreen', {location: item.location})}>
+            
+            <Text>
+              <MaterialIcons name="place" size={20} color="#000" /> 
+              {item.location}
+            </Text>
+          </TouchableOpacity>
+        </View>
+  
+        <View style={styles.iconRow}>
+          <View style={styles.iconTextContainer}>
+            <MaterialIcons name="hotel" size={20} color="#000" />
+            <Text style={styles.iconText}>{item.beds} Beds</Text>
+          </View>
+          <View style={styles.iconTextContainer}>
+            <MaterialIcons name="bathtub" size={20} color="#000" />
+            <Text style={styles.iconText}>{item.baths} Baths</Text>
+          </View>
+          <View style={styles.iconTextContainer}>
+            <MaterialIcons name="aspect-ratio" size={20} color="#000" />
+            <Text style={styles.iconText}>{item.area} sqft</Text>
+          </View>
+        </View>
       </View>
+      <View style={styles.buttonRow}>
+        <Button type="clear" icon={() => <MaterialIcons name="favorite-border" size={24} color="black" />} />
+        <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="black" />} />
+        <Button type="clear" icon={() => <MaterialIcons name="share" size={24} color="black" />} />
+      </View>
+    </Card>
+  );
 
-      <View style={styles.mostPop}>
-        <Text style={styles.headerText1}> Most Popular </Text>
+  
+  const renderImageViewerModal = () => {
+    if (!isImageViewVisible || selectedIndex === null || !properties[selectedIndex]) {
+      return null; // Safeguard against undefined properties
+    }
+
+    const property = properties[selectedIndex];
+
+    return (
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={isImageViewVisible}
+        onRequestClose={() => setImageViewVisible(false)}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={true}>
+            {currentImages.map((image, index) => (
+              <View key={index} style={{ width, height: width, position: 'relative' }}>
+                <Image source={image} style={{ width, height: width, resizeMode: 'contain' }} />
+                <View style={styles.overlayDetails}>
+                  <Text style={styles.overlayText}>{property.name} - ${property.price}</Text>
+                  <View style={styles.overlayIconRow}>
+                    <Icon name="bed" type="material" size={15} color="#fff" />
+                    <Text style={styles.overlayTextSmall}>{property.beds} Beds</Text>
+                    <Icon name="bathtub" type="material" size={15} color="#fff" />
+                    <Text style={styles.overlayTextSmall}>{property.baths} Baths</Text>
+                    <Icon name="square-foot" type="material" size={15} color="#fff" />
+                    <Text style={styles.overlayTextSmall}>{property.area} sqft</Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+            <View>
+              <Card>
+                <Card.Title>{property.name}</Card.Title>
+                <Card.Divider />
+                <Text style={{ marginBottom: 10 }}>
+                  Discover more about this wonderful property located at {property.location}.
+                </Text>
+                <View style={styles.actionRow}>
+                  <Button
+                    icon={<Icon name="heart" type="font-awesome" color="#f50" />}
+                    type="clear"
+                    onPress={() => console.log('Added to favourites')}
+                  />
+                  <Button
+                    icon={<Icon name="comment" type="font-awesome" color="#5b5" />}
+                    type="clear"
+                    onPress={() => console.log('Comment')}
+                  />
+                  <Button
+                    icon={<Icon name="thumbs-up" type="font-awesome" color="#29f" />}
+                    type="clear"
+                    onPress={() => console.log('Liked')}
+                  />
+                  <Button
+                    icon={<Icon name="share-alt" type="font-awesome" color="#76448A" />}
+                    type="clear"
+                    onPress={() => console.log('Share')}
+                  />
+                </View>
+              </Card>
+            </View>
+          <Button
+            icon={{ name: 'close', color: '#fff' }}
+            type="clear"
+            containerStyle={{ position: 'absolute', top: 20, right: 10 }}
+            onPress={() => setImageViewVisible(false)}
+          />
+        </SafeAreaView>
+      </Modal>
+    );
+  };
+
+
+  const getImageStyle = (imageCount) => ({
+    width: imageCount === 1 ? width : width / Math.min(imageCount, 3),
+    height: 250,
+    resizeMode: 'cover',
+    marginRight: 5,
+  });
+
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <Card>
+        <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
+        <ButtonGroup buttons={buttons} selectedIndex={selectedIndex} onPress={updateIndex} />
+      </Card>
+      <ScrollView>
         {loading ? (
-          <FlatList
-            data={[1, 2, 3, 4]} // Dummy data for shimmer effect
-            numColumns={2}
-            renderItem={renderShimmerProductItem}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.productList}
-            showsVerticalScrollIndicator={false}
-          />
+          <ShimmerPlaceholder />
         ) : (
-          <FlatList
-            data={products}
-            numColumns={2}
-            renderItem={renderProductItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.productList}
-            showsVerticalScrollIndicator={false}
-          />
+          properties.map((property) => (
+            <React.Fragment key={property.id}>
+              {renderPropertyItem({ item: property })}
+            </React.Fragment>
+          ))
         )}
-      </View>
-
-      <PanGestureHandler onGestureEvent={onGestureEvent}>
-        <Animated.View style={[styles.cartPreview, cartStyle]}>
-          <Text>Cart Total: {cartTotal}</Text>
-        </Animated.View>
-      </PanGestureHandler>
-    </ScrollView>
+      </ScrollView>
+      {renderImageViewerModal()}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    padding: 4,
+  screenContainer: {
     flex: 1,
-    overflow: 'hidden',
+    backgroundColor: '#f2f2f2',
   },
-  categoriesContainer: {
-    marginTop: 4,
-    marginBottom: 16,
-    paddingBottom: 0,
-    flexDirection: 'row',
-  },
-  categoryTab: {
-    marginRight: 16,
-    alignItems: 'center',
-    paddingBottom: 50,
-  },
-  categoryImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginBottom: 8,
-  },
-  productList: {
-    justifyContent: 'center',
-    marginTop: 16,
-  },
-  productContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-    flex: 1,
-    margin: 4,
-    padding: 4,
-    shadowColor: '#00000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 2,
-    backgroundColor: '#fff',
-    borderRadius: 3,
-  },
-  productImage: {
-    width: 140,
-    height: 140,
-    borderRadius: 5,
-    marginBottom: 8,
-  },
-  productName: {
-    fontSize: 15,
-    marginBottom: 2,
-  },
-  productPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'green',
-  },
-  mostPop:{
+  topBarCard: {
+    flexDirection: 'column', // Makes the children of the card stack vertically
+    justifyContent: 'space-between', // Distributes space evenly between children
+    alignItems: 'center', // Centers children horizontally
+    padding: 5,
+    marginHorizontal: 20, // Centers the card horizontally with some margin
+    marginTop: 10, // Give some margin at the top
     borderRadius: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
+    elevation: 4, // Adds shadow for elevation effect
   },
-  heroBanner: {
-    marginTop: 0,
-    marginBottom: 16,
+  searchBarContainer: {
+    width: '100%', // Ensures the search bar fills the card width
+    backgroundColor: 'transparent',
+    borderBottomColor: 'transparent',
+    borderTopColor: 'transparent',
+  },
+  searchBarInputContainer: {
+    backgroundColor: '#EFEFEF',
+  },
+  buttonGroupContainer: {
+    width: '100%', // Ensures the button group fills the card width
+    marginTop: 5, // Gives some space between the search bar and button group
+  },
+  cardContainer: {
+    marginHorizontal: 10,
+    marginTop: 10,
+    marginBottom: 10,
+    padding: 10,
     borderRadius: 8,
-    overflow: 'hidden',
+    backgroundColor: '#fff',
+    elevation: 2,
   },
-  heroBannerImage: {
-    width: '100%',
-    height: 150,
-    resizeMode: 'cover',
-  },
-  heroBannerText: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    color: '#ffffff',
-    fontSize: 27,
+  title: {
+    fontSize: 20,
     fontWeight: 'bold',
   },
-  heroBannerButton: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    backgroundColor: '#bc2900',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
+  imageContainer: {
+    flexDirection: 'row',
+    padding: 0,
   },
-  heroBannerButtonText: {
-    color: '#fff',
+  fullScreenImage: {
+    width: width,
+    height: width,
+    resizeMode: 'contain',
+  },
+  propertyPrice: {
     fontSize: 16,
     fontWeight: 'bold',
+    marginVertical: 5,
   },
-  headerText1: {
-    position: 'relative',
-    top: 20,
-    left: 10,
-    fontSize: 18,
+  propertyLocation: {
+    fontSize: 14,
     marginBottom: 10,
-    marginHorizontal:20,
-    color: 'green',
-    fontWeight: 'bold',
   },
-  iconGap: {
-    width: 10,
+  detailsContainer: {
+    paddingLeft: 10,
   },
-  iconButtonsContainer: {
+  detailsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  detailText: {
+    marginLeft: 5,
+    marginRight: 15,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     marginTop: 10,
   },
-  iconButtonAdd: {
-    padding: 5,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#25C480',
-    backgroundColor:'#00FF92',
+  shimmerPlaceholder: {
+    height: 200,
+    width: '100%',
+    marginBottom: 20,
   },
-  iconButtonShare: {
-    padding: 5,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#8AEAC0',
-    backgroundColor:'#6F8D80',
+  scrollViewStyle: {
+    marginTop: 10,
   },
-  cartPreview: {
+  overlayDetails: {
     position: 'absolute',
     bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: '100%',
+    padding: 10,
+  },
+  overlayText: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  overlayTextSmall: {
+    fontSize: 14,
+    color: '#fff',
+    marginLeft: 5,
+  },
+  overlayIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 10
+  },
+  iconTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center', // Ensures icons and text are aligned vertically
+    justifyContent: 'center' // Centers each icon and text horizontally
+  },
+  iconText: {
+    marginLeft: 5, // Adds space between the icon and the text
+  },
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around', // This will distribute the icon containers evenly
+    alignItems: 'center',          // This will align the icons vertically centered
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  overlayStyle: {
+    position: 'absolute',
+    top: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    elevation: 5,
-    zIndex: 999,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 10,
+  },
+  ribbonTag: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  priceLocationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+  },
+  priceText: {
+    fontSize: 18,
+    color: '#4169E1',  // A blueish color
+    fontWeight: 'bold',
   },
 });
-
 export default HomeScreen;

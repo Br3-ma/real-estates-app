@@ -4,8 +4,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { TextInput, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from './home.screen';
-import MyFoodScreen from './account/food/my-food.screen';
-import BoxScreen from './account/donation/box.screen';
+import MyPropertyScreen from './account/food/my-food.screen';
+import NotificationScreen from './account/donation/box.screen';
 import MeScreen from './account/profile/me.screen';
 import MapScreen from './maps/find-property.screen';
 
@@ -50,9 +50,9 @@ const MainScreen = () => {
         })}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="My Property" component={MyFoodScreen} />
+        <Tab.Screen name="My Property" component={MyPropertyScreen} />
         {/* <Tab.Screen name="Map" component={MapScreen} /> */}
-        <Tab.Screen name="Notifications" component={BoxScreen} />
+        <Tab.Screen name="Notifications" component={NotificationScreen} />
         <Tab.Screen name="Profile" component={MeScreen} />
       </Tab.Navigator>
 

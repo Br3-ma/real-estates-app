@@ -1,132 +1,90 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
+import { View, Text, ScrollView, StyleSheet, SafeAreaView, Image, TouchableOpacity } from 'react-native';
+import { ListItem } from 'react-native-elements';
 
-const BoxScreen = () => {
+const NotificationScreen = () => {
+  const notifications = [
+    { id: 1, title: 'Notification 1', date: '2024-05-12', message: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi.', image: require('../../../assets/img/max.jpg') },
+    { id: 2, title: 'Notification 2', date: '2024-05-11', message: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi.', image: require('../../../assets/img/jane.jpg') },
+    { id: 3, title: 'Notification 3', date: '2024-05-10', message: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi.', image: require('../../../assets/img/avatar.jpg') },
+    // Add more notifications as needed
+  ];
+
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.boxContainer}>
-          {Array.from({ length: 10 }).map((_, index) => (
-             <View key={index} style={styles.box}>
-             <View style={styles.boxHeader}>
-               <MaterialCommunityIcons name="package-variant" style={styles.boxIcon} />
-               <Text style={styles.boxHeaderText}>Donation No.{index + 1}</Text>
-               
-               {/* Timestamp with prefix icon */}
-               <View style={styles.timestampContainer}>
-                 <MaterialCommunityIcons name="clock" style={styles.timestampIcon} />
-                 <Text style={styles.detailValue}>10 mins ago</Text>
-               </View>
-             </View>
-             <View style={styles.boxDetails}>
-               <Text style={styles.detailLabel}>Status:</Text>
-               <Text style={styles.detailValue}>Not Collected</Text>
-             </View>
-             <View style={styles.boxDetails}>
-               <Text style={styles.detailLabel}>Locations:</Text>
-               <Text style={styles.detailValue}>Shoprite, Pick n Pay, A & K Dealers</Text>
-             </View>
-             <View style={styles.boxDetails}>
-               <Text style={styles.detailLabel}>Contents:</Text>
-               <Text style={styles.detailValue}>Food, Groceries, and Electronics</Text>
-             </View>
-
-             {/* Add centered space-between items */}
-             <View style={styles.centeredItemsContainer}>
-               <View style={styles.centeredItem}>
-                 <Text style={styles.centeredItemLabel}>Code:</Text>
-                 <Text style={styles.centeredItemValue}>3820472</Text>
-               </View>
-               <View style={styles.centeredItem}>
-                 <Text style={styles.centeredItemLabel}>Donor:</Text>
-                 <Text style={styles.centeredItemValue}>Bremah Nyeleti</Text>
-               </View>
-               <View style={styles.centeredItem}>
-                 <Text style={styles.centeredItemLabel}>Expiration:</Text>
-                 <Text style={styles.centeredItemValue}>12/31/2026</Text>
-               </View>
-             </View>
-           </View>
-          ))}
-        </View>
-      </ScrollView>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        {notifications.length > 0 ? (
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {notifications.map((notification) => (
+              <ListItem key={notification.id} bottomDivider>
+                <Image source={notification.image} style={styles.image} />
+                <ListItem.Content>
+                  <ListItem.Title>{notification.title}</ListItem.Title>
+                  <ListItem.Subtitle>{notification.date}</ListItem.Subtitle>
+                  <ListItem.Subtitle numberOfLines={2} ellipsizeMode="tail" style={styles.messageText}>
+                    {notification.message}
+                  </ListItem.Subtitle>
+                </ListItem.Content>
+              </ListItem>
+            ))}
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Image source={require('../../../assets/img/notific.jpg')} style={styles.emptyImage} />
+            <Text style={styles.emptyText}>No notifications</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('HomeScreen')} style={styles.button}>
+              <Text style={styles.buttonText}>Go to HomeScreen</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff', // Background color of the safe area
+  },
   container: {
-    backgroundColor: '#f9f9f9',
+    flex: 1,
+    backgroundColor: '#f0f0f0', // Background color of the screen
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingVertical: 20,
   },
-  boxContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  box: {
-    width: '100%',
-    backgroundColor: '#8fc826',
-    marginVertical: 10,
-    borderRadius: 8,
-    padding: 15,
-  },
-  boxHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  boxIcon: {
-    color: '#fff',
-    fontSize: 20,
+  image: {
+    width: 50,
+    height: 50,
     marginRight: 10,
   },
-  boxHeaderText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  messageText: {
+    color: '#777', // Color of the message text
   },
-  boxDetails: {
-    flexDirection: 'row',
-    marginBottom: 5,
-  },
-  detailLabel: {
-    color: '#fff',
-    marginRight: 5,
-    fontWeight: 'bold',
-  },
-  detailValue: {
-    color: '#fff',
-  },
-  timestampContainer: {
-    flexDirection: 'row',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  timestampIcon: {
+  emptyImage: {
+    width: 150,
+    height: 150,
+    marginBottom: 20,
+  },
+  emptyText: {
+    fontSize: 20,
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
     color: '#fff',
     fontSize: 16,
-    marginRight: 5,
-  },
-  centeredItemsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  centeredItem: {
-    alignItems: 'center',
-  },
-  centeredItemLabel: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  centeredItemValue: {
-    color: '#fff',
   },
 });
 
-export default BoxScreen;
+export default NotificationScreen;
