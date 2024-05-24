@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 // Screens
+import SignInScreen from './screens/auth/login.screen';
 import SignupRealEstateAgentScreen from './screens/auth/otp-register.screen';
 import OverviewScreen from './screens/onboarding/overview.screen';
 import ContactsPermissions from './screens/onboarding/permissions.screen';
@@ -34,14 +35,14 @@ const App = () => {
 
       // Make an API request to check if the user is authenticated
       // const response = await axios.post('http://localhost/eatapp/eat-server/api/connectx', {
-      const response = await axios.post('https://sms.mightyfinance.co.zm/api/connectx', {
+      const response = await axios.post('http://localhost/realestserver/est-server/api/connectx', {
         withCredentials: false, // Include credentials (cookies) in the request
         phone: phoneNumber,
       });
 
       // If the request is successful, update the authenticated state based on the response
-      setAuthenticated(true);
-      // setAuthenticated(response.data.status);
+      // setAuthenticated(true);
+      setAuthenticated(response.data.status);
     } catch (error) {
       console.error('Authentication check failed:', error);
       setAuthenticated(false);
@@ -68,7 +69,8 @@ const App = () => {
           <Stack.Screen name="ProductDetails" component={ProductDetails} />
         </Stack.Navigator>
       ) : (
-        <Stack.Navigator initialRouteName="RegisterByOTP" headerMode="none">
+        <Stack.Navigator initialRouteName="SignIn" headerMode="none">
+          <Stack.Screen name="SignIn" component={SignInScreen} />
           <Stack.Screen name="RegisterByOTP" component={SignupRealEstateAgentScreen} />
           <Stack.Screen name="Overview" component={OverviewScreen} />
           <Stack.Screen name="ContactsPermissions" component={ContactsPermissions} />

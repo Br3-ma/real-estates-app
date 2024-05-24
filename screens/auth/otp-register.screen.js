@@ -1,26 +1,36 @@
 import React, { useState } from 'react';
-import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useToast } from 'react-native-toast-notifications';
 
 const backgroundImage = require('../../assets/img/otp.jpeg');
 
 const SignupRealEstateAgentScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const toast = useToast();
 
   const handleSignup = async () => {
     try {
-      const response = await axios.post('https://api.yourdomain.com/api/signup', {
+      const response = await axios.post('http://localhost/realestserver/est-server/api/signup/user-info', {
         name,
         email,
+        phone,
         password,
       });
       await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-      navigation.navigate('Dashboard');
+      navigation.navigate('Main');
     } catch (error) {
+      toast.show('There was an issue with your signup. Please try again.', {
+        type: 'danger',
+        placement: 'top',
+        duration: 4000,
+        animationType: 'slide-in',
+      });
       console.error('Signup Error:', error);
     }
   };
@@ -28,10 +38,13 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
   return (
     <ImageBackground source={backgroundImage} style={styles.background}>
       <View style={styles.overlay}>
-        <Text style={styles.title}>Sign Up</Text>
+        <View style={styles.header}>
+          <FontAwesome name="user-circle" size={80} color="#FFF" />
+          <Text style={styles.title}>Sign Up</Text>
+        </View>
         <TextInput
           style={styles.input}
-          placeholder="Full name"
+          placeholder="Full Name"
           placeholderTextColor="#cccccc"
           value={name}
           onChangeText={setName}
@@ -43,6 +56,13 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
           value={email}
           onChangeText={setEmail}
           keyboardType="email-address"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Phone"
+          placeholderTextColor="#cccccc"
+          value={phone}
+          onChangeText={setPhone}
         />
         <TextInput
           style={styles.input}
@@ -67,16 +87,20 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     color: '#FFF',
-    marginBottom: 30,
+    marginTop: 10,
   },
   input: {
     width: '100%',
@@ -88,7 +112,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontSize: 16,
     color: '#FFF',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   button: {
     backgroundColor: '#FF6F61',

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "eatapp",
-    "slug": "eatapp",
+    "name": "realest",
+    "slug": "realest",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,15 +22,22 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.br3mah.eatapp"
+      "package": "com.br3mah.realest"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "4cda9813-1c74-405b-8606-d11e7b9c9c0a"
+        "projectId": "a136b0be-69e2-42d4-87e8-7dce2b3c4ebd"
       }
+    },
+    "updates": {  
+      "enabled": false,
+      "checkAutomatically": "NEVER"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

@@ -217,9 +217,10 @@ const MyPropertyScreen = ({ navigation }) => {
               </Grid>
               <TouchableOpacity onPress={pickImages} style={styles.uploadButton}>
                 <Image
-                  source={{ uri: 'https://example.com/your-image.png' }}
+                  source={require('../../../assets/icon/image.png')} 
                   style={{ width: 24, height: 24, tintColor: 'white' }}
                 />
+
                 <Text style={styles.uploadButtonText}>Upload Images</Text>
               </TouchableOpacity>
               <View style={styles.uploadedImageContainer}>
@@ -274,10 +275,10 @@ const MyPropertyScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Card>
-        {/* <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} /> */}
+      {/* <Card>
+        <SearchBar placeholder="Type Here..." onChangeText={updateSearch} value={search} />
         <ButtonGroup buttons={buttons} selectedIndex={selectedIndex} onPress={updateIndex} />
-      </Card>
+      </Card> */}
       <ScrollView>
         {loading ? (
           <ShimmerPlaceholder />
@@ -509,7 +510,7 @@ const styles = StyleSheet.create({
   },
   addButton: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 70,
     right: 20,
     backgroundColor: 'green',
     borderRadius: 50,

@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground } from 'react-native';
-import { Card, Button, Icon, SearchBar, ButtonGroup, Avatar } from 'react-native-elements';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar } from 'react-native';
+import { Card, Button, Icon, SearchBar, ButtonGroup } from '@rneui/themed';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import moment from 'moment';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { GiftedChat } from 'react-native-gifted-chat';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const HomeScreen = ({ navigation }) => {
   const [properties, setProperties] = useState([]);
@@ -15,8 +15,6 @@ const HomeScreen = ({ navigation }) => {
   const [isImageViewVisible, setImageViewVisible] = useState(false);
   const [currentImages, setCurrentImages] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [newMessage, setNewMessage] = useState('');
-  const scrollViewRef = useRef();
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -33,7 +31,7 @@ const HomeScreen = ({ navigation }) => {
         setLoading(false);
       }
     };
-
+  
     const fetchMessages = async () => {
       try {
         // Simulating fetch delay
@@ -46,7 +44,7 @@ const HomeScreen = ({ navigation }) => {
             user: {
               _id: 2,
               name: 'Buyer',
-              avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsPZBbkX2hmZKVaKjIYvpTNftoabiOLZwMjXJ50PkFdw&s',
+              avatar: 'https://placeimg.com/140/140/any',
             },
           },
           {
@@ -59,28 +57,8 @@ const HomeScreen = ({ navigation }) => {
               avatar: 'https://placeimg.com/140/140/any',
             },
           },
-          {
-            _id: 3,
-            text: 'Call 09328383992.',
-            createdAt: new Date(),
-            user: {
-              _id: 1,
-              name: 'Banda',
-              avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRsPZBbkX2hmZKVaKjIYvpTNftoabiOLZwMjXJ50PkFdw&s',
-            },
-          },
-          {
-            _id: 4,
-            text: 'Alright, thank you. I will let you know once I get back home from work, probably around 20:00...please dont give it to anyone',
-            createdAt: new Date(),
-            user: {
-              _id: 2,
-              name: 'Agent',
-              avatar: 'https://placeimg.com/140/140/any',
-            },
-          },
         ];
-
+  
         setMessages(previousMessages);
       } catch (error) {
         console.error('Failed to fetch messages:', error);
@@ -90,10 +68,11 @@ const HomeScreen = ({ navigation }) => {
         console.log(properties);
       }
     };
-
+  
     fetchProperties();
     fetchMessages();
   }, []);
+  
 
   const updateSearch = (search) => {
     setSearch(search);
@@ -108,35 +87,6 @@ const HomeScreen = ({ navigation }) => {
     setCurrentImages(images);
     setImageViewVisible(true);
   };
-
-  const sendMessage = () => {
-    if (newMessage.trim() === '') return;
-    const newMsg = {
-      _id: messages.length + 1,
-      text: newMessage,
-      createdAt: new Date(),
-      user: {
-        _id: 1,
-        name: 'Agent',
-        avatar: 'https://placeimg.com/140/140/any'
-      },
-    };
-    setMessages([...messages, newMsg]);
-    setNewMessage('');
-    Keyboard.dismiss();
-
-    // Scroll to bottom
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
-  };
-
-  const getImageStyle = (imageCount) => ({
-    width: imageCount === 1 ? width : width / Math.min(imageCount, 3),
-    height: 250,
-    resizeMode: 'cover',
-    marginRight: 5,
-  });
 
   const renderPropertyItem = ({ item }) => (
     <Card containerStyle={styles.fullWidthCard}>
@@ -158,7 +108,7 @@ const HomeScreen = ({ navigation }) => {
 
           <TouchableOpacity onPress={() => navigation.navigate('MapScreen', { location: item.location })}>
             <Text>
-              <MaterialIcons name="place" size={20} color="#000" />
+              <MaterialIcons name="place" size={20} color="#000" /> 
               {item.location}
             </Text>
           </TouchableOpacity>
@@ -187,82 +137,79 @@ const HomeScreen = ({ navigation }) => {
     </Card>
   );
 
-  const timeElapsed = (date) => {
-    return moment(date).fromNow();
+  const onSend = (newMessages = []) => {
+    setMessages(previousMessages => GiftedChat.append(previousMessages, newMessages));
   };
 
-  const renderMessage = (message) => (
-    <View key={message._id} style={styles.messageContainer}>
-      <Avatar
-        rounded
-        source={{ uri: message.user.avatar }}
-        size="small"
-        containerStyle={{ marginRight: 10 }}
-      />
-      <View style={styles.messageContent}>
-        <Text style={styles.messageUserName}>{message.user.name}</Text>
-        <Text style={styles.messageText}>{message.text}</Text>
-        <Text style={styles.messageTime}>{timeElapsed(message.createdAt)}</Text>
-        <TouchableOpacity onPress={() => console.log('Reply to:', message.user.name)}><Text style={styles.replyLink}>Reply</Text></TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  const renderImageViewerModal = () => {
-    return (
-      <Modal
-        animationType="slide"
-        transparent={false}
-        visible={isImageViewVisible}
-        onRequestClose={() => setImageViewVisible(false)}
-      >
-        <SafeAreaView style={{ flex: 1 }}>
-          <TouchableOpacity style={styles.closeButton} onPress={() => setImageViewVisible(false)}>
-            <MaterialIcons name="arrow-back" size={24} color="#000" />
-          </TouchableOpacity>
-          <ScrollView style={styles.topImageContiner} horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
-            {currentImages.map((image, index) => (
-              <View key={index} style={{ borderRadius: 20, overflow: 'hidden', marginHorizontal: 10 }}>
-                <ImageBackground source={image} style={{ width, height: height * 0.4, resizeMode: 'cover' }}>
-                  <View style={styles.overlayDetails}>
-                    <Text style={styles.overlayText}>{properties[selectedIndex]?.name} - ${properties[selectedIndex]?.price}</Text>
-                    <View style={styles.overlayIconRow}>
-                      <Icon name="bed" type="material" size={15} color="#fff" />
-                      <Text style={styles.overlayTextSmall}>{properties[selectedIndex]?.beds} Beds</Text>
-                      <Icon name="bathtub" type="material" size={15} color="#fff" />
-                      <Text style={styles.overlayTextSmall}>{properties[selectedIndex]?.baths} Baths</Text>
-                      <Icon name="square-foot" type="material" size={15} color="#fff" />
-                      <Text style={styles.overlayTextSmall}>{properties[selectedIndex]?.area} sqft</Text>
-                    </View>
-                  </View>
-                </ImageBackground>
+  const renderImageViewerModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={false}
+      visible={isImageViewVisible}
+      onRequestClose={() => setImageViewVisible(false)}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <TouchableOpacity style={styles.closeButton} onPress={() => setImageViewVisible(false)}>
+          <MaterialIcons name="arrow-back" size={24} color="#000" />
+        </TouchableOpacity>
+        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={true}>
+          {currentImages.map((image, index) => (
+            <View key={index} style={{ width, height: width, position: 'relative' }}>
+              <Image source={image} style={{ width, height: width, resizeMode: 'contain' }} />
+              <View style={styles.overlayDetails}>
+                <Text style={styles.overlayText}>{properties[selectedIndex]?.name} - ${properties[selectedIndex]?.price}</Text>
+                <View style={styles.overlayIconRow}>
+                  <Icon name="bed" type="material" size={15} color="#fff" />
+                  <Text style={styles.overlayTextSmall}>{properties[selectedIndex]?.beds} Beds</Text>
+                  <Icon name="bathtub" type="material" size={15} color="#fff" />
+                  <Text style={styles.overlayTextSmall}>{properties[selectedIndex]?.baths} Baths</Text>
+                  <Icon name="square-foot" type="material" size={15} color="#fff" />
+                  <Text style={styles.overlayTextSmall}>{properties[selectedIndex]?.area} sqft</Text>
+                </View>
               </View>
-            ))}
-          </ScrollView>
-          
+            </View>
+          ))}
+        </ScrollView>
           {/* Comment Section */}
-          <View style={styles.commentSection}>
-            <ScrollView ref={scrollViewRef} style={styles.commentsContainer}>
+          {/* <View style={styles.commentSection}>
+            <ScrollView style={styles.commentsContainer}>
               {messages.map(renderMessage)}
             </ScrollView>
             <View style={styles.messageInputContainer}>
-              <TextInput
+              <Input
                 placeholder="Type your comment..."
                 value={newMessage}
                 onChangeText={(text) => setNewMessage(text)}
                 style={styles.messageInput}
-                onSubmitEditing={sendMessage}
-                blurOnSubmit={false}
               />
-              <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
-                <MaterialIcons name="send" size={24} color="#fff" />
+              <TouchableOpacity onPress={sendMessage}>
+                <MaterialIcons name="send" size={32} color="#2196F3" />
               </TouchableOpacity>
             </View>
-          </View>
-        </SafeAreaView>
-      </Modal>
-    );
-  };
+          </View> */}
+
+        <View style={{ flex: 1 }}>
+
+          <GiftedChat
+            messages={messages}
+            onSend={onSend}
+            user={{
+              _id: 1,
+              name: 'Agent',
+              avatar: 'https://placeimg.com/140/140/any'
+            }}
+          />
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+
+  const getImageStyle = (imageCount) => ({
+    width: imageCount === 1 ? width : width / Math.min(imageCount, 3),
+    height: 250,
+    resizeMode: 'cover',
+    marginRight: 5,
+  });
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -319,12 +266,10 @@ const styles = StyleSheet.create({
   },
   overlayDetails: {
     position: 'absolute',
-    bottom: 60,  // Adjusted to move slightly upwards
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     width: '100%',
     padding: 10,
-    borderRadius: 10,
-    marginHorizontal: 10,
   },
   overlayText: {
     fontSize: 18,
@@ -385,72 +330,6 @@ const styles = StyleSheet.create({
   closeButton: {
     padding: 10,
     alignSelf: 'flex-start',
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  messageContent: {
-    flex: 1,
-    marginLeft: 10,
-    padding: 10,
-    backgroundColor: '#f2f2f2',
-    borderRadius: 10,
-  },
-  messageUserName: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  messageText: {
-    color: '#333',
-  },
-  messageTime: {
-    marginTop: 5,
-    color: '#999',
-    fontSize: 12,
-  },
-  messageInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    backgroundColor: '#fff',
-  },
-  messageInput: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-    marginRight: 10,
-  },
-  sendButton: {
-    backgroundColor: '#2196F3',
-    padding: 10,
-    borderRadius: 50,
-  },
-  commentSection: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 4,
-    height: height * 0.6,
-    overflow: 'hidden',
-    marginTop: -150,
-    borderRadius: 50,
-  },
-  commentsContainer: {
-    flex: 1,
-    bottom:0,
-    top:0,
-    backgroundColor:'#fff', //orange
-  },
-  topImageContiner:{
-    height: height * 0.1,
-  },
-  replyLink: {
-    color: '#007bff',
-    textDecorationLine: 'underline',
   },
 });
 
