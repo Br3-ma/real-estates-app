@@ -7,7 +7,7 @@ import axios from 'axios';
 
 // Screens
 import SignInScreen from './screens/auth/login.screen';
-import SignupRealEstateAgentScreen from './screens/auth/otp-register.screen';
+import SignupRealEstateAgentScreen from './screens/auth/register.screen';
 import OverviewScreen from './screens/onboarding/overview.screen';
 import ContactsPermissions from './screens/onboarding/permissions.screen';
 import SplashScreen from './screens/splash.screen';
@@ -35,7 +35,7 @@ const App = () => {
 
       // Make an API request to check if the user is authenticated
       // const response = await axios.post('http://localhost/eatapp/eat-server/api/connectx', {
-      const response = await axios.post('http://localhost/realestserver/est-server/api/connectx', {
+      const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/connectx', {
         withCredentials: false, // Include credentials (cookies) in the request
         phone: phoneNumber,
       });

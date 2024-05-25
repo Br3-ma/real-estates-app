@@ -14,7 +14,7 @@ const SignInScreen = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post('http://localhost/realestserver/est-server/api/signin', {
+      const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/signin', {
         email,
         password,
       });
@@ -123,5 +123,11 @@ const styles = StyleSheet.create({
   },
 });
 
+export default function App({ navigation }) {
 
-export default SignInScreen;
+  return (
+    <ToastProvider>
+      <SignInScreen navigation={navigation} />
+    </ToastProvider>
+  );
+}
