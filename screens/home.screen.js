@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Animated, Easing } from 'react-native';
 import { Card, Button, Icon, SearchBar, ButtonGroup, Avatar } from 'react-native-elements';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
@@ -17,6 +17,8 @@ const HomeScreen = ({ navigation }) => {
   const [currentImages, setCurrentImages] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [commentSectionHeight, setCommentSectionHeight] = useState(new Animated.Value(height * 0.2));
+  const [isImageShrunk, setIsImageShrunk] = useState(false);
   const scrollViewRef = useRef();
 
   useEffect(() => {
@@ -53,7 +55,7 @@ const HomeScreen = ({ navigation }) => {
     } catch (error) {
       console.error('Failed to fetch messages:', error);
     }
-  };  
+  };
 
   const sendMessage = () => {
     if (newMessage.trim() === '') return;
@@ -75,6 +77,16 @@ const HomeScreen = ({ navigation }) => {
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
+  };
+
+  const toggleImageSize = () => {
+    setIsImageShrunk(!isImageShrunk);
+    Animated.timing(commentSectionHeight, {
+      toValue: isImageShrunk ? height * 0.2 : height * 0.5,
+      duration: 300,
+      easing: Easing.inOut(Easing.ease),
+      useNativeDriver: false,
+    }).start();
   };
 
   const getImageStyle = (imageCount) => ({
@@ -146,7 +158,6 @@ const HomeScreen = ({ navigation }) => {
         containerStyle={{ marginRight: 10 }}
       />
       <View style={styles.messageContent}>
-        {/* <Text style={styles.messageUserName}>{message?.user.name}</Text> */}
         <Text style={styles.messageText}>{message.content}</Text>
         <Text style={styles.messageTime}>{timeElapsed(message.created_at)}</Text>
         <TouchableOpacity onPress={() => console.log('Reply to:', message.user.name)}><Text style={styles.replyLink}>Reply</Text></TouchableOpacity>
@@ -171,11 +182,11 @@ const HomeScreen = ({ navigation }) => {
               <View key={index} style={{ borderRadius: 20, overflow: 'hidden', marginBottom: 5 }}>
                 <ImageBackground
                   source={{ uri: image }}
-                  style={{ width: width, height: height * 0.5 }}
+                  style={{ width: width, height: isImageShrunk ? height * 0.25 : height * 0.5 }}
                 />
                 <View style={styles.overlayDetails}>
-                  <Text style={styles.overlayText}>{properties[selectedIndex]?.name} - K{properties[selectedIndex]?.price}</Text>
-                  <Text style={styles.overlayTextSmall}>{properties[selectedIndex]?.description} - K{properties[selectedIndex]?.price}</Text>
+                  <Text style={styles.overlayText}>{properties[selectedIndex]?.name} - ${properties[selectedIndex]?.price}</Text>
+                  <Text style={styles.overlayTextSmall}>{properties[selectedIndex]?.description}</Text>
                   <View style={styles.overlayIconRow}>
                     <Icon name="bed" type="material" size={15} color="#fff" />
                     <Text style={styles.overlayTextSmall}>{properties[selectedIndex]?.bedrooms} Beds</Text>
@@ -188,23 +199,33 @@ const HomeScreen = ({ navigation }) => {
               </View>
             ))}
           </ScrollView>
-          
-          <View style={styles.commentSection}>
-            <ScrollView style={styles.commentsContainer}>
+
+          <TouchableOpacity style={styles.toggleButton} onPress={toggleImageSize}>
+            <MaterialIcons name={isImageShrunk ? "expand-less" : "expand-more"} size={32} color="#000" />
+          </TouchableOpacity>
+
+          <Animated.View style={[styles.commentSection, { height: commentSectionHeight }]}>
+            <ScrollView style={styles.commentsContainer} onContentSizeChange={() => {
+              Animated.timing(commentSectionHeight, {
+                toValue: isImageShrunk ? height * 0.5 : height * 0.2,
+                duration: 300,
+                useNativeDriver: false,
+              }).start();
+            }}>
               {messages.map(renderMessage)}
             </ScrollView>
             <View style={styles.messageInputContainer}>
               <TextInput
-                placeholder="Type your comment..."
-                value={newMessage}
-                onChangeText={(text) => setNewMessage(text)}
                 style={styles.messageInput}
+                placeholder="Type a message..."
+                value={newMessage}
+                onChangeText={setNewMessage}
               />
               <TouchableOpacity onPress={sendMessage}>
-                <MaterialIcons name="send" size={32} color="#2196F3" />
+                <MaterialIcons name="send" size={24} color="#2096F3" />
               </TouchableOpacity>
             </View>
-          </View> 
+          </Animated.View>
         </SafeAreaView>
       </Modal>
     );
@@ -320,34 +341,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   commentSection: {
-    flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 2,
-    height: 'auto',
     overflow: 'hidden',
-    marginTop: -20,
   },
   commentsContainer: {
     flex: 1,
-    bottom:40,
-    backgroundColor:'#FFF', //orange
-    height: height * 0.3,
+    backgroundColor: '#FFF',
   },
   messageContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginVertical: 10,
     padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 40,
-    marginBottom:-60,
+    marginTop: 5,
   },
   messageContent: {
     flex: 1,
-    backgroundColor: '#F0F4F4',
-  },
-  messageUserName: {
-    fontWeight: 'bold',
   },
   messageText: {
     marginVertical: 5,
@@ -371,15 +380,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     marginRight: 10,
   },
-  sendButton: {
-    backgroundColor: '#2196F3',
-    padding: 10,
-    borderRadius: 50,
-  },
   replyLink: {
     color: '#2096F3',
   },
-
   overlayDetails: {
     position: 'absolute',
     bottom: 30,
@@ -401,9 +404,12 @@ const styles = StyleSheet.create({
   overlayIconRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap:10,
+    gap: 10,
   },
-
+  toggleButton: {
+    alignSelf: 'center',
+    marginVertical: 10,
+  },
 });
 
 export default HomeScreen;
