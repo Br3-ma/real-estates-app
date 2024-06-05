@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -34,8 +34,8 @@ const App = () => {
       const phoneNumber = userInfo ? userInfo.user.phone : '0'; // Use '0' if no user info is found
 
       // Make an API request to check if the user is authenticated
-      const response = await axios.post('http://localhost/realestserver/est-server/api/connectx', {
-      // const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/connectx', {
+      // const response = await axios.post('http://localhost/realestserver/est-server/api/connectx', {
+      const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/connectx', {
         withCredentials: false, // Include credentials (cookies) in the request
         phone: phoneNumber,
       });
@@ -60,16 +60,16 @@ const App = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={MyTheme}>
       {authenticated ? (
-        <Stack.Navigator initialRouteName="Main" headerMode="none">
+        <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="Cart" component={CartScreen} />
           <Stack.Screen name="MapScreen" component={MapScreen} />
           <Stack.Screen name="ProductDetails" component={ProductDetails} />
         </Stack.Navigator>
       ) : (
-        <Stack.Navigator initialRouteName="SignIn" headerMode="none">
+        <Stack.Navigator initialRouteName="SignIn" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="SignIn" component={SignInScreen} />
           <Stack.Screen name="RegisterByOTP" component={SignupRealEstateAgentScreen} />
           <Stack.Screen name="Overview" component={OverviewScreen} />
@@ -79,6 +79,14 @@ const App = () => {
       )}
     </NavigationContainer>
   );
+};
+
+const MyTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#415D77', // Change primary color
+  },
 };
 
 const styles = StyleSheet.create({

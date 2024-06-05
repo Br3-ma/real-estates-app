@@ -6,7 +6,6 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import moment from 'moment';
 import axios from 'axios';
-import io from 'socket.io-client'; // Import Socket.io client library
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,12 +23,12 @@ const HomeScreen = ({ navigation }) => {
   const [isImageShrunk, setIsImageShrunk] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
   const scrollViewRef = useRef();
-  const socket = useRef(null);
+  const fetchIntervalRef = useRef(null); // Reference for the fetch interval
 
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await axios.get('http://localhost/realestserver/est-server/api/property-posts');
+        const response = await axios.get('http://192.168.43.63/realestserver/est-server/api/property-posts');
         setProperties(response.data);
       } catch (error) {
         console.error('Failed to fetch properties:', error);
@@ -45,7 +44,18 @@ const HomeScreen = ({ navigation }) => {
 
     fetchUser();
     fetchProperties();
+
+    return () => {
+      terminateFetchInterval();
+    };
   }, []);
+
+  const terminateFetchInterval = () => {
+    if (fetchIntervalRef.current !== null) {
+      clearInterval(fetchIntervalRef.current);
+      fetchIntervalRef.current = null;
+    }
+  };
 
   const updateSearch = (search) => {
     setSearch(search);
@@ -65,53 +75,28 @@ const HomeScreen = ({ navigation }) => {
       const response = await axios.get(`http://192.168.43.63/realestserver/est-server/api/post-comments/${itemId}`);
       setMessages(response.data);
 
-      // Initialize Socket.io connection
-      socket.current = io('http://192.168.43.63/realestserver/est-server');
+      // Clear any existing interval before setting a new one
+      terminateFetchInterval();
 
-      socket.current.on('connect', () => {
-        console.log('Socket.io connected');
-      });
-
-      socket.current.on('comment.created', (data) => {
-        console.log('Received new comment:', data);
-        setMessages((prevMessages) => [...prevMessages, data.comment]);
-      });
-
-      socket.current.on('error', (error) => {
-        console.error('Socket.io error:', error);
-      });
-
-      socket.current.on('disconnect', () => {
-        console.log('Socket.io disconnected');
-      });
-
+      // Set up continuous fetching of messages every 4 seconds
+      fetchIntervalRef.current = setInterval(async () => {
+        const newResponse = await axios.get(`http://192.168.43.63/realestserver/est-server/api/post-comments/${itemId}`);
+        setMessages(newResponse.data);
+      }, 4000);
     } catch (error) {
       console.error('Failed to fetch messages:', error);
     }
   };
 
-  useEffect(() => {
-    return () => {
-      // Cleanup Socket.io connection when the component unmounts
-      if (socket.current) {
-        socket.current.disconnect();
-      }
-    };
-  }, []);
-
-
   const sendMessage = async () => {
     if (newMessage.trim() === '') return;
 
     try {
-      const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/comment-reply', {
+      await axios.post('http://192.168.43.63/realestserver/est-server/api/comment-reply', {
         post_id: selectedProperty.id,
         user_id: userInfo.user.id,
         content: newMessage,
       });
-
-      // const updatedMessages = await axios.get(`http://192.168.43.63/realestserver/est-server/api/post-comments/${selectedProperty.id}`);
-      // setMessages(updatedMessages.data);
     } catch (error) {
       console.error('Failed to send message:', error);
     }
@@ -128,7 +113,7 @@ const HomeScreen = ({ navigation }) => {
   const toggleImageSize = () => {
     setIsImageShrunk(!isImageShrunk);
     Animated.timing(commentSectionHeight, {
-      toValue: isImageShrunk ? height * 0.2 : height * 0.5,
+      toValue: isImageShrunk ? height * 0.3 : height * 0.5,
       duration: 300,
       easing: Easing.inOut(Easing.ease),
       useNativeDriver: false,
@@ -158,7 +143,7 @@ const HomeScreen = ({ navigation }) => {
       </ScrollView>
       <View>
         <View style={styles.priceLocationRow}>
-          <Text style={styles.priceText}>${item.price}</Text>
+          <Text style={styles.priceText}>K{item.price}</Text>
 
           <TouchableOpacity onPress={() => navigation.navigate('MapScreen', { location: item.location })}>
             <Text>
@@ -204,10 +189,12 @@ const HomeScreen = ({ navigation }) => {
         containerStyle={{ marginRight: 10 }}
       />
       <View style={styles.messageContent}>
-        <Text style={styles.messageText}>{message.user?.name}</Text>
+        <Text style={styles.messageTextTitle}>{message.user?.name}</Text>
         <Text style={styles.messageText}>{message.content}</Text>
         <Text style={styles.messageTime}>{timeElapsed(message.created_at)}</Text>
-        <TouchableOpacity onPress={() => console.log('Reply to:', message.user.name)}><Text style={styles.replyLink}>Reply</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => console.log('Reply to:', message.user.name)}>
+          <Text style={styles.replyLink}>Reply</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -221,11 +208,14 @@ const HomeScreen = ({ navigation }) => {
         onRequestClose={() => {
           setImageViewVisible(false);
           setSelectedProperty(null);
+          terminateFetchInterval();
         }}
       >
         <SafeAreaView style={{ flex: 1 }}>
           <TouchableOpacity style={styles.closeButton} onPress={() => {
             setImageViewVisible(false);
+            setSelectedProperty(null);
+            terminateFetchInterval();
           }}>
             <MaterialIcons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
@@ -234,240 +224,241 @@ const HomeScreen = ({ navigation }) => {
               <View key={index} style={{ borderRadius: 20, overflow: 'hidden', marginBottom: 1 }}>
                 <ImageBackground
                   source={{ uri: image }}
-                  style={{ width: width, height: isImageShrunk ? height * 0.25 : height * 0.5 }}                />
-                  {selectedProperty && (
-                    <View style={styles.overlayDetails}>
-                      <Text style={styles.overlayText}>{selectedProperty.name} - ${selectedProperty.price}</Text>
-                      <Text style={styles.overlayTextSmall}>{selectedProperty.description}</Text>
-                      <View style={styles.overlayIconRow}>
-                        <Icon name="bed" type="material" size={15} color="#fff" />
-                        <Text style={styles.overlayTextSmall}>{selectedProperty.bedrooms} Beds</Text>
-                        <Icon name="bathtub" type="material" size={15} color="#fff" />
-                        <Text style={styles.overlayTextSmall}>{selectedProperty.bathrooms} Baths</Text>
-                        <Icon name="square-foot" type="material" size={15} color="#fff" />
-                        <Text style={styles.overlayTextSmall}>{selectedProperty.area} sqft</Text>
-                      </View>
-                    </View>
-                  )}
-                </View>
-              ))}
-            </ScrollView>
-  
-            <TouchableOpacity style={styles.toggleButton} onPress={toggleImageSize}>
-              <MaterialIcons name={isImageShrunk ? "expand-less" : "expand-more"} size={32} color="#000" />
-            </TouchableOpacity>
-  
-            <Animated.View style={[styles.commentSection, { height: commentSectionHeight }]}>
-              <ScrollView style={styles.commentsContainer} onContentSizeChange={() => {
-                Animated.timing(commentSectionHeight, {
-                  toValue: isImageShrunk ? height * 0.6 : height * 0.1,
-                  duration: 300,
-                  useNativeDriver: false,
-                }).start();
-              }}>
-                {messages.map(renderMessage)}
-              </ScrollView>
-              <View style={styles.messageInputContainer}>
-                <TextInput
-                  style={styles.messageInput}
-                  placeholder="Type a message..."
-                  value={newMessage}
-                  onChangeText={setNewMessage}
+                  style={{ width: width, height: isImageShrunk ? height * 0.1 : height * 0.6 }}
                 />
-                <TouchableOpacity onPress={sendMessage}>
-                  <MaterialIcons name="send" size={24} color="#2096F3" />
-                </TouchableOpacity>
+                {selectedProperty && (
+                  <View style={styles.overlayDetails}>
+                    <Text style={styles.overlayText}>{selectedProperty.title} - K{selectedProperty.price}</Text>
+                    <Text style={styles.overlayTextSmall}>{selectedProperty.description}</Text>
+                    <View style={styles.overlayIconRow}>
+                      <Icon name="bed" type="material" size={15} color="#fff" />
+                      <Text style={styles.overlayTextSmall}>{selectedProperty?.beds} Beds</Text>
+                      <Icon name="bathtub" type="material" size={15} color="#fff" />
+                      <Text style={styles.overlayTextSmall}>{selectedProperty.baths} Baths</Text>
+                      <Icon name="square-foot" type="material" size={15} color="#fff" />
+                      <Text style={styles.overlayTextSmall}>{selectedProperty.area} sqft</Text>
+                    </View>
+                  </View>
+                )}
               </View>
-            </Animated.View>
-          </SafeAreaView>
-        </Modal>
-      );
-    };
-  
-    return (
-      <SafeAreaView style={styles.safeAreaContainer}>
-        <SearchBar
-          placeholder="Type Here..."
-          onChangeText={updateSearch}
-          value={search}
-          containerStyle={styles.searchContainer}
-          inputContainerStyle={styles.searchInputContainer}
-          lightTheme
-        />
-        <ButtonGroup
-          onPress={updateIndex}
-          selectedIndex={selectedIndex}
-          buttons={buttons}
-          containerStyle={styles.buttonGroupContainer}
-          selectedButtonStyle={styles.selectedButtonStyle}
-        />
-        <ScrollView style={styles.container} ref={scrollViewRef}>
-          {loading ? (
-            <ShimmerPlaceholder style={{ height: 200, marginBottom: 10 }} />
-          ) : (
-            properties.map((property) => renderPropertyItem({ item: property }))
-          )}
-        </ScrollView>
-        {renderImageViewerModal()}
-      </SafeAreaView>
+            ))}
+          </ScrollView>
+          <TouchableOpacity style={styles.toggleButton} onPress={toggleImageSize}>
+            <MaterialIcons name={isImageShrunk ? 'expand-more' : 'expand-less'} size={24} color="#000" />
+          </TouchableOpacity>
+          <Animated.View style={[styles.commentSection, { height: commentSectionHeight }]}>
+            <ScrollView ref={scrollViewRef}>
+              {messages.map((message) => renderMessage(message))}
+            </ScrollView>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={newMessage}
+                onChangeText={setNewMessage}
+                placeholder="Add a comment..."
+                multiline
+              />
+              <TouchableOpacity onPress={sendMessage}>
+                <MaterialIcons name="send" size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </SafeAreaView>
+      </Modal>
     );
   };
-  
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#f5f5f5',
-    },
-    searchContainer: {
-      backgroundColor: '#fff',
-      borderBottomColor: 'transparent',
-      borderTopColor: 'transparent',
-    },
-    searchInputContainer: {
-      backgroundColor: '#e0e0e0',
-      borderRadius: 10,
-    },
-    buttonGroupContainer: {
-      marginBottom: 10,
-    },
-    selectedButtonStyle: {
-      backgroundColor: '#2096F3',
-    },
-    fullWidthCard: {
-      width: width * 0.95,
-      alignSelf: 'center',
-      borderRadius: 10,
-    },
-    priceLocationRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginVertical: 10,
-    },
-    priceText: {
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    iconRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginVertical: 10,
-    },
-    iconTextContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    iconText: {
-      marginLeft: 5,
-    },
-    buttonRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginVertical: 10,
-    },
-    overlayStyle: {
-      position: 'absolute',
-      bottom: 10,
-      right: 10,
-      backgroundColor: 'rgba(0,0,0,0.5)',
-      padding: 5,
-      borderRadius: 5,
-    },
-    ribbonTag: {
-      color: '#fff',
-      fontSize: 12,
-    },
-    messageInput: {
-      backgroundColor: '#fff',
-      padding: 10,
-      borderRadius: 20,
-      margin: 10,
-    },
-    safeAreaContainer: {
-      flex: 1,
-      backgroundColor: '#fff',
-      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-    },
-    closeButton: {
-      padding: 10,
-    },
-    topImageContiner: {
-      flex: 1,
-    },
-    commentSection: {
-      backgroundColor: '#fff',
-      overflow: 'hidden',
-    },
-    commentsContainer: {
-      flex: 1,
-      backgroundColor: '#FFF',
-    },
-    messageContainer: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      marginVertical: 10,
-      padding: 10,
-      marginTop: 5,
-    },
-    messageContent: {
-      flex: 1,
-    },
-    messageText: {
-      marginVertical: 5,
-    },
-    messageTitle: {
-      fontSize: 13,
-      fontWeight: 'bold',
-    },
-    messageTime: {
-      color: 'gray',
-      fontSize: 12,
-    },
-    messageInputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 10,
-      borderTopWidth: 1,
-      borderTopColor: '#ccc',
-      backgroundColor: '#fff',
-    },
-    messageInput: {
-      flex: 1,
-      padding: 10,
-      borderRadius: 20,
-      backgroundColor: '#f0f0f0',
-      marginRight: 10,
-    },
-    replyLink: {
-      color: '#2096F3',
-    },
-    overlayDetails: {
-      position: 'absolute',
-      bottom: 30,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      width: '100%',
-      padding: 10,
-    },
-    overlayText: {
-      fontSize: 18,
-      color: '#fff',
-      fontWeight: 'bold',
-      marginBottom: 5,
-    },
-    overlayTextSmall: {
-      fontSize: 14,
-      color: '#fff',
-      marginLeft: 5,
-    },
-    overlayIconRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 10,
-    },
-    toggleButton: {
-      alignSelf: 'center',
-      marginVertical: 10,
-    },
-  });
-  
-  export default HomeScreen;
-  
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <SearchBar
+        placeholder="Search properties..."
+        onChangeText={updateSearch}
+        value={search}
+        platform={Platform.OS}
+        containerStyle={styles.searchBarContainer}
+        inputContainerStyle={styles.searchBarInput}
+      />
+      <ButtonGroup
+        buttons={buttons}
+        selectedIndex={selectedIndex}
+        onPress={updateIndex}
+        containerStyle={styles.buttonGroupContainer}
+        selectedButtonStyle={styles.selectedButton}
+      />
+      <ScrollView>
+        {loading ? (
+          <View style={styles.loader}>
+            {[1, 2, 3].map((item) => (
+              <ShimmerPlaceholder key={item} style={styles.placeholder} />
+            ))}
+          </View>
+        ) : (
+          <View>
+          {properties.map((property) => (
+            <View key={property.id}>{renderPropertyItem({ item: property })}</View>
+          ))}
+        </View>
+        )}
+      </ScrollView>
+      {renderImageViewerModal()}
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  searchBarContainer: {
+    backgroundColor: 'transparent',
+    borderBottomColor: 'transparent',
+    borderTopColor: 'transparent',
+  },
+  searchBarInput: {
+    backgroundColor: '#ececec',
+  },
+  buttonGroupContainer: {
+    marginBottom: 10,
+  },
+  selectedButton: {
+    backgroundColor: '#6c63ff',
+  },
+  fullWidthCard: {
+    width: '100%',
+  },
+  priceLocationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  priceText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  iconTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconText: {
+    marginLeft: 5,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 10,
+  },
+  closeButton: {
+    marginLeft: 10,
+    marginTop: 10,
+  },
+  topImageContiner: {
+    flexDirection: 'row',
+    marginBottom: 1,
+  },
+  overlayDetails: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 5,
+    borderRadius: 5,
+  },
+  overlayIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  overlayText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  overlayTextSmall: {
+    color: '#fff',
+    fontSize: 12,
+  },
+  toggleButton: {
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  commentSection: {
+    backgroundColor: '#f1f1f1',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  input: {
+    flex: 1,
+    height: 40,
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+    paddingHorizontal: 10,
+  },
+  messageContent: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 10,
+    borderRadius: 10,
+  },
+  messageText: {
+    fontSize: 14,
+    marginBottom: 5,
+  },
+  messageTextTitle: {
+    fontSize: 14,
+    marginBottom: 5,
+    fontWeight: 'bold',
+    color: 'purple'
+  },
+  messageTime: {
+    fontSize: 12,
+    color: '#888',
+  },
+  replyLink: {
+    fontSize: 12,
+    color: '#007aff',
+    marginTop: 5,
+  },
+  loader: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholder: {
+    width: '90%',
+    height: 200,
+    marginBottom: 10,
+  },
+  overlayStyle: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 5,
+    borderTopRightRadius: 10,
+    borderBottomLeftRadius: 10,
+  },
+  ribbonTag: {
+    color: '#fff',
+    fontSize: 12,
+  },
+});
+
+export default HomeScreen;
