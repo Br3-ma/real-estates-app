@@ -4,6 +4,8 @@ import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ToastProvider, useToast } from 'react-native-toast-notifications';
+import { API_BASE_URL } from '../../confg/config';
+import { SERVER_BASE_URL } from '../../confg/config';
 
 const backgroundImage = require('../../assets/img/otp.jpeg');
 
@@ -16,7 +18,7 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
 
   const handleSignup = async () => {
     try {
-      const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/signup/user-info', {
+      const response = await axios.post(`${API_BASE_URL}/realestserver/est-server/api/signup/user-info`, {
         name,
         email,
         phone,

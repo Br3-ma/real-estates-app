@@ -3,7 +3,7 @@ import { View, StyleSheet, Modal } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import HomeScreen from './home.screen';
-import MyPropertyScreen from './account/food/my-food.screen';
+import MyPropertyScreen from './account/food/my-properties.screen';
 import NotificationScreen from './account/donation/box.screen';
 import MeScreen from './account/profile/me.screen';
 

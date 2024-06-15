@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { API_BASE_URL } from './confg/config';
+import { SERVER_BASE_URL } from './confg/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
@@ -13,7 +15,7 @@ import ContactsPermissions from './screens/onboarding/permissions.screen';
 import SplashScreen from './screens/splash.screen';
 import MainScreen from './screens/main.screen';
 import CartScreen from './screens/cart/my-cart.screen';
-import ProductDetails from './screens/products/product-detail.screen';
+// import ProductDetails from './screens/products/product-detail.screen';
 import MapScreen from './screens/maps/find-property.screen';
 
 const Stack = createStackNavigator();
@@ -35,7 +37,7 @@ const App = () => {
 
       // Make an API request to check if the user is authenticated
       // const response = await axios.post('http://localhost/realestserver/est-server/api/connectx', {
-      const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/connectx', {
+      const response = await axios.post(`${API_BASE_URL}/connectx`, {
         withCredentials: false, // Include credentials (cookies) in the request
         phone: phoneNumber,
       });
@@ -66,7 +68,7 @@ const App = () => {
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="Cart" component={CartScreen} />
           <Stack.Screen name="MapScreen" component={MapScreen} />
-          <Stack.Screen name="ProductDetails" component={ProductDetails} />
+          {/* <Stack.Screen name="ProductDetails" component={ProductDetails} /> */}
         </Stack.Navigator>
       ) : (
         <Stack.Navigator initialRouteName="SignIn" screenOptions={{ headerShown: false }}>

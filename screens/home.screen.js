@@ -1,13 +1,44 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Animated, Easing } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions } from 'react-native';
 import { Card, Button, Icon, SearchBar, ButtonGroup, Avatar } from 'react-native-elements';
-import { fetchUserInfo } from '../controllers/auth/userController';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import moment from 'moment';
 import axios from 'axios';
+import styles from '../assets/css/home.css';
+import { API_BASE_URL } from '../confg/config';
+import { SERVER_BASE_URL } from '../confg/config';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
+
+// Mock data for Features & Amenities
+const features = [
+  { name: 'Swimming Pool', icon: 'pool', link: 'https://example.com/pool-info' },
+  { name: 'Gym', icon: 'fitness-center', link: 'https://example.com/gym-info' },
+  { name: 'Parking', icon: 'local-parking', link: 'https://example.com/parking-info' },
+  { name: 'Security', icon: 'security', link: 'https://example.com/security-info' },
+  // Add more items as needed
+];
+
+// Mock data for Recommended Properties
+const recommendedPropertiesData = [
+  {
+    id: 1,
+    title: 'Beautiful House in Suburbia',
+    price: 250000,
+    description: 'A lovely house with a big garden and beautiful surroundings.',
+    image: 'https://example.com/recommended-house-1.jpg',
+  },
+  {
+    id: 2,
+    title: 'Luxury Apartment Downtown',
+    price: 180000,
+    description: 'Modern apartment with stunning city views and amenities.',
+    image: 'https://example.com/recommended-apartment-1.jpg',
+  },
+  // Add more items as needed
+];
 
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
@@ -19,16 +50,15 @@ const HomeScreen = ({ navigation }) => {
   const [currentImages, setCurrentImages] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [commentSectionHeight, setCommentSectionHeight] = useState(new Animated.Value(height * 0.2));
-  const [isImageShrunk, setIsImageShrunk] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
   const scrollViewRef = useRef();
-  const fetchIntervalRef = useRef(null); // Reference for the fetch interval
+  const fetchIntervalRef = useRef(null);
 
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await axios.get('http://192.168.43.63/realestserver/est-server/api/property-posts');
+        const response = await axios.get(`${API_BASE_URL}/property-posts`);
         setProperties(response.data);
       } catch (error) {
         console.error('Failed to fetch properties:', error);
@@ -38,7 +68,8 @@ const HomeScreen = ({ navigation }) => {
     };
 
     const fetchUser = async () => {
-      const user = await fetchUserInfo();
+      // Mock implementation of fetching user info
+      const user = { id: 1, name: 'John Doe', picture: 'https://example.com/user.jpg' };
       setUserInfo(user);
     };
 
@@ -70,31 +101,55 @@ const HomeScreen = ({ navigation }) => {
     setCurrentImages(images);
     setSelectedProperty(property);
     setImageViewVisible(true);
+  };
 
+  const sendSMS = (phoneNumber) => {
+    // Implement SMS sending functionality
+    console.log('Sending SMS to:', phoneNumber);
+  };
+  
+  const callNumber = (phoneNumber) => {
+    // Implement phone call functionality
+    console.log('Calling number:', phoneNumber);
+  };
+  
+  const openWhatsApp = (phoneNumber) => {
+    // Implement WhatsApp opening functionality
+    console.log('Opening WhatsApp for number:', phoneNumber);
+  };  
+
+  const openCommentsModal = async (itemId) => {
     try {
-      const response = await axios.get(`http://192.168.43.63/realestserver/est-server/api/post-comments/${itemId}`);
+      // Mock implementation of fetching comments
+      const response = await axios.get(`${API_BASE_URL}/post-comments/${itemId}`);
       setMessages(response.data);
 
-      // Clear any existing interval before setting a new one
       terminateFetchInterval();
 
-      // Set up continuous fetching of messages every 4 seconds
       fetchIntervalRef.current = setInterval(async () => {
-        const newResponse = await axios.get(`http://192.168.43.63/realestserver/est-server/api/post-comments/${itemId}`);
+        const newResponse = await axios.get(`${API_BASE_URL}/post-comments/${itemId}`);
         setMessages(newResponse.data);
       }, 4000);
+
+      setCommentsModalVisible(true);
     } catch (error) {
       console.error('Failed to fetch messages:', error);
     }
+  };
+
+  const closeCommentsModal = () => {
+    setCommentsModalVisible(false);
+    terminateFetchInterval();
   };
 
   const sendMessage = async () => {
     if (newMessage.trim() === '') return;
 
     try {
-      await axios.post('http://192.168.43.63/realestserver/est-server/api/comment-reply', {
+      // Mock implementation of sending message
+      await axios.post(`${API_BASE_URL}/comment-reply`, {
         post_id: selectedProperty.id,
-        user_id: userInfo.user.id,
+        user_id: userInfo.id,
         content: newMessage,
       });
     } catch (error) {
@@ -104,20 +159,9 @@ const HomeScreen = ({ navigation }) => {
     setNewMessage('');
     Keyboard.dismiss();
 
-    // Scroll to bottom
     setTimeout(() => {
       scrollViewRef.current?.scrollToEnd({ animated: true });
     }, 100);
-  };
-
-  const toggleImageSize = () => {
-    setIsImageShrunk(!isImageShrunk);
-    Animated.timing(commentSectionHeight, {
-      toValue: isImageShrunk ? height * 0.3 : height * 0.5,
-      duration: 300,
-      easing: Easing.inOut(Easing.ease),
-      useNativeDriver: false,
-    }).start();
   };
 
   const getImageStyle = (imageCount) => ({
@@ -134,7 +178,7 @@ const HomeScreen = ({ navigation }) => {
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {item.images.map((img, index) => (
           <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>
-            <Image source={{ uri: img }} style={getImageStyle(item.images.length)} />
+            <Image source={{ uri: `${SERVER_BASE_URL}/storage/app/`+img.path }} style={getImageStyle(item.images.length)} />
           </TouchableOpacity>
         ))}
         <View style={styles.overlayStyle}>
@@ -144,7 +188,6 @@ const HomeScreen = ({ navigation }) => {
       <View>
         <View style={styles.priceLocationRow}>
           <Text style={styles.priceText}>K{item.price}</Text>
-
           <TouchableOpacity onPress={() => navigation.navigate('MapScreen', { location: item.location })}>
             <Text>
               <MaterialIcons name="place" size={20} color="#000" />
@@ -152,7 +195,6 @@ const HomeScreen = ({ navigation }) => {
             </Text>
           </TouchableOpacity>
         </View>
-
         <View style={styles.iconRow}>
           <View style={styles.iconTextContainer}>
             <MaterialIcons name="hotel" size={20} color="#000" />
@@ -170,7 +212,7 @@ const HomeScreen = ({ navigation }) => {
       </View>
       <View style={styles.buttonRow}>
         <Button type="clear" icon={<MaterialIcons name="favorite-border" size={24} color="black" />} />
-        <Button type="clear" icon={<MaterialIcons name="comment" size={24} color="black" />} />
+        <Button type="clear" icon={<MaterialIcons name="comment" size={24} color="black" />} onPress={() => openCommentsModal(item.id)} />
         <Button type="clear" icon={<MaterialIcons name="share" size={24} color="black" />} />
       </View>
     </Card>
@@ -212,57 +254,181 @@ const HomeScreen = ({ navigation }) => {
         }}
       >
         <SafeAreaView style={{ flex: 1 }}>
-          <TouchableOpacity style={styles.closeButton} onPress={() => {
-            setImageViewVisible(false);
-            setSelectedProperty(null);
-            terminateFetchInterval();
-          }}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => {
+              setImageViewVisible(false);
+              setSelectedProperty(null);
+              terminateFetchInterval();
+            }}
+          >
             <MaterialIcons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
-          <ScrollView style={styles.topImageContiner} horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
-            {currentImages.map((image, index) => (
-              <View key={index} style={{ borderRadius: 20, overflow: 'hidden', marginBottom: 1 }}>
-                <ImageBackground
-                  source={{ uri: image }}
-                  style={{ width: width, height: isImageShrunk ? height * 0.1 : height * 0.6 }}
-                />
-                {selectedProperty && (
-                  <View style={styles.overlayDetails}>
-                    <Text style={styles.overlayText}>{selectedProperty.title} - K{selectedProperty.price}</Text>
-                    <Text style={styles.overlayTextSmall}>{selectedProperty.description}</Text>
-                    <View style={styles.overlayIconRow}>
-                      <Icon name="bed" type="material" size={15} color="#fff" />
-                      <Text style={styles.overlayTextSmall}>{selectedProperty?.beds} Beds</Text>
-                      <Icon name="bathtub" type="material" size={15} color="#fff" />
-                      <Text style={styles.overlayTextSmall}>{selectedProperty.baths} Baths</Text>
-                      <Icon name="square-foot" type="material" size={15} color="#fff" />
-                      <Text style={styles.overlayTextSmall}>{selectedProperty.area} sqft</Text>
+  
+          <ScrollView contentContainerStyle={styles.modalContent}>
+            <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.topImageContainer}>
+              {currentImages.map((image, index) => (
+                <View key={index} style={styles.imageContainer}>
+                  <ImageBackground
+                    source={{ uri: `${SERVER_BASE_URL}/storage/app/` + image.path }}
+                    style={styles.imageBackground}
+                  >
+                    {selectedProperty && (
+                      <View style={styles.overlayDetails}>
+                        <Text style={styles.overlayText}>{selectedProperty.title} - K{selectedProperty.price}</Text>
+                        <Text style={styles.overlayTextSmall}>{selectedProperty.description}</Text>
+                        <View style={styles.overlayIconRow}>
+                          <Icon name="bed" type="material" size={15} color="#fff" />
+                          <Text style={styles.overlayTextSmall}>{selectedProperty?.beds} Beds</Text>
+                          <Icon name="bathtub" type="material" size={15} color="#fff" />
+                          <Text style={styles.overlayTextSmall}>{selectedProperty.baths} Baths</Text>
+                          <Icon name="square-foot" type="material" size={15} color="#fff" />
+                          <Text style={styles.overlayTextSmall}>{selectedProperty.sqft} Sqft</Text>
+                        </View>
+                      </View>
+                    )}
+                  </ImageBackground>
+                </View>
+              ))}
+            </ScrollView>
+  
+            <View style={styles.detailsContainer}>
+              {selectedProperty && (
+                <>
+                  <Text style={styles.propertyTitle}>{selectedProperty.title}</Text>
+                  <Text style={styles.propertyPrice}>Price: K{selectedProperty.price}</Text>
+                  <Text style={styles.propertyDescription}>{selectedProperty.description}</Text>
+                  <View style={styles.propertyDetailsRow}>
+                    <View style={styles.propertyDetailsItem}>
+                      <MaterialIcons name="hotel" size={20} color="#000" />
+                      <Text style={styles.propertyDetailsText}>{selectedProperty.bedrooms} Beds</Text>
+                    </View>
+                    <View style={styles.propertyDetailsItem}>
+                      <MaterialIcons name="bathtub" size={20} color="#000" />
+                      <Text style={styles.propertyDetailsText}>{selectedProperty.bathrooms} Baths</Text>
+                    </View>
+                    <View style={styles.propertyDetailsItem}>
+                      <MaterialIcons name="aspect-ratio" size={20} color="#000" />
+                      <Text style={styles.propertyDetailsText}>{selectedProperty.area} sqft</Text>
                     </View>
                   </View>
-                )}
-              </View>
-            ))}
-          </ScrollView>
-          <TouchableOpacity style={styles.toggleButton} onPress={toggleImageSize}>
-            <MaterialIcons name={isImageShrunk ? 'expand-more' : 'expand-less'} size={24} color="#000" />
-          </TouchableOpacity>
-          <Animated.View style={[styles.commentSection, { height: commentSectionHeight }]}>
-            <ScrollView ref={scrollViewRef}>
-              {messages.map((message) => renderMessage(message))}
-            </ScrollView>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                value={newMessage}
-                onChangeText={setNewMessage}
-                placeholder="Add a comment..."
-                multiline
-              />
-              <TouchableOpacity onPress={sendMessage}>
-                <MaterialIcons name="send" size={24} color="#000" />
-              </TouchableOpacity>
+                </>
+              )}
             </View>
-          </Animated.View>
+  
+            {/* Features & Amenities */}
+            <View style={styles.featureAmenitiesContainer}>
+              <Text style={styles.featureAmenitiesTitle}>Features & Amenities</Text>
+              {selectedProperty && selectedProperty.features ? (
+                selectedProperty.features.map((feature, index) => (
+                  <View key={index} style={styles.featureAmenitiesItem}>
+                    <MaterialIcons name="check" size={20} color="#000" />
+                    <Text style={styles.featureAmenitiesText}>{feature.name}</Text>
+                    {feature.link && (
+                      <TouchableOpacity onPress={() => openFeatureLink(feature.link)}>
+                        <Text style={styles.featureAmenitiesLink}>View More</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ))
+              ) : (
+                <Text>No features available</Text>
+              )}
+            </View>
+  
+            {/* Map Finder */}
+          <View style={styles.mapFinderContainer}>
+            <Text style={styles.sectionTitle}>Map Finder</Text>
+            <ImageBackground
+              source={{ uri: 'https://www.dubizzle.com.eg/assets/mapPlaceholder_noinline.af3a4b7300a65b66f974eed7023840ac.svg' }}
+              style={styles.mapImage}
+            >
+              <Button title="Open Map" style={styles.openMapButton} onPress={() => openMap(selectedProperty.location)} />
+            </ImageBackground>
+          </View>
+
+          {/* Recommended Properties */}
+          <View style={styles.recommendedPropertiesContainer}>
+            <Text style={styles.sectionTitle}>Recommended Properties</Text>
+            {recommendedPropertiesData && recommendedPropertiesData.length > 0 ? (
+              recommendedPropertiesData.map((property, index) => (
+                <View key={index} style={styles.recommendedPropertyItem}>
+                  <ImageBackground
+                    source={{ uri: `${SERVER_BASE_URL}/storage/app/` + property.image }}
+                    style={styles.recommendedPropertyImage}
+                  >
+                    <Text style={styles.recommendedPropertyTitle}>{property.title}</Text>
+                  </ImageBackground>
+                  <Text style={styles.recommendedPropertyPrice}>K{property.price}</Text>
+                  <Text style={styles.recommendedPropertyDescription}>{property.description}</Text>
+                </View>
+              ))
+            ) : (
+              <Text>No recommended properties available</Text>
+            )}
+          </View>
+        </ScrollView>
+
+        {/* View Comments Button */}
+        <View style={styles.toggleButton}>
+          {/* SMS Button */}
+          <TouchableOpacity style={styles.button} onPress={() => sendSMS(selectedProperty.phone)}>
+            <MaterialIcons name="message" size={30} color="#165F56" />
+            <Text style={styles.buttonLabel}>SMS</Text>
+          </TouchableOpacity>
+
+          {/* Call Button */}
+          <TouchableOpacity style={styles.button} onPress={() => callNumber(selectedProperty.phone)}>
+            <MaterialIcons name="call" size={30} color="#165F56" />
+            <Text style={styles.buttonLabel}>Call</Text>
+          </TouchableOpacity>
+
+          {/* WhatsApp Button */}
+          <TouchableOpacity style={styles.whatsappIcon} onPress={() => openWhatsApp(selectedProperty.phone)}>
+            <MaterialCommunityIcons name="whatsapp" size={24} color="#165F56" />
+            <Text style={styles.buttonLabel}>WhatsApp</Text>
+          </TouchableOpacity>
+
+          {/* WhatsApp Button */}
+          <TouchableOpacity style={styles.button} onPress={() => openCommentsModal(selectedProperty.id)}>
+            <MaterialCommunityIcons name="chat" size={24} color="#165F56" />
+            <Text style={styles.buttonLabel}>Comments</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+    );
+  };
+
+  const renderCommentsModal = () => {
+    return (
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={isCommentsModalVisible}
+        onRequestClose={closeCommentsModal}
+      >
+        <SafeAreaView style={{ flex: 1 }}>
+          <TouchableOpacity style={styles.closeButton} onPress={closeCommentsModal}>
+            <MaterialIcons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
+
+          <ScrollView ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }}>
+            {messages.map((message) => renderMessage(message))}
+          </ScrollView>
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              value={newMessage}
+              onChangeText={setNewMessage}
+              placeholder="Add a comment..."
+              multiline
+            />
+            <TouchableOpacity onPress={sendMessage}>
+              <MaterialIcons name="send" size={24} color="#000" />
+            </TouchableOpacity>
+          </View>
         </SafeAreaView>
       </Modal>
     );
@@ -295,170 +461,17 @@ const HomeScreen = ({ navigation }) => {
           </View>
         ) : (
           <View>
-          {properties.map((property) => (
-            <View key={property.id}>{renderPropertyItem({ item: property })}</View>
-          ))}
-        </View>
+            {properties.map((property) => (
+              <View key={property.id}>{renderPropertyItem({ item: property })}</View>
+            ))}
+          </View>
         )}
       </ScrollView>
       {renderImageViewerModal()}
+      {renderCommentsModal()}
     </SafeAreaView>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  searchBarContainer: {
-    backgroundColor: 'transparent',
-    borderBottomColor: 'transparent',
-    borderTopColor: 'transparent',
-  },
-  searchBarInput: {
-    backgroundColor: '#ececec',
-  },
-  buttonGroupContainer: {
-    marginBottom: 10,
-  },
-  selectedButton: {
-    backgroundColor: '#6c63ff',
-  },
-  fullWidthCard: {
-    width: '100%',
-  },
-  priceLocationRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  priceText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  iconRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 10,
-  },
-  iconTextContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconText: {
-    marginLeft: 5,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 10,
-  },
-  closeButton: {
-    marginLeft: 10,
-    marginTop: 10,
-  },
-  topImageContiner: {
-    flexDirection: 'row',
-    marginBottom: 1,
-  },
-  overlayDetails: {
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 5,
-    borderRadius: 5,
-  },
-  overlayIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  overlayText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  overlayTextSmall: {
-    color: '#fff',
-    fontSize: 12,
-  },
-  toggleButton: {
-    alignItems: 'center',
-    marginVertical: 5,
-  },
-  commentSection: {
-    backgroundColor: '#f1f1f1',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  },
-  messageContent: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 10,
-  },
-  messageText: {
-    fontSize: 14,
-    marginBottom: 5,
-  },
-  messageTextTitle: {
-    fontSize: 14,
-    marginBottom: 5,
-    fontWeight: 'bold',
-    color: 'purple'
-  },
-  messageTime: {
-    fontSize: 12,
-    color: '#888',
-  },
-  replyLink: {
-    fontSize: 12,
-    color: '#007aff',
-    marginTop: 5,
-  },
-  loader: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  placeholder: {
-    width: '90%',
-    height: 200,
-    marginBottom: 10,
-  },
-  overlayStyle: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    padding: 5,
-    borderTopRightRadius: 10,
-    borderBottomLeftRadius: 10,
-  },
-  ribbonTag: {
-    color: '#fff',
-    fontSize: 12,
-  },
-});
-
 export default HomeScreen;
+

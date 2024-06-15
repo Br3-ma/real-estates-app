@@ -1,21 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  TextInput,
-  Text,
-  ScrollView,
-  Image,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-  SafeAreaView,
-  Modal,
-  Button as RNButton,
-  ActivityIndicator,
-  Clipboard,
-  Share,
-  StatusBar
-} from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, TextInput, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal, Button as RNButton, ActivityIndicator, Clipboard, Share, StatusBar, Alert } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Card, Button, Icon } from '@rneui/themed';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
@@ -24,6 +8,9 @@ import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { fetchUserInfo } from '../../../controllers/auth/userController';
 import axios from 'axios';
+import { imageListClasses } from '@mui/material';
+import { API_BASE_URL } from '../../../confg/config';
+import { SERVER_BASE_URL } from '../../../confg/config';
 
 const { width } = Dimensions.get('window');
 
@@ -42,20 +29,22 @@ const MyPropertyScreen = ({ navigation }) => {
   const [uploadImages, setUploadImages] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [deleting, setDeleting] = useState(false); 
+
+  const fetchProperties = useCallback(async () => {
+    setLoading(true);
+    try {
+      const user = await fetchUserInfo();
+      const response = await axios.get(`${API_BASE_URL}/my-property-posts/${user.user.id}`);
+      setProperties(response.data);
+    } catch (error) {
+      console.error('Failed to fetch properties:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const user = await fetchUserInfo();
-        const response = await axios.get(`http://192.168.43.63/realestserver/est-server/api/my-property-posts/${user.user.id}`);
-        setProperties(response.data);
-      } catch (error) {
-        console.error('Failed to fetch properties:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     const fetchUser = async () => {
       const user = await fetchUserInfo();
       setUserInfo(user);
@@ -63,11 +52,42 @@ const MyPropertyScreen = ({ navigation }) => {
 
     fetchUser();
     fetchProperties();
-  }, []);
+  }, [fetchProperties]);
 
   const showImageViewer = (images) => {
     setCurrentImages(images);
     setImageViewVisible(true);
+  };
+
+  const handleDeleteProperty = async (propertyId) => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this property?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await axios.delete(`${API_BASE_URL}/delete-post/${propertyId}`);
+              Alert.alert("Property deleted successfully");
+              fetchProperties();  // Reload the properties after successful deletion
+            } catch (error) {
+              console.error('Failed to delete property:', error);
+              Alert.alert("Failed to delete property");
+            } finally {
+              setDeleting(false);
+            }
+          },
+          style: "destructive"
+        }
+      ],
+      { cancelable: true }
+    );
   };
 
   const renderPropertyItem = ({ item }) => (
@@ -116,6 +136,11 @@ const MyPropertyScreen = ({ navigation }) => {
         <Button type="clear" icon={() => <MaterialIcons name="favorite-border" size={24} color="black" />} />
         <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="black" />} />
         <Button type="clear" icon={() => <MaterialIcons name="share" size={24} color="black" />} />
+        <Button
+          type="clear"
+          icon={() => deleting ? <ActivityIndicator size="small" color="red" /> : <MaterialIcons name="delete" size={24} color="red" />}
+          onPress={() => handleDeleteProperty(item.id)}
+        />
       </View>
     </Card>
   );
@@ -177,6 +202,11 @@ const MyPropertyScreen = ({ navigation }) => {
               </View>
   
               <ScrollView contentContainerStyle={styles.modalScrollView}>
+                <TextInput
+                  placeholder="Title"
+                  style={styles.input}
+                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, title: text })}
+                />
                 <TextInput
                   multiline
                   numberOfLines={5}
@@ -264,47 +294,87 @@ const MyPropertyScreen = ({ navigation }) => {
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('propertyDetails', JSON.stringify(propertyDetails));
-      uploadImages.forEach((image, index) => {
-        formData.append('images', {
-          uri: image.uri,
-          type: 'image/jpeg',
-          name: `image_${index}.jpg`,
+      // Append property details
+      formData.append('title', propertyDetails.title);
+      formData.append('description', propertyDetails.description);
+      formData.append('price', propertyDetails.price);
+      formData.append('location', propertyDetails.location);
+      formData.append('long', propertyDetails.long);
+      formData.append('lat', propertyDetails.lat);
+      formData.append('user_id', userInfo.user.id);
+      formData.append('property_type_id', propertyDetails.property_type_id);
+      formData.append('status_id', propertyDetails.status_id);
+      formData.append('bedrooms', propertyDetails.bedrooms);
+      formData.append('bathrooms', propertyDetails.bathrooms);
+      formData.append('area', propertyDetails.area);
+      formData.append('amenities', propertyDetails.amenities);
+  
+      // Convert image URIs to Blobs and append them to formData
+      for (let index = 0; index < uploadImages.length; index++) {
+        const image = uploadImages[index];
+        console.log(image);
+        const response = await fetch(image.uri);
+        const blob = await response.blob();
+        const file = new File([blob], image.fileName || `photo_${index}.jpg`, {
+          type: image.mimeType || 'image/jpeg',
+          lastModified: Date.now(),
         });
-      });
-      const response = await axios.post('http://192.168.43.63/realestserver/est-server/api/property-posts', formData, {
+        formData.append(`images[${index}]`, file);
+      }
+  
+      console.error('Form Data:', formData);
+      const response = await fetch(`${API_BASE_URL}/post`, {
+        method: 'POST',
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Accept': 'application/json',
+          'Access-Control-Allow-Origin': '*',
         },
+        body: formData,
       });
+  
       if (response.status === 201) {
         console.log('Post created successfully');
         setModalVisible(false);
         setPropertyDetails({
-          title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '', property_type_id: '',
-          status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [],
+          title: '',
+          description: '',
+          price: '',
+          location: '',
+          long: '',
+          lat: '',
+          user_id: '',
+          property_type_id: '',
+          status_id: '',
+          bedrooms: '',
+          bathrooms: '',
+          area: '',
+          amenities: '',
+          images: [],
         });
         setUploadImages([]);
+      } else {
+        const errorResponse = await response.json();
+        console.error('Failed to create property post:', errorResponse);
       }
     } catch (error) {
-      console.error('Error uploading post:', error);
+      console.error('Failed to create property post:', error);
     } finally {
       setUploading(false);
     }
   };
+  
 
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Loading...</Text>
+        <Text>Checking for your Properties...</Text>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      {/* Position the "Create New Post" button */}
       <Button
         title="Create New Post"
         onPress={() => setModalVisible(true)}
@@ -319,6 +389,9 @@ const MyPropertyScreen = ({ navigation }) => {
       </ScrollView>
       {renderUploadModal()}
       {renderImageViewerModal()}
+      <TouchableOpacity style={styles.floatingButton} onPress={() => setModalVisible(true)}>
+        <MaterialIcons name="add" size={30} color="white" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -465,6 +538,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    backgroundColor: '#f4511e',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
   },
 });
 
