@@ -22,12 +22,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#6c63ff',
   },
   fullWidthCard: {
-    width: '100%',
+    width: width - 20, // Full width of the screen minus padding
+    alignSelf: 'center', // Center horizontally
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   priceLocationRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
   priceText: {
     fontSize: 20,
@@ -36,7 +47,7 @@ const styles = StyleSheet.create({
   iconRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 10,
+    paddingVertical: 10,
   },
   iconTextContainer: {
     flexDirection: 'row',
@@ -48,7 +59,10 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginTop: 10,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
   },
   closeButton: {
     marginLeft: 10,
@@ -100,8 +114,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
@@ -161,6 +173,11 @@ const styles = StyleSheet.create({
     padding: 5,
     borderTopRightRadius: 10,
     borderBottomLeftRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   ribbonTag: {
     color: '#fff',
@@ -203,7 +220,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#EFEEFA',
+    borderRadius: 10, // Rounded corners
     marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   featureAmenitiesTitle: {
     fontSize: 18,
@@ -292,6 +315,15 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     borderRadius: 8, // Rounded corners for the image
     overflow: 'hidden',
+    marginBottom: 10,
+    shadowColor: '#000', // Shadow color
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5, // Android shadow
   },
   recommendedPropertyTitle: {
     fontSize: 16,

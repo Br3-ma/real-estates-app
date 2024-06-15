@@ -12,15 +12,6 @@ import { SERVER_BASE_URL } from '../confg/config';
 
 const { width } = Dimensions.get('window');
 
-// Mock data for Features & Amenities
-const features = [
-  { name: 'Swimming Pool', icon: 'pool', link: 'https://example.com/pool-info' },
-  { name: 'Gym', icon: 'fitness-center', link: 'https://example.com/gym-info' },
-  { name: 'Parking', icon: 'local-parking', link: 'https://example.com/parking-info' },
-  { name: 'Security', icon: 'security', link: 'https://example.com/security-info' },
-  // Add more items as needed
-];
-
 // Mock data for Recommended Properties
 const recommendedPropertiesData = [
   {
@@ -107,16 +98,16 @@ const HomeScreen = ({ navigation }) => {
     // Implement SMS sending functionality
     console.log('Sending SMS to:', phoneNumber);
   };
-  
+
   const callNumber = (phoneNumber) => {
     // Implement phone call functionality
     console.log('Calling number:', phoneNumber);
   };
-  
+
   const openWhatsApp = (phoneNumber) => {
     // Implement WhatsApp opening functionality
     console.log('Opening WhatsApp for number:', phoneNumber);
-  };  
+  };
 
   const openCommentsModal = async (itemId) => {
     try {
@@ -174,17 +165,19 @@ const HomeScreen = ({ navigation }) => {
   const renderPropertyItem = ({ item }) => (
     <Card containerStyle={styles.fullWidthCard}>
       <Card.Title>{item.title}</Card.Title>
-
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {item.images.map((img, index) => (
           <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>
-            <Image source={{ uri: `${SERVER_BASE_URL}/storage/app/`+img.path }} style={getImageStyle(item.images.length)} />
+            <Image
+              source={{ uri: `${SERVER_BASE_URL}/storage/app/` + img.path }}
+              style={getImageStyle(item.images.length)}
+            />
           </TouchableOpacity>
         ))}
-        <View style={styles.overlayStyle}>
-          <Text style={styles.ribbonTag}>{`Posted ${moment(item.created_at).fromNow()}`}</Text>
-        </View>
       </ScrollView>
+      <View style={styles.overlayStyle}>
+        <Text style={styles.ribbonTag}>{  `posted `+moment(item.created_at).fromNow() }</Text>
+      </View>
       <View>
         <View style={styles.priceLocationRow}>
           <Text style={styles.priceText}>K{item.price}</Text>
