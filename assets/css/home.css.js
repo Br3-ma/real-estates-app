@@ -7,13 +7,53 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  loader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 10,
+  },
+  buttonCover:{
+    backgroundColor: '#f5f5f5',
+    paddingHorizontal: 20,
+  },
   searchBarContainer: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#045b45',
     borderBottomColor: 'transparent',
     borderTopColor: 'transparent',
   },
   searchBarInput: {
     backgroundColor: '#ececec',
+  },  
+  searchModalContent: {
+    width: '100%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  searchInput: {
+    width: '100%',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginBottom: 20,
+    padding: 10,
+  },
+  dropdownContainer: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  dropdown: {
+    width: '100%',
+    height: 50,
+  },
+  searchButton: {
+    backgroundColor: 'blue',
+    padding: 15,
+    borderRadius: 10,
+  },
+  searchButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   buttonGroupContainer: {
     marginBottom: 10,
@@ -32,6 +72,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 2,
     elevation: 5,
+  },
+  homeBody:{
+    marginTop:-1,
+    backgroundColor: '#045b45',
+  },
+  bodyContent:{
+    borderRadius: 10,
+    backgroundColor: '#f2f2f240',
+    padding: 2,
+  },
+  postTitle: {
+    textAlign:'left',
   },
   priceLocationRow: {
     flexDirection: 'row',
@@ -67,10 +119,14 @@ const styles = StyleSheet.create({
   closeButton: {
     marginLeft: 10,
     marginTop: 10,
+    paddingBottom:10,
+  },
+  modalContent:{
+    backgroundColor: '#fff',
   },
   topImageContainer: {
     flexDirection: 'row',
-    marginBottom: 1,
+    marginBottom: 0,
   },
   imageContainer: {
     width: width,
@@ -87,7 +143,7 @@ const styles = StyleSheet.create({
     right: 20,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     padding: 10,
-    borderRadius: 10,
+    borderRadius: 20,
   },
   overlayIconRow: {
     flexDirection: 'row',
@@ -107,6 +163,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around', // Adjusted spacing between buttons
     alignItems: 'center', // Center items vertically
     marginVertical: 5,
+    paddingTop:5,
+    borderRadius:10,
+    marginHorizontal:5,
+    borderColor:'#f1f1f1',
   },
   commentSection: {
     backgroundColor: '#f1f1f1',
@@ -156,14 +216,24 @@ const styles = StyleSheet.create({
     color: '#007aff',
     marginTop: 5,
   },
-  loader: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  // loader: {
+  //   alignItems: 'center',
+  //   justifyContent: 'center',
+  // },
   placeholder: {
     width: '90%',
     height: 200,
     marginBottom: 10,
+  },  
+  overlaySearch: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    shadowColor: '#000',
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   overlayStyle: {
     position: 'absolute',
@@ -185,22 +255,25 @@ const styles = StyleSheet.create({
   },
   // =================== Property Details ===
   detailsContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
+    padding: 20,
+    backgroundColor: '#3f7a9d',
+    borderBottomLeftRadius:30,
+    borderBottomRightRadius:30,
   },
   propertyTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
+    color:'#fff'
   },
   propertyPrice: {
     fontSize: 20,
-    color: '#888',
+    color: '#b3e5f9',
     marginBottom: 8,
   },
   propertyDescription: {
     fontSize: 16,
-    color: '#666',
+    color: '#e4e9eb',
     marginBottom: 16,
   },
   propertyDetailsRow: {
@@ -214,14 +287,17 @@ const styles = StyleSheet.create({
   propertyDetailsText: {
     marginLeft: 4,
     fontSize: 16,
+    color:'#f5f5f5',
   },
   // =================== New Modal Sections ===
   featureAmenitiesContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#EFEEFA',
-    borderRadius: 10, // Rounded corners
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
     marginTop: 10,
+    marginHorizontal:10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.8,
@@ -255,10 +331,12 @@ const styles = StyleSheet.create({
   // --------------------MapFinder Section --
   mapFinderContainer: {
     alignItems: 'left',
-    marginTop: 10,
+    marginTop: 0,
+    marginHorizontal:10,
     padding: 13,
     backgroundColor: '#f9f9f9',
-    borderRadius: 10, // Rounded corners
+    borderBottomRightRadius: 15,
+    borderBottomLeftRadius: 15,
     shadowColor: '#000', // Shadow color
     shadowOffset: {
       width: 0,
@@ -307,7 +385,7 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 5, // Android shadow
     backgroundColor: '#f9f9f9',
-    padding: 12,
+    paddingHorizontal: 25,
   },
   recommendedPropertyImage: {
     width: '100%',
@@ -339,6 +417,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 8,
+  },
+  recommendedPropertyItem:{
+    padding: 10,
+  },
+  buttonLabel:{
+    color:'#3f7a9d'
+  },
+
+
+  featuredSection: {
+    backgroundColor: '#045b45',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    marginBottom:10,
+  },
+  featuredSectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color:'#fff', 
   },
 });
 

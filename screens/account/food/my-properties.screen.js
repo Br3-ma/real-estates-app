@@ -1,22 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, TextInput, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal, Button as RNButton, ActivityIndicator, Clipboard, Share, StatusBar, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, TextInput, Text, ScrollView, Image, StyleSheet, Dimensions, TouchableOpacity, SafeAreaView, Modal, Button as RNButton, ActivityIndicator, Alert, ImageBackground} from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Card, Button, Icon } from '@rneui/themed';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { fetchUserInfo } from '../../../controllers/auth/userController';
 import axios from 'axios';
-import { imageListClasses } from '@mui/material';
 import { API_BASE_URL } from '../../../confg/config';
 import { SERVER_BASE_URL } from '../../../confg/config';
+import styles from '../../../assets/css/my-properties.css';
 
 const { width } = Dimensions.get('window');
 
 const MyPropertyScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [properties, setProperties] = useState([]);
+  const [selectedProperty, setSelectedProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isImageViewVisible, setImageViewVisible] = useState(false);
@@ -30,6 +32,11 @@ const MyPropertyScreen = ({ navigation }) => {
   const [uploading, setUploading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [deleting, setDeleting] = useState(false); 
+
+  const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const scrollViewRef = useRef(null);
 
   const fetchProperties = useCallback(async () => {
     setLoading(true);
@@ -58,6 +65,28 @@ const MyPropertyScreen = ({ navigation }) => {
     setCurrentImages(images);
     setImageViewVisible(true);
   };
+  
+  const sendMessage = async () => {
+    if (newMessage.trim() === '') return;
+
+    try {
+      // Mock implementation of sending message
+      await axios.post(`${API_BASE_URL}/comment-reply`, {
+        post_id: selectedProperty.id,
+        user_id: userInfo.id,
+        content: newMessage,
+      });
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
+
+    setNewMessage('');
+    Keyboard.dismiss();
+
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
 
   const handleDeleteProperty = async (propertyId) => {
     Alert.alert(
@@ -75,6 +104,7 @@ const MyPropertyScreen = ({ navigation }) => {
             try {
               await axios.delete(`${API_BASE_URL}/delete-post/${propertyId}`);
               Alert.alert("Property deleted successfully");
+              setProperties([]);  // Reset
               fetchProperties();  // Reload the properties after successful deletion
             } catch (error) {
               console.error('Failed to delete property:', error);
@@ -134,7 +164,7 @@ const MyPropertyScreen = ({ navigation }) => {
       </View>
       <View style={styles.buttonRow}>
         <Button type="clear" icon={() => <MaterialIcons name="favorite-border" size={24} color="black" />} />
-        <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="black" />} />
+        <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="black" />} onPress={openCommentsModal} />
         <Button type="clear" icon={() => <MaterialIcons name="share" size={24} color="black" />} />
         <Button
           type="clear"
@@ -157,29 +187,135 @@ const MyPropertyScreen = ({ navigation }) => {
         animationType="slide"
         transparent={false}
         visible={isImageViewVisible}
-        onRequestClose={() => setImageViewVisible(false)}
+        onRequestClose={() => {
+          setImageViewVisible(false);
+          setSelectedProperty(null);
+          terminateFetchInterval();
+        }}
       >
         <SafeAreaView style={{ flex: 1 }}>
-          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={true}>
-            {currentImages.map((image, index) => (
-              <View key={index} style={{ width, height: width, position: 'relative' }}>
-                <Image source={{ uri: image.url }} style={{ width, height: width, resizeMode: 'contain' }} />
-                <View style={styles.overlayDetails}>
-                  <Text style={styles.overlayText}>{property.name} - ${property.price}</Text>
-                  <View style={styles.overlayIconRow}>
-                    <Icon name="bed" type="material" size={15} color="#fff" />
-                    <Text style={styles.overlayTextSmall}>{property.bedrooms} Beds</Text>
-                    <Icon name="bathtub" type="material" size={15} color="#fff" />
-                    <Text style={styles.overlayTextSmall}>{property.bathrooms} Baths</Text>
-                    <Icon name="square-foot" type="material" size={15} color="#fff" />
-                    <Text style={styles.overlayTextSmall}>{property.area} sqft</Text>
-                  </View>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => {
+              setImageViewVisible(false);
+              setSelectedProperty(null);
+              terminateFetchInterval();
+            }}
+          >
+            <MaterialIcons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
+  
+          <ScrollView contentContainerStyle={styles.modalContent}>
+            <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.topImageContainer}>
+              {currentImages.map((image, index) => (
+                <View key={index} style={styles.imageContainer}>
+                  <ImageBackground
+                    source={{ uri: `${SERVER_BASE_URL}/storage/app/` + image.path }}
+                    style={styles.imageBackground}
+                  >
+                    {selectedProperty && (
+                      <View style={styles.overlayDetails}>
+                        <Text style={styles.overlayText}>{selectedProperty.title} - K{selectedProperty.price}</Text>
+                        <Text style={styles.overlayTextSmall}>{selectedProperty.description}</Text>
+                        <View style={styles.overlayIconRow}>
+                          <Icon name="bed" type="material" size={18} color="#fff" />
+                          <Text style={styles.overlayTextSmall}>{selectedProperty?.beds} Beds</Text>
+                          <Icon name="bathtub" type="material" size={18} color="#fff" />
+                          <Text style={styles.overlayTextSmall}>{selectedProperty.baths} Baths</Text>
+                          <Icon name="square-foot" type="material" size={18} color="#fff" />
+                          <Text style={styles.overlayTextSmall}>{selectedProperty.sqft} Sqft</Text>
+                        </View>
+                      </View>
+                    )}
+                  </ImageBackground>
                 </View>
-              </View>
-            ))}
-          </ScrollView>
-        </SafeAreaView>
-      </Modal>
+              ))}
+            </ScrollView>
+  
+            <View style={styles.detailsContainer}>
+              {selectedProperty && (
+                <>
+                  <Text style={styles.propertyTitle}>{selectedProperty.title}</Text>
+                  <Text style={styles.propertyPrice}>Price: K{selectedProperty.price}</Text>
+                  <Text style={styles.propertyDescription}>{selectedProperty.description}</Text>
+                  <View style={styles.propertyDetailsRow}>
+                    <View style={styles.propertyDetailsItem}>
+                      <MaterialIcons name="hotel" size={20} color="#ffeded" />
+                      <Text style={styles.propertyDetailsText}>{selectedProperty.bedrooms} Beds</Text>
+                    </View>
+                    <View style={styles.propertyDetailsItem}>
+                      <MaterialIcons name="bathtub" size={20} color="#ffeded" />
+                      <Text style={styles.propertyDetailsText}>{selectedProperty.bathrooms} Baths</Text>
+                    </View>
+                    <View style={styles.propertyDetailsItem}>
+                      <MaterialIcons name="aspect-ratio" size={20} color="#ffeded" />
+                      <Text style={styles.propertyDetailsText}>{selectedProperty.area} sqft</Text>
+                    </View>
+                  </View>
+                </>
+              )}
+            </View>
+  
+            {/* Features & Amenities */}
+            <View style={styles.featureAmenitiesContainer}>
+              <Text style={styles.featureAmenitiesTitle}>Features & Amenities</Text>
+              {selectedProperty && selectedProperty.features ? (
+                selectedProperty.features.map((feature, index) => (
+                  <View key={index} style={styles.featureAmenitiesItem}>
+                    <MaterialIcons name="check" size={20} color="#000" />
+                    <Text style={styles.featureAmenitiesText}>{feature.name}</Text>
+                    {feature.link && (
+                      <TouchableOpacity onPress={() => openFeatureLink(feature.link)}>
+                        <Text style={styles.featureAmenitiesLink}>View More</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ))
+              ) : (
+                <Text>No features available</Text>
+              )}
+            </View>
+  
+            {/* Map Finder */}
+          <View style={styles.mapFinderContainer}>
+            <Text style={styles.sectionTitle}>Map Finder</Text>
+            <ImageBackground
+              source={{ uri: 'https://www.dubizzle.com.eg/assets/mapPlaceholder_noinline.af3a4b7300a65b66f974eed7023840ac.svg' }}
+              style={styles.mapImage}
+            >
+              <Button title="Open Map" style={styles.openMapButton} onPress={() => openMap(selectedProperty.location)} />
+            </ImageBackground>
+          </View>
+        </ScrollView>
+
+        {/* View Comments Button */}
+        <View style={styles.toggleButton}>
+          {/* SMS Button */}
+          <TouchableOpacity style={styles.commentButton} onPress={() => sendSMS(selectedProperty.phone)}>
+            <MaterialIcons name="message" size={30} color="#165F56" />
+            <Text style={styles.buttonLabel}>SMS</Text>
+          </TouchableOpacity>
+
+          {/* Call Button */}
+          <TouchableOpacity style={styles.commentButton} onPress={() => callNumber(selectedProperty.phone)}>
+            <MaterialIcons name="call" size={30} color="#165F56" />
+            <Text style={styles.buttonLabel}>Call</Text>
+          </TouchableOpacity>
+
+          {/* WhatsApp Button */}
+          <TouchableOpacity style={styles.whatsappIcon} onPress={() => openWhatsApp(selectedProperty.phone)}>
+            <MaterialCommunityIcons name="whatsapp" size={30} color="#165F56" />
+            <Text style={styles.buttonLabel}>WhatsApp</Text>
+          </TouchableOpacity>
+
+          {/* WhatsApp Button */}
+          <TouchableOpacity style={styles.commentButton} onPress={() => openCommentsModal(selectedProperty.id)}>
+            <MaterialCommunityIcons name="chat" size={30} color="#165F56" />
+            <Text style={styles.buttonLabel}>Comments</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
     );
   };
 
@@ -364,6 +500,57 @@ const MyPropertyScreen = ({ navigation }) => {
   };
   
 
+  const openCommentsModal = () => {
+    setCommentsModalVisible(true);
+  };
+
+  const closeCommentsModal = () => {
+    setCommentsModalVisible(false);
+  };
+
+  const fetchComments = async () => {
+    // Fetch comments logic here
+    setMessages([
+      { id: 1, text: 'This is a great property!' },
+      { id: 2, text: 'Can you provide more details?' },
+    ]);
+  };
+
+  const postComment = async () => {
+    // Post comment logic here
+    setMessages([...messages, { id: messages.length + 1, text: newMessage }]);
+    setNewMessage('');
+  };
+
+  const renderCommentsModal = () => (
+    <Modal
+      visible={isCommentsModalVisible}
+      animationType="slide"
+      onRequestClose={closeCommentsModal}
+    >
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView ref={scrollViewRef} onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}>
+          {messages.map((message) => (
+            <View key={message.id} style={styles.comment}>
+              <Text>{message.text}</Text>
+            </View>
+          ))}
+        </ScrollView>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Type a comment..."
+            value={newMessage}
+            onChangeText={setNewMessage}
+          />
+          <TouchableOpacity onPress={sendMessage}>
+            <Text style={styles.sendButton}>Send</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </Modal>
+  );
+
   if (loading) {
     return (
       <SafeAreaView style={styles.loadingContainer}>
@@ -389,168 +576,12 @@ const MyPropertyScreen = ({ navigation }) => {
       </ScrollView>
       {renderUploadModal()}
       {renderImageViewerModal()}
+      {renderCommentsModal()}
       <TouchableOpacity style={styles.floatingButton} onPress={() => setModalVisible(true)}>
         <MaterialIcons name="add" size={30} color="white" />
       </TouchableOpacity>
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  cardImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-  illustrativeImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
-    marginRight: 10,
-    resizeMode: 'contain',
-  },
-  priceLocationRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  priceText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  iconRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 10,
-  },
-  iconTextContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconText: {
-    marginLeft: 5,
-    fontSize: 14,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  createPostButton: {
-    position: 'absolute',
-    top: StatusBar.currentHeight + 10, // Adjust as needed
-    right: 10,
-    zIndex: 1, // Ensure it's above other content
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 0,
-    padding:0,
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  modalScrollView: {
-    paddingVertical: 20,
-    width: width - 40,
-    margin:0,
-  },
-  textarea: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 10,
-    marginVertical: 10,
-    textAlignVertical: 'top',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 10,
-    marginVertical: 10,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  inputRowItem: {
-    width: '30%',
-  },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 10,
-  },
-  uploadButtonText: {
-    marginLeft: 10,
-  },
-  uploadedImageContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  uploadedImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    margin: 5,
-  },
-  modalFooter: {
-    marginTop: 10,
-  },
-  overlayDetails: {
-    position: 'absolute',
-    bottom: 10,
-    left: 10,
-  },
-  overlayText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  overlayTextSmall: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  overlayIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 5,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 100,
-    right: 20,
-    backgroundColor: '#f4511e',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-  },
-});
 
 export default MyPropertyScreen;

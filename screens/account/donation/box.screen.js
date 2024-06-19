@@ -50,7 +50,7 @@ const NotificationScreen = () => {
                   <ListItem.Content>
                     <ListItem.Title>Loading...</ListItem.Title>
                     <ListItem.Subtitle>Loading...</ListItem.Subtitle>
-                    <ListItem.Subtitle numberOfLines={2} ellipsizeMode="tail" style={styles.messageText}>
+                    <ListItem.Subtitle numberOfLines={3} ellipsizeMode="tail" style={styles.messageText}>
                       Loading...
                     </ListItem.Subtitle>
                   </ListItem.Content>

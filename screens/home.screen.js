@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, Image, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions } from 'react-native';
+import { View, Animated, Easing, Text, ScrollView, Image, TouchableOpacity, TouchableWithoutFeedback, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions } from 'react-native';
 import { Card, Button, Icon, SearchBar, ButtonGroup, Avatar } from 'react-native-elements';
+import { BlurView } from 'expo-blur';
+import { Picker } from '@react-native-picker/picker';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
+import FeaturedItems from './../components/featured-categories'; // Import the new component
 import moment from 'moment';
 import axios from 'axios';
 import styles from '../assets/css/home.css';
 import { API_BASE_URL } from '../confg/config';
 import { SERVER_BASE_URL } from '../confg/config';
+import AdAdPost from '../components/ad-ad-post';
+import BlankView from '../components/blank-bottom';
 
 const { width } = Dimensions.get('window');
 
@@ -21,13 +26,6 @@ const recommendedPropertiesData = [
     description: 'A lovely house with a big garden and beautiful surroundings.',
     image: 'https://example.com/recommended-house-1.jpg',
   },
-  {
-    id: 2,
-    title: 'Luxury Apartment Downtown',
-    price: 180000,
-    description: 'Modern apartment with stunning city views and amenities.',
-    image: 'https://example.com/recommended-apartment-1.jpg',
-  },
   // Add more items as needed
 ];
 
@@ -38,6 +36,7 @@ const HomeScreen = ({ navigation }) => {
   const [search, setSearch] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isImageViewVisible, setImageViewVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentImages, setCurrentImages] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -45,6 +44,8 @@ const HomeScreen = ({ navigation }) => {
   const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
   const scrollViewRef = useRef();
   const fetchIntervalRef = useRef(null);
+  const [category, setCategory] = useState('');
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -81,6 +82,35 @@ const HomeScreen = ({ navigation }) => {
 
   const updateSearch = (search) => {
     setSearch(search);
+  };
+
+  // const updateSearch = (search) => {
+  //   setSearch(search);
+  // };
+
+  const openModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleSearch = async () => {
+    try {
+      const response = await fetch('YOUR_API_URL', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ keyword: search, category }),
+      });
+      const data = await response.json();
+      closeModal();
+      navigation.navigate('SearchResultScreen', { results: data });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const buttons = ['Buy', 'Rent', 'Projects'];
@@ -164,7 +194,7 @@ const HomeScreen = ({ navigation }) => {
 
   const renderPropertyItem = ({ item }) => (
     <Card containerStyle={styles.fullWidthCard}>
-      <Card.Title>{item.title}</Card.Title>
+      <Card.Title style={styles.postTitle}>{item.title}</Card.Title>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {item.images.map((img, index) => (
           <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>
@@ -190,23 +220,23 @@ const HomeScreen = ({ navigation }) => {
         </View>
         <View style={styles.iconRow}>
           <View style={styles.iconTextContainer}>
-            <MaterialIcons name="hotel" size={20} color="#000" />
+            <MaterialIcons name="hotel" size={20} color="#165F56" />
             <Text style={styles.iconText}>{item.bedrooms} Beds</Text>
           </View>
           <View style={styles.iconTextContainer}>
-            <MaterialIcons name="bathtub" size={20} color="#000" />
+            <MaterialIcons name="bathtub" size={20} color="#165F56" />
             <Text style={styles.iconText}>{item.bathrooms} Baths</Text>
           </View>
           <View style={styles.iconTextContainer}>
-            <MaterialIcons name="aspect-ratio" size={20} color="#000" />
+            <MaterialIcons name="aspect-ratio" size={20} color="#165F56" />
             <Text style={styles.iconText}>{item.area} sqft</Text>
           </View>
         </View>
       </View>
       <View style={styles.buttonRow}>
-        <Button type="clear" icon={<MaterialIcons name="favorite-border" size={24} color="black" />} />
-        <Button type="clear" icon={<MaterialIcons name="comment" size={24} color="black" />} onPress={() => openCommentsModal(item.id)} />
-        <Button type="clear" icon={<MaterialIcons name="share" size={24} color="black" />} />
+        <Button type="clear" style={styles.buttonCover} icon={<MaterialIcons name="favorite-border" size={24} color="gray" />} />
+        <Button type="clear" style={styles.buttonCover} icon={<MaterialIcons name="comment" size={24} color="gray" />} onPress={() => openCommentsModal(item.id)} />
+        <Button type="clear" style={styles.buttonCover} icon={<MaterialIcons name="share" size={24} color="gray" />} />
       </View>
     </Card>
   );
@@ -271,11 +301,11 @@ const HomeScreen = ({ navigation }) => {
                         <Text style={styles.overlayText}>{selectedProperty.title} - K{selectedProperty.price}</Text>
                         <Text style={styles.overlayTextSmall}>{selectedProperty.description}</Text>
                         <View style={styles.overlayIconRow}>
-                          <Icon name="bed" type="material" size={15} color="#fff" />
+                          <Icon name="bed" type="material" size={18} color="#fff" />
                           <Text style={styles.overlayTextSmall}>{selectedProperty?.beds} Beds</Text>
-                          <Icon name="bathtub" type="material" size={15} color="#fff" />
+                          <Icon name="bathtub" type="material" size={18} color="#fff" />
                           <Text style={styles.overlayTextSmall}>{selectedProperty.baths} Baths</Text>
-                          <Icon name="square-foot" type="material" size={15} color="#fff" />
+                          <Icon name="square-foot" type="material" size={18} color="#fff" />
                           <Text style={styles.overlayTextSmall}>{selectedProperty.sqft} Sqft</Text>
                         </View>
                       </View>
@@ -293,15 +323,15 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.propertyDescription}>{selectedProperty.description}</Text>
                   <View style={styles.propertyDetailsRow}>
                     <View style={styles.propertyDetailsItem}>
-                      <MaterialIcons name="hotel" size={20} color="#000" />
+                      <MaterialIcons name="hotel" size={20} color="#ffeded" />
                       <Text style={styles.propertyDetailsText}>{selectedProperty.bedrooms} Beds</Text>
                     </View>
                     <View style={styles.propertyDetailsItem}>
-                      <MaterialIcons name="bathtub" size={20} color="#000" />
+                      <MaterialIcons name="bathtub" size={20} color="#ffeded" />
                       <Text style={styles.propertyDetailsText}>{selectedProperty.bathrooms} Baths</Text>
                     </View>
                     <View style={styles.propertyDetailsItem}>
-                      <MaterialIcons name="aspect-ratio" size={20} color="#000" />
+                      <MaterialIcons name="aspect-ratio" size={20} color="#ffeded" />
                       <Text style={styles.propertyDetailsText}>{selectedProperty.area} sqft</Text>
                     </View>
                   </View>
@@ -365,26 +395,26 @@ const HomeScreen = ({ navigation }) => {
         {/* View Comments Button */}
         <View style={styles.toggleButton}>
           {/* SMS Button */}
-          <TouchableOpacity style={styles.button} onPress={() => sendSMS(selectedProperty.phone)}>
+          <TouchableOpacity style={styles.commentButton} onPress={() => sendSMS(selectedProperty.phone)}>
             <MaterialIcons name="message" size={30} color="#165F56" />
             <Text style={styles.buttonLabel}>SMS</Text>
           </TouchableOpacity>
 
           {/* Call Button */}
-          <TouchableOpacity style={styles.button} onPress={() => callNumber(selectedProperty.phone)}>
+          <TouchableOpacity style={styles.commentButton} onPress={() => callNumber(selectedProperty.phone)}>
             <MaterialIcons name="call" size={30} color="#165F56" />
             <Text style={styles.buttonLabel}>Call</Text>
           </TouchableOpacity>
 
           {/* WhatsApp Button */}
           <TouchableOpacity style={styles.whatsappIcon} onPress={() => openWhatsApp(selectedProperty.phone)}>
-            <MaterialCommunityIcons name="whatsapp" size={24} color="#165F56" />
+            <MaterialCommunityIcons name="whatsapp" size={30} color="#165F56" />
             <Text style={styles.buttonLabel}>WhatsApp</Text>
           </TouchableOpacity>
 
           {/* WhatsApp Button */}
-          <TouchableOpacity style={styles.button} onPress={() => openCommentsModal(selectedProperty.id)}>
-            <MaterialCommunityIcons name="chat" size={24} color="#165F56" />
+          <TouchableOpacity style={styles.commentButton} onPress={() => openCommentsModal(selectedProperty.id)}>
+            <MaterialCommunityIcons name="chat" size={30} color="#165F56" />
             <Text style={styles.buttonLabel}>Comments</Text>
           </TouchableOpacity>
         </View>
@@ -432,20 +462,27 @@ const HomeScreen = ({ navigation }) => {
       <StatusBar barStyle="dark-content" />
       <SearchBar
         placeholder="Search properties..."
-        onChangeText={updateSearch}
+        onFocus={openModal}
         value={search}
         platform={Platform.OS}
         containerStyle={styles.searchBarContainer}
         inputContainerStyle={styles.searchBarInput}
       />
-      <ButtonGroup
-        buttons={buttons}
-        selectedIndex={selectedIndex}
-        onPress={updateIndex}
-        containerStyle={styles.buttonGroupContainer}
-        selectedButtonStyle={styles.selectedButton}
-      />
-      <ScrollView>
+      <ScrollView style={styles.homeBody}>
+        <ButtonGroup
+          buttons={buttons}
+          selectedIndex={selectedIndex}
+          onPress={updateIndex}
+          containerStyle={styles.buttonGroupContainer}
+          selectedButtonStyle={styles.selectedButton}
+        />
+
+        {/* Add the new section below the ButtonGroup */}
+        <View style={styles.featuredSection}>
+          <Text style={styles.featuredSectionTitle}>Featured Items</Text>
+          <FeaturedItems />
+        </View>
+
         {loading ? (
           <View style={styles.loader}>
             {[1, 2, 3].map((item) => (
@@ -453,13 +490,53 @@ const HomeScreen = ({ navigation }) => {
             ))}
           </View>
         ) : (
-          <View>
+          <View style={styles.bodyContent}>
             {properties.map((property) => (
               <View key={property.id}>{renderPropertyItem({ item: property })}</View>
             ))}
           </View>
         )}
+
+        <AdAdPost />
+        <BlankView />
       </ScrollView>
+
+      <Modal
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={closeModal}
+        animationType="slide"
+      >
+        <TouchableWithoutFeedback onPress={closeModal}>
+          <View style={styles.overlaySearch}>
+            <BlurView style={styles.absolute} blurType="light" blurAmount={10} />
+            <TouchableWithoutFeedback>
+              <View style={styles.searchModalContent}>
+                <TextInput
+                  placeholder="Search..."
+                  value={search}
+                  onChangeText={updateSearch}
+                  style={styles.searchInput}
+                />
+                <View style={styles.dropdownContainer}>
+                  <Picker
+                    selectedValue={category}
+                    onValueChange={(itemValue) => setCategory(itemValue)}
+                    style={styles.dropdown}
+                  >
+                    <Picker.Item label="Category 1" value="category1" />
+                    <Picker.Item label="Category 2" value="category2" />
+                  </Picker>
+                </View>
+                <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
+                  <Text style={styles.searchButtonText}>Search</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
       {renderImageViewerModal()}
       {renderCommentsModal()}
     </SafeAreaView>
@@ -467,4 +544,3 @@ const HomeScreen = ({ navigation }) => {
 };
 
 export default HomeScreen;
-
