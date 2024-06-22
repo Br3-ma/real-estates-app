@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, SafeAreaView, Image, TouchableOpaci
 import { ListItem } from 'react-native-elements';
 import { BlurView } from 'expo-blur';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
+import { fetchUserInfo } from '../../../controllers/auth/userController';
 
 const NotificationScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -10,16 +11,23 @@ const NotificationScreen = () => {
   const [selectedNotification, setSelectedNotification] = useState(null);
 
   useEffect(() => {
-    // Simulate fetching data
-    setTimeout(() => {
-      setNotifications([
-        { id: 1, title: 'Notification 1', date: '2024-05-12', message: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi.', image: require('../../../assets/img/max.jpg') },
-        { id: 2, title: 'Notification 2', date: '2024-05-11', message: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi.', image: require('../../../assets/img/jane.jpg') },
-        { id: 3, title: 'Notification 3', date: '2024-05-10', message: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi.', image: require('../../../assets/img/avatar.jpg') },
-        // Add more notifications as needed
-      ]);
-      setLoading(false);
-    }, 2000); // Simulating a 2-second delay
+    const fetchNotifications = async () => {
+      try {
+        const userId = fetchUserInfo.user.id;
+        const response = await fetch(`https://your-api-endpoint.com/notifications?user_id=${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch notifications');
+        }
+        const data = await response.json();
+        setNotifications(data.notifications);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
   const openNotificationPreview = (notification) => {
@@ -44,26 +52,22 @@ const NotificationScreen = () => {
         {loading ? (
           <ScrollView contentContainerStyle={styles.scrollContent}>
             {[1, 2, 3].map((index) => (
-              <ShimmerPlaceholder key={index} style={styles.shimmerPlaceholder}>
-                <ListItem bottomDivider>
-                  <Image source={require('../../../assets/img/placeholder.jpg')} style={styles.image} />
-                  <ListItem.Content>
-                    <ListItem.Title>Loading...</ListItem.Title>
-                    <ListItem.Subtitle>Loading...</ListItem.Subtitle>
-                    <ListItem.Subtitle numberOfLines={3} ellipsizeMode="tail" style={styles.messageText}>
-                      Loading...
-                    </ListItem.Subtitle>
-                  </ListItem.Content>
-                </ListItem>
-              </ShimmerPlaceholder>
+              <View key={index} style={styles.shimmerItem}>
+                <ShimmerPlaceholder style={styles.shimmerImage} />
+                <View style={styles.shimmerContent}>
+                  <ShimmerPlaceholder style={styles.shimmerTitle} />
+                  <ShimmerPlaceholder style={styles.shimmerSubtitle} />
+                  <ShimmerPlaceholder style={styles.shimmerMessage} />
+                </View>
+              </View>
             ))}
           </ScrollView>
-        ) : (
+        ) : notifications.length > 0 ? (
           <ScrollView contentContainerStyle={styles.scrollContent}>
             {notifications.map((notification) => (
               <TouchableOpacity key={notification.id} onPress={() => openNotificationPreview(notification)}>
                 <ListItem bottomDivider>
-                  <Image source={notification.image} style={styles.image} />
+                  <Image source={{ uri: notification.image }} style={styles.image} />
                   <ListItem.Content>
                     <ListItem.Title>{notification.title}</ListItem.Title>
                     <ListItem.Subtitle>{getHumanReadableDate(notification.date)}</ListItem.Subtitle>
@@ -75,13 +79,18 @@ const NotificationScreen = () => {
               </TouchableOpacity>
             ))}
           </ScrollView>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Image source={require('../../../assets/icon/notify.png')} style={styles.emptyImage} />
+            <Text style={styles.emptyText}>No notifications available</Text>
+          </View>
         )}
         {selectedNotification && (
           <Modal visible={true} transparent={true} animationType="slide">
             <View style={styles.modalContainer}>
               <BlurView intensity={80} style={styles.blur}>
                 <View style={styles.previewContainer}>
-                  <Image source={selectedNotification.image} style={styles.fullScreenImage} />
+                  <Image source={{ uri: selectedNotification.image }} style={styles.fullScreenImage} />
                   <Text style={styles.previewTitle}>{selectedNotification.title}</Text>
                   <Text style={styles.previewDate}>{getHumanReadableDate(selectedNotification.date)}</Text>
                   <Text style={styles.previewMessage}>{selectedNotification.message}</Text>
@@ -101,11 +110,11 @@ const NotificationScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff', // Background color of the safe area
+    backgroundColor: '#fff',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0', // Background color of the screen
+    backgroundColor: '#f0f0f0',
   },
   scrollContent: {
     paddingVertical: 20,
@@ -113,11 +122,50 @@ const styles = StyleSheet.create({
   image: {
     width: 80,
     height: 80,
-    borderRadius: 40, // Make the image circular
+    borderRadius: 40,
     marginRight: 10,
   },
   messageText: {
-    color: '#777', // Color of the message text
+    color: '#777',
+  },
+  shimmerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  shimmerImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 10,
+  },
+  shimmerContent: {
+    flex: 1,
+  },
+  shimmerTitle: {
+    height: 20,
+    borderRadius: 5,
+    marginBottom: 10,
+    width: '60%',
+  },
+  shimmerSubtitle: {
+    height: 15,
+    borderRadius: 5,
+    marginBottom: 10,
+    width: '40%',
+  },
+  shimmerMessage: {
+    height: 40,
+    borderRadius: 5,
+    width: '80%',
   },
   emptyContainer: {
     flex: 1,
@@ -132,15 +180,6 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 20,
     marginBottom: 20,
-  },
-  button: {
-    backgroundColor: '#007bff',
-    padding: 10,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
   },
   modalContainer: {
     flex: 1,
@@ -187,10 +226,6 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: '#fff',
     fontSize: 16,
-  },
-  shimmerPlaceholder: {
-    marginBottom: 10,
-    borderRadius: 10,
   },
 });
 

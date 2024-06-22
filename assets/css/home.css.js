@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   searchBarContainer: {
-    backgroundColor: '#045b45',
+    backgroundColor: '#CACADC',
     borderBottomColor: 'transparent',
     borderTopColor: 'transparent',
   },
@@ -46,15 +46,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
   },
-  searchButton: {
-    backgroundColor: 'blue',
-    padding: 15,
-    borderRadius: 10,
-  },
-  searchButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
+  // searchButton: {
+  //   backgroundColor: 'blue',
+  //   padding: 15,
+  //   borderRadius: 10,
+  // },
+  // searchButtonText: {
+  //   color: 'white',
+  //   fontWeight: 'bold',
+  // },
   buttonGroupContainer: {
     marginBottom: 10,
   },
@@ -75,13 +75,17 @@ const styles = StyleSheet.create({
   },
   homeBody:{
     marginTop:-1,
-    backgroundColor: '#045b45',
+    backgroundColor: 'transparent',
   },
   bodyContent:{
     borderRadius: 10,
-    backgroundColor: '#f2f2f240',
+    backgroundColor: '#fff',
     padding: 2,
   },
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover', // or 'contain' as per your preference
+  },  
   postTitle: {
     textAlign:'left',
   },
@@ -427,7 +431,7 @@ const styles = StyleSheet.create({
 
 
   featuredSection: {
-    backgroundColor: '#045b45',
+    backgroundColor: 'transparent',
     paddingHorizontal: 20,
     paddingVertical: 15,
     marginBottom:10,
@@ -436,7 +440,62 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
-    color:'#fff', 
+    color:'#405466', 
+  },
+
+
+  //search bottom sheet
+  bottomModal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  modalSearchContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  searchInput: {
+    width: '100%',
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 10,
+    marginBottom: 20,
+  },
+  picker: {
+    width: '100%',
+    height: 40,
+    marginBottom: 20,
+  },
+  searchButton: {
+    width: '100%',
+    backgroundColor: '#165F56',
+    paddingVertical: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  searchButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  fullScreenLoading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
 });
 

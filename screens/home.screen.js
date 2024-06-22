@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Animated, Easing, Text, ScrollView, Image, TouchableOpacity, TouchableWithoutFeedback, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions } from 'react-native';
+import { View, Animated, Easing, ActivityIndicator, Text, ScrollView, Image, TouchableOpacity, TouchableWithoutFeedback, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions } from 'react-native';
 import { Card, Button, Icon, SearchBar, ButtonGroup, Avatar } from 'react-native-elements';
 import { BlurView } from 'expo-blur';
 import { Picker } from '@react-native-picker/picker';
@@ -14,6 +14,9 @@ import { API_BASE_URL } from '../confg/config';
 import { SERVER_BASE_URL } from '../confg/config';
 import AdAdPost from '../components/ad-ad-post';
 import BlankView from '../components/blank-bottom';
+import { LinearGradient } from 'expo-linear-gradient';
+import ReactNativeModal from 'react-native-modal';
+import SearchModal from '../components/search-filter';
 
 const { width } = Dimensions.get('window');
 
@@ -42,6 +45,7 @@ const HomeScreen = ({ navigation }) => {
   const [newMessage, setNewMessage] = useState('');
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef();
   const fetchIntervalRef = useRef(null);
   const [category, setCategory] = useState('');
@@ -97,8 +101,9 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const handleSearch = async () => {
+    setIsLoading(true);
     try {
-      const response = await fetch('YOUR_API_URL', {
+      const response = await fetch(`${API_BASE_URL}/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -106,10 +111,12 @@ const HomeScreen = ({ navigation }) => {
         body: JSON.stringify({ keyword: search, category }),
       });
       const data = await response.json();
-      closeModal();
       navigation.navigate('SearchResultScreen', { results: data });
     } catch (error) {
       console.error(error);
+    } finally {
+      setIsLoading(false);
+      closeModal();
     }
   };
 
@@ -468,77 +475,60 @@ const HomeScreen = ({ navigation }) => {
         containerStyle={styles.searchBarContainer}
         inputContainerStyle={styles.searchBarInput}
       />
-      <ScrollView style={styles.homeBody}>
-        <ButtonGroup
-          buttons={buttons}
-          selectedIndex={selectedIndex}
-          onPress={updateIndex}
-          containerStyle={styles.buttonGroupContainer}
-          selectedButtonStyle={styles.selectedButton}
-        />
-
-        {/* Add the new section below the ButtonGroup */}
-        <View style={styles.featuredSection}>
-          <Text style={styles.featuredSectionTitle}>Featured Items</Text>
-          <FeaturedItems />
-        </View>
-
-        {loading ? (
-          <View style={styles.loader}>
-            {[1, 2, 3].map((item) => (
-              <ShimmerPlaceholder key={item} style={styles.placeholder} />
-            ))}
-          </View>
-        ) : (
-          <View style={styles.bodyContent}>
-            {properties.map((property) => (
-              <View key={property.id}>{renderPropertyItem({ item: property })}</View>
-            ))}
-          </View>
-        )}
-
-        <AdAdPost />
-        <BlankView />
-      </ScrollView>
-
-      <Modal
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={closeModal}
-        animationType="slide"
+      <LinearGradient
+        colors={['#c4c4dd', '#9d69ff', '#5a50a5']}
+        style={styles.gradient}
       >
-        <TouchableWithoutFeedback onPress={closeModal}>
-          <View style={styles.overlaySearch}>
-            <BlurView style={styles.absolute} blurType="light" blurAmount={10} />
-            <TouchableWithoutFeedback>
-              <View style={styles.searchModalContent}>
-                <TextInput
-                  placeholder="Search..."
-                  value={search}
-                  onChangeText={updateSearch}
-                  style={styles.searchInput}
-                />
-                <View style={styles.dropdownContainer}>
-                  <Picker
-                    selectedValue={category}
-                    onValueChange={(itemValue) => setCategory(itemValue)}
-                    style={styles.dropdown}
-                  >
-                    <Picker.Item label="Category 1" value="category1" />
-                    <Picker.Item label="Category 2" value="category2" />
-                  </Picker>
-                </View>
-                <TouchableOpacity onPress={handleSearch} style={styles.searchButton}>
-                  <Text style={styles.searchButtonText}>Search</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+        <ScrollView style={styles.homeBody}>
+          <ButtonGroup
+            buttons={buttons}
+            selectedIndex={selectedIndex}
+            onPress={updateIndex}
+            containerStyle={styles.buttonGroupContainer}
+            selectedButtonStyle={styles.selectedButton}
+          />
 
+          {/* Add the new section below the ButtonGroup */}
+          <View style={styles.featuredSection}>
+            <Text style={styles.featuredSectionTitle}>Featured Items</Text>
+            <FeaturedItems />
+          </View>
+
+          {loading ? (
+            <View style={styles.loader}>
+              {[1, 2, 3].map((item) => (
+                <ShimmerPlaceholder key={item} style={styles.placeholder} />
+              ))}
+            </View>
+          ) : (
+            <View style={styles.bodyContent}>
+              {properties.map((property) => (
+                <View key={property.id}>{renderPropertyItem({ item: property })}</View>
+              ))}
+            </View>
+          )}
+
+          <AdAdPost />
+          <BlankView />
+        </ScrollView>
+      </LinearGradient>
+      <SearchModal
+        isVisible={isModalVisible}
+        closeModal={closeModal}
+        search={search}
+        updateSearch={updateSearch}
+        category={category}
+        setCategory={setCategory}
+        handleSearch={handleSearch}
+        isLoading={isLoading}
+      />
       {renderImageViewerModal()}
       {renderCommentsModal()}
+      {isLoading && (
+        <View style={styles.fullScreenLoading}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      )}
     </SafeAreaView>
   );
 };

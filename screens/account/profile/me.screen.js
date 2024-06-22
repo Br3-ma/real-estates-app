@@ -1,42 +1,73 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Keyboard } from 'react-native';
 import { fetchUserInfo } from '../../../controllers/auth/userController';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import { Button, Grid, TextField } from '@mui/material';
+import axios from 'axios';
+import { API_BASE_URL } from '../../../confg/config';
+import Modal from 'react-native-modal';
 
 const MeScreen = () => {
   const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
   const [editProfileModalVisible, setEditProfileModalVisible] = useState(false);
   const [uploadProfileModalVisible, setUploadProfileModalVisible] = useState(false);
-  const [saving, setSaving] = useState(false); // State to track the saving process
-  const [userInfo, setUserInfo] = useState(null); // State to store user info
+  const [saving, setSaving] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    bio: '',
+    location: '',
+    website: '',
+    password: '',
+    newPassword: '',
+    confirmNewPassword: '',
+    picture: '',
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
       const user = await fetchUserInfo();
       setUserInfo(user);
+      setFormData({
+        ...formData,
+        name: user.user.name,
+        email: user.user.email,
+        bio: user.user.bio,
+        location: user.user.location,
+        website: user.user.website,
+        picture: user.user.picture,
+      });
     };
 
     fetchUser();
   }, []);
 
-  const openChangePasswordModal = () => {
-    setChangePasswordModalVisible(true);
+  const openChangePasswordModal = () => setChangePasswordModalVisible(true);
+  const openEditProfileModal = () => setEditProfileModalVisible(true);
+  const openUploadProfileModal = () => setUploadProfileModalVisible(true);
+
+  const closeChangePasswordModal = () => setChangePasswordModalVisible(false);
+  const closeEditProfileModal = () => setEditProfileModalVisible(false);
+  const closeUploadProfileModal = () => setUploadProfileModalVisible(false);
+
+  const handleInputChange = (name, value) => {
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  const openEditProfileModal = () => {
-    setEditProfileModalVisible(true);
-  };
-
-  const openUploadProfileModal = () => {
-    setUploadProfileModalVisible(true);
-  };
-
-  const saveChanges = async () => {
+  const saveChanges = async (updatedData) => {
     setSaving(true);
-    // Simulating API call delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setSaving(false);
+    try {
+      const response = await axios.post(`${API_BASE_URL}/update-profile`, updatedData);
+      setUserInfo(response.data);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!userInfo) {
@@ -46,6 +77,24 @@ const MeScreen = () => {
       </View>
     );
   }
+
+  const handleSaveProfile = () => {
+    const { name, email, bio, location, website } = formData;
+    saveChanges({ name, email, bio, location, website });
+    closeEditProfileModal();
+  };
+
+  const handleSavePassword = () => {
+    const { password, newPassword, confirmNewPassword } = formData;
+    saveChanges({ password, newPassword, confirmNewPassword });
+    closeChangePasswordModal();
+  };
+
+  const handleSavePicture = () => {
+    const { picture } = formData;
+    saveChanges({ picture });
+    closeUploadProfileModal();
+  };
 
   const placeholderCoverImage = 'https://arteye.co.za/wp-content/uploads/2022/06/Fiona-Rowette-Diptych-140-x-100-cm-003-scaled.jpg';
   const placeholderProfileImage = 'https://www.shutterstock.com/image-vector/blank-avatar-photo-icon-design-600nw-1682415103.jpg';
@@ -100,69 +149,121 @@ const MeScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Change Password Modal */}
+      {/* Change Password Bottom Sheet */}
       <Modal
-        visible={changePasswordModalVisible}
-        animationType="slide"
-        onRequestClose={() => setChangePasswordModalVisible(false)}
+        isVisible={changePasswordModalVisible}
+        onBackdropPress={closeChangePasswordModal}
+        onSwipeComplete={closeChangePasswordModal}
+        swipeDirection="down"
+        style={styles.bottomModal}
       >
-        <View style={styles.modalContainer}>
-          <TouchableOpacity onPress={() => setChangePasswordModalVisible(false)} style={styles.closeButton}>
-            <AntDesign name="arrowleft" size={24} color="#333" />
-          </TouchableOpacity>
+        <View style={styles.bottomSheetContainer}>
           <Text style={styles.modalTitle}>Change Password</Text>
-          {/* Form elements for changing password */}
+          <TextField
+            label="Current Password"
+            type="password"
+            fullWidth
+            onChange={(e) => handleInputChange('password', e.target.value)}
+          />
+          <TextField
+            label="New Password"
+            type="password"
+            fullWidth
+            onChange={(e) => handleInputChange('newPassword', e.target.value)}
+          />
+          <TextField
+            label="Confirm New Password"
+            type="password"
+            fullWidth
+            onChange={(e) => handleInputChange('confirmNewPassword', e.target.value)}
+          />
           <View style={styles.buttonContainer}>
-            <Button variant="contained" color="primary" onClick={saveChanges}>
-              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text>Save Changes</Text>}
+            <Button variant="contained" color="primary" onClick={handleSavePassword}>
+              <Text>Save Changes</Text>
             </Button>
           </View>
         </View>
       </Modal>
 
-      {/* Edit Profile Modal */}
+      {/* Edit Profile Bottom Sheet */}
       <Modal
-        visible={editProfileModalVisible}
-        animationType="slide"
-        onRequestClose={() => setEditProfileModalVisible(false)}
+        isVisible={editProfileModalVisible}
+        onBackdropPress={closeEditProfileModal}
+        onSwipeComplete={closeEditProfileModal}
+        swipeDirection="down"
+        style={styles.bottomModal}
       >
-        <View style={styles.modalContainer}>
-          <TouchableOpacity onPress={() => setEditProfileModalVisible(false)} style={styles.closeButton}>
-            <AntDesign name="arrowleft" size={24} color="#333" />
-          </TouchableOpacity>
+        <View style={styles.bottomSheetContainer}>
           <Text style={styles.modalTitle}>Edit Profile</Text>
-          {/* Form elements for editing profile */}
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <TextField label="Full Name" fullWidth />
+              <TextField
+                label="Full Name"
+                fullWidth
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+              />
             </Grid>
             <Grid item xs={12}>
-              <TextField label="Email" fullWidth />
+              <TextField
+                label="Email"
+                fullWidth
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+              />
             </Grid>
-            {/* Add more fields as needed */}
+            <Grid item xs={12}>
+              <TextField
+                label="Bio"
+                fullWidth
+                value={formData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Location"
+                fullWidth
+                value={formData.location}
+                onChange={(e) => handleInputChange('location', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Website"
+                fullWidth
+                value={formData.website}
+                onChange={(e) => handleInputChange('website', e.target.value)}
+              />
+            </Grid>
           </Grid>
           <View style={styles.buttonContainer}>
-            <Button variant="contained" color="primary" onClick={saveChanges}>
+            <Button variant="contained" color="primary" onClick={handleSaveProfile}>
               {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text>Save Changes</Text>}
             </Button>
           </View>
         </View>
       </Modal>
 
-      {/* Upload Profile Picture Modal */}
+      {/* Upload Profile Picture Bottom Sheet */}
       <Modal
-        visible={uploadProfileModalVisible}
-        animationType="slide"
-        onRequestClose={() => setUploadProfileModalVisible(false)}
+        isVisible={uploadProfileModalVisible}
+        onBackdropPress={closeUploadProfileModal}
+        onSwipeComplete={closeUploadProfileModal}
+        swipeDirection="down"
+        style={styles.bottomModal}
       >
-        <View style={styles.modalContainer}>
-          <TouchableOpacity onPress={() => setUploadProfileModalVisible(false)} style={styles.closeButton}>
-            <AntDesign name="arrowleft" size={24} color="#333" />
-          </TouchableOpacity>
+        <View style={styles.bottomSheetContainer}>
           <Text style={styles.modalTitle}>Upload Profile Picture</Text>
-          {/* Image picker and preview */}
+          <Image source={{ uri: formData.picture || placeholderProfileImage }} style={styles.profilePicturePreview} />
+          <TextField
+            label="Profile Picture URL"
+            fullWidth
+            value={formData.picture}
+            onChange={(e) => handleInputChange('picture', e.target.value)}
+          />
           <View style={styles.buttonContainer}>
-            <Button variant="contained" color="primary" onClick={saveChanges}>
+            <Button variant="contained" color="primary" onClick={handleSavePicture}>
               {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text>Save Changes</Text>}
             </Button>
           </View>
@@ -258,7 +359,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   linkButton: {
-    borderRadius: 50, // Make the buttons round
+    borderRadius: 50,
     backgroundColor: '#3498db',
     padding: 15,
   },
@@ -291,22 +392,11 @@ const styles = StyleSheet.create({
     color: '#555',
     marginTop: 5,
   },
-  modalContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    justifyContent: 'center', // center modal vertically
-  },
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    zIndex: 1,
   },
   buttonContainer: {
     marginTop: 20,
@@ -317,7 +407,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  profilePicturePreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginVertical: 20,
+    alignSelf: 'center',
+  },
+  bottomSheetContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+  },
+  bottomModal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
 });
 
 export default MeScreen;
-

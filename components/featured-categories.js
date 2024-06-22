@@ -29,7 +29,7 @@ const featuredItemsStyles = StyleSheet.create({
   featuredItemsContainer: {
     paddingVertical: 15,
     paddingHorizontal: 10,
-    backgroundColor: '#045b45',
+    backgroundColor: 'transparent',
     marginVertical: 10,
   },
   featuredItem: {

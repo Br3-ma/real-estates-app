@@ -15,8 +15,8 @@ import ContactsPermissions from './screens/onboarding/permissions.screen';
 import SplashScreen from './screens/splash.screen';
 import MainScreen from './screens/main.screen';
 import CartScreen from './screens/cart/my-cart.screen';
-// import ProductDetails from './screens/products/product-detail.screen';
 import MapScreen from './screens/maps/find-property.screen';
+import SearchResultScreen from './screens/search/search-result.screen';
 
 const Stack = createStackNavigator();
 
@@ -67,7 +67,9 @@ const App = () => {
         <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="Cart" component={CartScreen} />
+          
           <Stack.Screen name="MapScreen" component={MapScreen} />
+          <Stack.Screen name="SearchResultScreen" component={SearchResultScreen} />
           {/* <Stack.Screen name="ProductDetails" component={ProductDetails} /> */}
         </Stack.Navigator>
       ) : (
