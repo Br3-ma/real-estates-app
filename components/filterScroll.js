@@ -26,7 +26,7 @@ const FilterScroll = ({ filters, selectedFilter, onSelectFilter }) => {
                     return <MaterialCommunityIcons name="filter" size={20} color="black" />;
                 }
               }}
-              style={[styles.filterButton, { backgroundColor: selectedFilter === filter ? '#4a90e2' : '#fff' }]}
+              style={[styles.filterButton, { backgroundColor: selectedFilter === filter ? '#7D7399' : '#fff' }]}
               onPress={() => onSelectFilter(filter)}
               size={35} // Increased size for IconButton
               color={selectedFilter === filter ? '#fff' : 'black'}
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     padding: 10, // Adjust padding for IconButton
   },
   badge: {
-    backgroundColor: '#4a90e2',
+    backgroundColor: '#7D7399',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 15,

@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
-import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ToastProvider, useToast } from 'react-native-toast-notifications';
 import { API_BASE_URL } from '../../confg/config';
-import { SERVER_BASE_URL } from '../../confg/config';
 
 const backgroundImage = require('../../assets/img/otp.jpeg');
 
 const SignInScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
   const handleSignIn = async () => {
+    setLoading(true); // Start loading
     try {
-      const response = await axios.post(`${API_BASE_URL}/realestserver/est-server/api/signin`, {
+      const response = await axios.post(`${API_BASE_URL}/signin`, {
         email,
         password,
       });
@@ -30,6 +31,8 @@ const SignInScreen = ({ navigation }) => {
         animationType: 'slide-in',
       });
       console.error('Sign In Error:', error);
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -56,8 +59,12 @@ const SignInScreen = ({ navigation }) => {
           onChangeText={setPassword}
           secureTextEntry={true}
         />
-        <TouchableOpacity style={styles.button} onPress={handleSignIn}>
-          <Text style={styles.buttonText}>Sign In</Text>
+        <TouchableOpacity style={styles.button} onPress={handleSignIn} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator size="small" color="#FFF" />
+          ) : (
+            <Text style={styles.buttonText}>Sign In</Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('RegisterByOTP')}>
           <Text style={styles.signupText}>Don't have an account? Sign Up</Text>
@@ -125,11 +132,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function App({ navigation }) {
+const App = ({ navigation }) => (
+  <ToastProvider>
+    <SignInScreen navigation={navigation} />
+  </ToastProvider>
+);
 
-  return (
-    <ToastProvider>
-      <SignInScreen navigation={navigation} />
-    </ToastProvider>
-  );
-}
+export default App;

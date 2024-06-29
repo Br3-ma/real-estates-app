@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, LogBox } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { API_BASE_URL } from './confg/config';
@@ -19,6 +19,12 @@ import MapScreen from './screens/maps/find-property.screen';
 import SearchResultScreen from './screens/search/search-result.screen';
 
 const Stack = createStackNavigator();
+
+// Disable yellow box warnings
+console.disableYellowBox = true;
+
+// Ignore all log notifications
+LogBox.ignoreAllLogs(true);
 
 const App = () => {
   const [showSplashScreen, setShowSplashScreen] = useState(true);

@@ -17,6 +17,8 @@ import BlankView from '../components/blank-bottom';
 import { LinearGradient } from 'expo-linear-gradient';
 import ReactNativeModal from 'react-native-modal';
 import SearchModal from '../components/search-filter';
+import MovingPlaceholder from '../components/placeholder-effect';
+import { fetchUserInfo } from '../controllers/auth/userController';
 
 const { width } = Dimensions.get('window');
 
@@ -49,6 +51,12 @@ const HomeScreen = ({ navigation }) => {
   const scrollViewRef = useRef();
   const fetchIntervalRef = useRef(null);
   const [category, setCategory] = useState('');
+  const [filterForm, setFilterForm] = useState({});
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [propertyType, setPropertyType] = useState('');
+  const [numBeds, setNumBeds] = useState(0);
+  const [numBaths, setNumBaths] = useState(0);
   const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -64,8 +72,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     const fetchUser = async () => {
-      // Mock implementation of fetching user info
-      const user = { id: 1, name: 'John Doe', picture: 'https://example.com/user.jpg' };
+      const user = await fetchUserInfo();
       setUserInfo(user);
     };
 
@@ -84,14 +91,6 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const updateSearch = (search) => {
-    setSearch(search);
-  };
-
-  // const updateSearch = (search) => {
-  //   setSearch(search);
-  // };
-
   const openModal = () => {
     setIsModalVisible(true);
   };
@@ -99,8 +98,8 @@ const HomeScreen = ({ navigation }) => {
   const closeModal = () => {
     setIsModalVisible(false);
   };
-
-  const handleSearch = async () => {
+  
+  const handleSearch = async (searchData) => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/search`, {
@@ -108,12 +107,12 @@ const HomeScreen = ({ navigation }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ keyword: search, category }),
+        body: JSON.stringify(searchData),
       });
       const data = await response.json();
-      navigation.navigate('SearchResultScreen', { results: data });
+      navigation.navigate('SearchResultScreen', { results: data, searchKeyword: 'Search Results' });
     } catch (error) {
-      console.error(error);
+      console.error('Error searching properties:', error);
     } finally {
       setIsLoading(false);
       closeModal();
@@ -198,6 +197,10 @@ const HomeScreen = ({ navigation }) => {
     resizeMode: 'cover',
     marginRight: 5,
   });
+
+  const handleFilterChange = (filterName, filterValue) => {
+    setFilterForm((prevForm) => ({ ...prevForm, [filterName]: filterValue }));
+  };
 
   const renderPropertyItem = ({ item }) => (
     <Card containerStyle={styles.fullWidthCard}>
@@ -466,7 +469,11 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="white-content" />
+      <LinearGradient
+        colors={['#fff', '#7D7399', '#173955']}
+        style={styles.gradient}
+      >
       <SearchBar
         placeholder="Search properties..."
         onFocus={openModal}
@@ -474,11 +481,10 @@ const HomeScreen = ({ navigation }) => {
         platform={Platform.OS}
         containerStyle={styles.searchBarContainer}
         inputContainerStyle={styles.searchBarInput}
+        inputStyle={{ color: '#000' }}
+        searchIcon={<Icon name="search" color="#438ab5" />}
+        renderPlaceholder={(focused) => <MovingPlaceholder text="Search properties..." />}
       />
-      <LinearGradient
-        colors={['#c4c4dd', '#9d69ff', '#5a50a5']}
-        style={styles.gradient}
-      >
         <ScrollView style={styles.homeBody}>
           <ButtonGroup
             buttons={buttons}
@@ -512,15 +518,26 @@ const HomeScreen = ({ navigation }) => {
           <BlankView />
         </ScrollView>
       </LinearGradient>
+
       <SearchModal
         isVisible={isModalVisible}
         closeModal={closeModal}
-        search={search}
-        updateSearch={updateSearch}
-        category={category}
-        setCategory={setCategory}
         handleSearch={handleSearch}
         isLoading={isLoading}
+        filterForm={filterForm}
+        handleFilterChange={handleFilterChange}
+        minPrice={minPrice}
+        setMinPrice={setMinPrice}
+        maxPrice={maxPrice}
+        setMaxPrice={setMaxPrice}
+        propertyType={propertyType}
+        setPropertyType={setPropertyType}
+        category={category}
+        setCategory={setCategory}
+        numBeds={numBeds}
+        setNumBeds={setNumBeds}
+        numBaths={numBaths}
+        setNumBaths={setNumBaths}
       />
       {renderImageViewerModal()}
       {renderCommentsModal()}

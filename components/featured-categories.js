@@ -1,24 +1,66 @@
 // FeaturedItems.js
-
-import React from 'react';
-import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Icon } from 'react-native-elements'; // Assuming you use react-native-elements for icons
-
-const categories = [
-  { id: 1, title: 'Category 1', icon: 'heart', description: 'Description for Category 1' },
-  { id: 2, title: 'Category 2', icon: 'star', description: 'Description for Category 2' },
-  { id: 3, title: 'Category 3', icon: 'user', description: 'Description for Category 3' },
-  // Add more categories as needed
-];
+import React, { useState, useEffect } from 'react';
+import { ScrollView, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { Icon } from 'react-native-elements';
+import axios from 'axios';
+import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
+import { API_BASE_URL } from '../confg/config';
 
 const FeaturedItems = () => {
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/property-types`);
+        if (Array.isArray(response.data.data)) {
+          setCategories(response.data.data);
+        } else {
+          console.error('Expected array but received:', response.data.message);
+          setError('Unexpected response format');
+        }
+        setIsLoading(false);
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+        setError('Error fetching categories');
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={featuredItemsStyles.featuredItemsContainer}>
+        {[1, 2, 3, 4, 5].map((_, index) => (
+          <View key={index} style={featuredItemsStyles.featuredItem}>
+            <ShimmerPlaceholder style={featuredItemsStyles.shimmerIcon} />
+            <ShimmerPlaceholder style={featuredItemsStyles.shimmerTextTitle} />
+            <ShimmerPlaceholder style={featuredItemsStyles.shimmerTextDescription} />
+          </View>
+        ))}
+      </ScrollView>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={featuredItemsStyles.errorContainer}>
+        <Text style={featuredItemsStyles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={featuredItemsStyles.featuredItemsContainer}>
-      {categories.map((category) => (
+      {Array.isArray(categories) && categories.map((category) => (
         <TouchableOpacity key={category.id} style={featuredItemsStyles.featuredItem}>
-          <Icon name={category.icon} type='font-awesome' size={30} color='#6c63ff' />
-          <Text style={featuredItemsStyles.featuredItemTitle}>{category.title}</Text>
-          <Text style={featuredItemsStyles.featuredItemDescription}>{category.description}</Text>
+          <Icon name={category.icon_name || 'home'} type={category.type} size={30} color="#7D7399" />
+          <Text style={featuredItemsStyles.featuredItemTitle}>{category.name}</Text>
+          <Text style={featuredItemsStyles.featuredItemDescription}>{category.desc}</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -56,6 +98,33 @@ const featuredItemsStyles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
+  },
+  shimmerIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    marginBottom: 10,
+  },
+  shimmerTextTitle: {
+    width: 100,
+    height: 20,
+    marginTop: 10,
+    marginBottom: 5,
+    borderRadius: 5,
+  },
+  shimmerTextDescription: {
+    width: 80,
+    height: 15,
+    borderRadius: 5,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: 'red',
   },
 });
 

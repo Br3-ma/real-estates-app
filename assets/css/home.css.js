@@ -17,13 +17,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   searchBarContainer: {
-    backgroundColor: '#CACADC',
+    backgroundColor: 'transparent',
     borderBottomColor: 'transparent',
     borderTopColor: 'transparent',
+    paddingHorizontal:15,
   },
   searchBarInput: {
     backgroundColor: '#ececec',
-  },  
+    borderRadius: 20,
+    height: 40,
+    borderColor: '#c1dbeb',
+    borderWidth: 1,
+  },
   searchModalContent: {
     width: '100%',
     backgroundColor: 'white',
@@ -57,9 +62,10 @@ const styles = StyleSheet.create({
   // },
   buttonGroupContainer: {
     marginBottom: 10,
+    borderRadius:10,
   },
   selectedButton: {
-    backgroundColor: '#6c63ff',
+    backgroundColor: '#7D7399',
   },
   fullWidthCard: {
     width: width - 20, // Full width of the screen minus padding
@@ -209,7 +215,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 5,
     fontWeight: 'bold',
-    color: 'purple',
+    color: '#7D7399',
   },
   messageTime: {
     fontSize: 12,

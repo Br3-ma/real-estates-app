@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ToastProvider, useToast } from 'react-native-toast-notifications';
 import { API_BASE_URL } from '../../confg/config';
-import { SERVER_BASE_URL } from '../../confg/config';
 
 const backgroundImage = require('../../assets/img/otp.jpeg');
 
@@ -14,11 +13,13 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const toast = useToast();
 
   const handleSignup = async () => {
+    setLoading(true); // Start loading
     try {
-      const response = await axios.post(`${API_BASE_URL}/realestserver/est-server/api/signup/user-info`, {
+      const response = await axios.post(`${API_BASE_URL}/signup/user-info`, {
         name,
         email,
         phone,
@@ -27,13 +28,15 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
       await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
       navigation.navigate('Main');
     } catch (error) {
-      toast.show('There was an issue with your signup. Please try again.', {
+      toast.show('There was an issue with your signup. Email already exist or Invalid Information.', {
         type: 'danger',
         placement: 'top',
         duration: 4000,
         animationType: 'slide-in',
       });
       console.error('Signup Error:', error);
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -74,8 +77,12 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
           onChangeText={setPassword}
           secureTextEntry={true}
         />
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <Text style={styles.buttonText}>Sign Up</Text>
+        <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator size="small" color="#FFF" />
+          ) : (
+            <Text style={styles.buttonText}>Sign Up</Text>
+          )}
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
           <Text style={styles.loginLink}>Already have an account? Log In</Text>
@@ -135,13 +142,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  loginLink: {
+    color: '#FFF',
+    fontSize: 16,
+    marginTop: 20,
+    textDecorationLine: 'underline',
+  },
 });
 
-export default function App({ navigation }) {
+const App = ({ navigation }) => (
+  <ToastProvider>
+    <SignupRealEstateAgentScreen navigation={navigation} />
+  </ToastProvider>
+);
 
-    return (
-      <ToastProvider>
-        <SignupRealEstateAgentScreen navigation={navigation} />
-      </ToastProvider>
-    );
-  }
+export default App;

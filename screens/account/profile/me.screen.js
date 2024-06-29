@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Keyboard } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, TextInput } from 'react-native';
 import { fetchUserInfo } from '../../../controllers/auth/userController';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
-import { Button, Grid, TextField } from '@mui/material';
 import axios from 'axios';
-import { API_BASE_URL } from '../../../confg/config';
 import Modal from 'react-native-modal';
+import { API_BASE_URL } from '../../../confg/config';
+import mime from "mime";
+import Constants from 'expo-constants';
+import ChangePasswordModal from '../../../components/update-password-modal';
+import EditProfileModal from '../../../components/update-profile-modal';
+import UploadProfilePictureModal from '../../../components/update-picture-modal';
+import Preloader from '../../../components/preloader-full';
 
 const MeScreen = () => {
   const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
@@ -13,6 +18,7 @@ const MeScreen = () => {
   const [uploadProfileModalVisible, setUploadProfileModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [uploadImages, setUploadImages] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -79,21 +85,71 @@ const MeScreen = () => {
   }
 
   const handleSaveProfile = () => {
+    const segment = 'profile';
+    const user_id = userInfo.user.id;
     const { name, email, bio, location, website } = formData;
-    saveChanges({ name, email, bio, location, website });
+    saveChanges({ name, email, bio, location, website, segment, user_id });
     closeEditProfileModal();
   };
 
   const handleSavePassword = () => {
+    const segment = 'password';
+    const user_id = userInfo.user.id;
     const { password, newPassword, confirmNewPassword } = formData;
-    saveChanges({ password, newPassword, confirmNewPassword });
+    saveChanges({ password, newPassword, confirmNewPassword, segment, user_id });
     closeChangePasswordModal();
   };
 
-  const handleSavePicture = () => {
-    const { picture } = formData;
-    saveChanges({ picture });
-    closeUploadProfileModal();
+  const convertImageToBlob = async (uri) => {
+    try {
+      const blob = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      return blob;
+    } catch (error) {
+      console.error('Error converting image to blob:', error);
+      throw error;
+    }
+  };
+
+  const handleSavePicture = async () => {
+    try {
+      setSaving(true);
+      
+      const formPicData = new FormData();
+      formPicData.append('segment', 'picture');
+      formPicData.append('user_id', userInfo.user.id);
+      // Convert image URIs to Blobs and append them to formPicData
+      for (let index = 0; index < uploadImages.length; index++) {
+        const image = uploadImages[index];
+        const newImageUri = Constants.platform.android
+          ? image.uri
+          : image.uri.replace('file://', '');
+        
+        const fileType = mime.getType(newImageUri) || 'image/jpeg';
+        formPicData.append(`picture[${index}]`, {
+          name: `photo_${index}.jpg`,
+          type: fileType,
+          uri: newImageUri,
+        });
+      }
+      const response = await fetch(`${API_BASE_URL}/update-profile`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formPicData,
+      });
+      setUserInfo(response.data);
+      setSaving(false);
+      closeUploadProfileModal();
+    } catch (error) {
+      console.error('Error saving picture:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const placeholderCoverImage = 'https://arteye.co.za/wp-content/uploads/2022/06/Fiona-Rowette-Diptych-140-x-100-cm-003-scaled.jpg';
@@ -103,15 +159,15 @@ const MeScreen = () => {
     <ScrollView contentContainerStyle={styles.container}>
       {/* Profile Header with editable cover image */}
       <View style={styles.profileHeader}>
-        <Image source={{ uri: userInfo.user.cover || placeholderCoverImage }} style={styles.coverImage} />
+        <Image source={{ uri: userInfo.user?.cover || placeholderCoverImage }} style={styles.coverImage} />
         <TouchableOpacity onPress={() => alert('Change Cover')} style={styles.editCoverButton}>
           <AntDesign name="edit" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={styles.profileInfo}>
-          <Image source={{ uri: userInfo.user.picture || placeholderProfileImage }} style={styles.profilePicture} />
+          <Image source={{ uri: userInfo.user?.picture || placeholderProfileImage }} style={styles.profilePicture} />
           <View style={styles.profileText}>
-            <Text style={styles.profileName}>{userInfo.user.name}</Text>
-            <Text style={styles.profileBio}>{userInfo.user.bio}</Text>
+            <Text style={styles.profileName}>{userInfo.user?.name}</Text>
+            <Text style={styles.profileBio}>{userInfo.user?.bio}</Text>
           </View>
         </View>
       </View>
@@ -150,133 +206,45 @@ const MeScreen = () => {
       </View>
 
       {/* Change Password Bottom Sheet */}
-      <Modal
+      <ChangePasswordModal
         isVisible={changePasswordModalVisible}
-        onBackdropPress={closeChangePasswordModal}
-        onSwipeComplete={closeChangePasswordModal}
-        swipeDirection="down"
-        style={styles.bottomModal}
-      >
-        <View style={styles.bottomSheetContainer}>
-          <Text style={styles.modalTitle}>Change Password</Text>
-          <TextField
-            label="Current Password"
-            type="password"
-            fullWidth
-            onChange={(e) => handleInputChange('password', e.target.value)}
-          />
-          <TextField
-            label="New Password"
-            type="password"
-            fullWidth
-            onChange={(e) => handleInputChange('newPassword', e.target.value)}
-          />
-          <TextField
-            label="Confirm New Password"
-            type="password"
-            fullWidth
-            onChange={(e) => handleInputChange('confirmNewPassword', e.target.value)}
-          />
-          <View style={styles.buttonContainer}>
-            <Button variant="contained" color="primary" onClick={handleSavePassword}>
-              <Text>Save Changes</Text>
-            </Button>
-          </View>
-        </View>
-      </Modal>
+        onClose={closeChangePasswordModal}
+        formData={formData}
+        handleInputChange={handleInputChange}
+        handleSavePassword={handleSavePassword}
+        saving={saving}
+      />
 
-      {/* Edit Profile Bottom Sheet */}
-      <Modal
+      {/* Edit Profile Bottom Sheet */}  
+      <EditProfileModal
         isVisible={editProfileModalVisible}
-        onBackdropPress={closeEditProfileModal}
-        onSwipeComplete={closeEditProfileModal}
-        swipeDirection="down"
-        style={styles.bottomModal}
-      >
-        <View style={styles.bottomSheetContainer}>
-          <Text style={styles.modalTitle}>Edit Profile</Text>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="Full Name"
-                fullWidth
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Email"
-                fullWidth
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Bio"
-                fullWidth
-                value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Location"
-                fullWidth
-                value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Website"
-                fullWidth
-                value={formData.website}
-                onChange={(e) => handleInputChange('website', e.target.value)}
-              />
-            </Grid>
-          </Grid>
-          <View style={styles.buttonContainer}>
-            <Button variant="contained" color="primary" onClick={handleSaveProfile}>
-              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text>Save Changes</Text>}
-            </Button>
-          </View>
-        </View>
-      </Modal>
+        onClose={closeEditProfileModal}
+        formData={formData}
+        handleInputChange={handleInputChange}
+        handleSaveProfile={handleSaveProfile}
+        saving={saving}
+      />
 
       {/* Upload Profile Picture Bottom Sheet */}
-      <Modal
+      <UploadProfilePictureModal
         isVisible={uploadProfileModalVisible}
-        onBackdropPress={closeUploadProfileModal}
-        onSwipeComplete={closeUploadProfileModal}
-        swipeDirection="down"
-        style={styles.bottomModal}
-      >
-        <View style={styles.bottomSheetContainer}>
-          <Text style={styles.modalTitle}>Upload Profile Picture</Text>
-          <Image source={{ uri: formData.picture || placeholderProfileImage }} style={styles.profilePicturePreview} />
-          <TextField
-            label="Profile Picture URL"
-            fullWidth
-            value={formData.picture}
-            onChange={(e) => handleInputChange('picture', e.target.value)}
-          />
-          <View style={styles.buttonContainer}>
-            <Button variant="contained" color="primary" onClick={handleSavePicture}>
-              {saving ? <ActivityIndicator size="small" color="#fff" /> : <Text>Save Changes</Text>}
-            </Button>
-          </View>
-        </View>
-      </Modal>
+        onClose={closeUploadProfileModal}
+        uploadImages={uploadImages}
+        setUploadImages={setUploadImages}
+        handleSavePicture={handleSavePicture}
+        saving={saving}
+      />
 
       {/* Details Container */}
       <View style={styles.detailsContainer}>
-        <Card title="Location" value={userInfo.user.location} />
-        <Card title="Email" value={userInfo.user.email} />
-        <Card title="Website" value={userInfo.user.website} onPress={() => alert('Visit website')} />
+        <Card title="Location" value={userInfo.user?.location} />
+        <Card title="Email" value={userInfo.user?.email} />
+        <Card title="Website" value={userInfo.user?.website} onPress={() => alert('Visit website')} />
       </View>
       {/* Add more cards as needed */}
+
+      
+      {saving && <Preloader />}
     </ScrollView>
   );
 };
@@ -402,6 +370,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: 'center',
   },
+  button: {
+    backgroundColor: '#3498db',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -422,6 +400,13 @@ const styles = StyleSheet.create({
   bottomModal: {
     justifyContent: 'flex-end',
     margin: 0,
+  },
+  input: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
   },
 });
 

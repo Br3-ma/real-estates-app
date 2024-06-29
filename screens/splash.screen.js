@@ -5,8 +5,9 @@ const SplashScreen = () => {
     return (
         <View style={styles.container}>
             <Image source={require('../assets/animation/2.gif')} style={styles.logo}/>
-            <Text style={styles.text}>Real Estates</Text>
-            <Text style={styles.text2}>Any body home</Text>
+            <Text style={styles.text}>Square</Text>
+            <Text style={styles.text2}>Home dream home!</Text>
+            <Text style={styles.footerText}>powered by Twalitso</Text>
         </View>
     );
 };
@@ -34,6 +35,13 @@ const styles = StyleSheet.create({
         fontSize:10,
         fontWeight:'normal',
         color:'#316790'
+    },
+    footerText: {
+        position: 'absolute',
+        bottom: 10,
+        fontSize: 12,
+        color: '#316790',
     }
 });
+
 export default SplashScreen;

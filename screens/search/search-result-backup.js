@@ -6,16 +6,16 @@ import Modal from 'react-native-modal';
 import RNPickerSelect from 'react-native-picker-select';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { useNavigation } from '@react-navigation/native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'; // Import MaterialCommunityIcons
-import { SERVER_BASE_URL } from '../../confg/config';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { API_BASE_URL, SERVER_BASE_URL } from '../../confg/config';
 import PostViewerModal from '../../components/post-details';
 import CommentsModal from '../../components/post-comments-modal';
+import FilterScroll from '../../components/filterScroll';
 
 const { width } = Dimensions.get('window');
 const checkboxWidth = (width - 40) / 5;
 
-const SearchResultScreen = ({ route }) => {
-  const navigation = useNavigation();
+const SearchResultScreen = ({ route, navigation }) => {
   const { results, searchKeyword } = route.params;
 
   const [filters, setFilters] = useState(['All', 'Price', 'Category', 'Location']);
@@ -31,10 +31,38 @@ const SearchResultScreen = ({ route }) => {
   const [currentImages, setCurrentImages] = useState([]);
   const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [numBeds, setNumBeds] = useState([]);
+  const [numBaths, setNumBaths] = useState([]);
+  const [selectedLocations, setSelectedLocations] = useState([]);
+
 
   useEffect(() => {
     loadFavorites();
+    fetchCategoryOptions();
+    fetchLocationOptions();
   }, []);
+
+  const fetchCategoryOptions = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories`);
+      const data = await response.json();
+      setCategoryOptions(data.data);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  const fetchLocationOptions = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/locations`);
+      const data = await response.json();
+      setLocationOptions(data.data);
+    } catch (error) {
+      console.error('Failed to fetch locations:', error);
+    }
+  };
 
   const loadFavorites = async () => {
     try {
@@ -43,7 +71,7 @@ const SearchResultScreen = ({ route }) => {
         setFavorites(JSON.parse(storedFavorites));
       }
     } catch (error) {
-      console.error(error);
+      console.error('Failed to load favorites:', error);
     }
   };
 
@@ -52,7 +80,7 @@ const SearchResultScreen = ({ route }) => {
       await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
       setFavorites(newFavorites);
     } catch (error) {
-      console.error(error);
+      console.error('Failed to save favorites:', error);
     }
   };
 
@@ -64,6 +92,15 @@ const SearchResultScreen = ({ route }) => {
     saveFavorites(updatedFavorites);
   };
 
+  const openCommentsModal = async (itemId) => {
+    try {
+      setSelectedItemId(itemId);
+      setCommentsModalVisible(true);
+    } catch (error) {
+      console.error('Failed to open comments modal:', error);
+    }
+  };
+
   const handleFilterChange = (field, value) => {
     setFilterForm({
       ...filterForm,
@@ -71,13 +108,57 @@ const SearchResultScreen = ({ route }) => {
     });
   };
 
+  const showImageViewer = async (images, itemId, property) => {
+    setCurrentImages(images);
+    setSelectedProperty(property);
+    setPostViewerModalVisible(true);
+  };
+  // checkboxes 
+  const handleBedroomsChange = (num, isChecked) => {
+    console.log('Previous numBeds:', numBeds);
+    if (Array.isArray(numBeds)) {
+      if (isChecked) {
+        setNumBeds(prev => [...prev, num]); // Add num to the array
+      } else {
+        setNumBeds(prev => prev.filter(item => item !== num)); // Remove num from the array
+      }
+      handleFilterChange(`bedrooms${num}`, isChecked);
+    } else {
+      console.error('numBeds is not an array:', numBeds);
+    }
+  };
+  
+  const handleBathroomsChange = (num, isChecked) => {
+    console.log('Previous numBaths:', numBaths);
+    if (Array.isArray(numBaths)) {
+      if (isChecked) {
+        setNumBaths(prev => [...prev, num]); // Add num to the array
+      } else {
+        setNumBaths(prev => prev.filter(item => item !== num)); // Remove num from the array
+      }
+      handleFilterChange(`bathrooms${num}`, isChecked);
+    } else {
+      console.error('numBaths is not an array:', numBaths);
+    }
+  };
+  
+  const handleLocationChange = (locationId) => {
+    setSelectedLocations(prevSelectedLocations => {
+      if (prevSelectedLocations.includes(locationId)) {
+        return prevSelectedLocations.filter(id => id !== locationId);
+      } else {
+        return [...prevSelectedLocations, locationId];
+      }
+    });
+  };  
+
+// Submit Filter Form
   const applyFilters = async () => {
+    setData([]);
     setModalVisible(false);
     setLoading(true);
-
-    // Make API call to Laravel endpoint
     try {
-      const response = await fetch(`${SERVER_BASE_URL}/search`, {
+      const response = await fetch(`${API_BASE_URL}/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,45 +168,67 @@ const SearchResultScreen = ({ route }) => {
       const result = await response.json();
       setData(result);
     } catch (error) {
-      console.error(error);
+      console.error('Failed to apply filters:', error);
     }
 
     setLoading(false);
   };
 
-  const showImageViewer = async (images, itemId, property) => {
-    setCurrentImages(images);
-    setSelectedProperty(property);
-    setPostViewerModalVisible(true);
-  };
-
-  const openCommentsModal = async (itemId) => {
+  const getAllProperties = async () => {
+    setData([]);
+    setLoading(true);
     try {
-      // Mock implementation of fetching comments
-      // const response = await axios.get(`${API_BASE_URL}/post-comments/${itemId}`);
-      setSelectedItemId(itemId);
-      setCommentsModalVisible(true);
+      const response = await fetch(`${API_BASE_URL}/search-all`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const result = await response.json();
+      setData(result);
     } catch (error) {
-      console.error('Failed to open comments modal:', error);
+      console.error('Failed to apply filters:', error);
     }
+    setLoading(false);
   };
 
   const renderCategoryCarousel = () => (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      {['Category 1', 'Category 2', 'Category 3', 'Category 4', 'Category 5'].map((item, index) => (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
+      {categoryOptions.map((category, index) => (
         <Button
           key={index}
-          mode={filterForm.category === item ? 'contained' : 'outlined'}
-          onPress={() => handleFilterChange('category', item)}
-          style={styles.categoryButton}
-          labelStyle={styles.buttonLabel} // Adjust button text style
+          mode={filterForm.category === category.id ? 'contained' : 'outlined'}
+          onPress={() => handleCategoryChange(category.id)}
+          style={[styles.categoryButton, filterForm.category === category.id && styles.selectedCategory]}
+          labelStyle={[styles.buttonLabel, filterForm.category === category.id && styles.selectedCategoryLabel]}
         >
-          {item}
+          {category.name}
         </Button>
       ))}
     </ScrollView>
   );
 
+  const handleCategoryChange = (selectedCategory) => {
+    const newCategory = filterForm.category === selectedCategory ? null : selectedCategory;
+    handleFilterChange('category', newCategory);
+  };
+
+  const renderLocationCarousel = () => (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
+      {locationOptions.map((location, index) => (
+        <Button
+          key={index}
+          mode={selectedLocations.includes(location.id) ? 'contained' : 'outlined'}
+          onPress={() => handleLocationChange(location.id)}
+          style={[styles.locationButton, selectedLocations.includes(location.id) && styles.selectedLocation]}
+          labelStyle={[styles.buttonLabel, selectedLocations.includes(location.id) && styles.selectedLocationLabel]}
+        >
+          {location.name}
+        </Button>
+      ))}
+    </ScrollView>
+  );
+  
   const renderModalContent = () => {
     switch (selectedFilter) {
       case 'Price':
@@ -157,7 +260,7 @@ const SearchResultScreen = ({ route }) => {
                     unfillColor="#FFFFFF"
                     text={`${num}`}
                     iconStyle={{ borderColor: '#4a90e2' }}
-                    onPress={(isChecked) => handleFilterChange(`bedrooms${num}`, isChecked)}
+                    onPress={(isChecked) => handleBedroomsChange(num, isChecked)}
                     isChecked={filterForm[`bedrooms${num}`] || false}
                     style={styles.checkbox}
                   />
@@ -173,7 +276,7 @@ const SearchResultScreen = ({ route }) => {
                     unfillColor="#FFFFFF"
                     text={`${num}`}
                     iconStyle={{ borderColor: '#4a90e2' }}
-                    onPress={(isChecked) => handleFilterChange(`bathrooms${num}`, isChecked)}
+                    onPress={(isChecked) => handleBathroomsChange(num, isChecked)}
                     isChecked={filterForm[`bathrooms${num}`] || false}
                     style={styles.checkbox}
                   />
@@ -185,28 +288,64 @@ const SearchResultScreen = ({ route }) => {
       case 'Category':
         return renderCategoryCarousel();
       case 'Location':
+        return renderLocationCarousel();
+      default:
         return (
           <>
-            <Text>Province</Text>
-            <RNPickerSelect
-              onValueChange={(value) => handleFilterChange('province', value)}
-              items={[
-                { label: 'Province 1', value: 'province1' },
-                { label: 'Province 2', value: 'province2' },
-              ]}
-            />
-            <Text>City</Text>
-            <RNPickerSelect
-              onValueChange={(value) => handleFilterChange('city', value)}
-              items={[
-                { label: 'City 1', value: 'city1' },
-                { label: 'City 2', value: 'city2' },
-              ]}
-            />
+            <View style={styles.formGroup}>
+              <Text>Price Range</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Min Price"
+                value={filterForm.minPrice}
+                onChangeText={(text) => handleFilterChange('minPrice', text)}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Max Price"
+                value={filterForm.maxPrice}
+                onChangeText={(text) => handleFilterChange('maxPrice', text)}
+              />
+            </View>
+            <View style={styles.formGroup}>
+              <Text>Bedrooms</Text>
+              <View style={styles.checkboxContainer}>
+                {[1, 2, 3, 4, 5].map(num => (
+                  <BouncyCheckbox
+                  key={`bedrooms-${num}`}
+                  size={25}
+                  fillColor="#4a90e2"
+                  unfillColor="#FFFFFF"
+                  text={`${num}`}
+                  iconStyle={{ borderColor: '#4a90e2' }}
+                  onPress={(isChecked) => handleBedroomsChange(num, isChecked)}
+                  isChecked={filterForm[`bedrooms${num}`] || false}
+                  style={styles.checkbox}
+                />
+                ))}
+              </View>
+              <Text>Bathrooms</Text>
+              <View style={styles.checkboxContainer}>
+                {[1, 2, 3, 4, 5].map(num => (
+                  <BouncyCheckbox
+                  key={`bathrooms-${num}`}
+                  size={25}
+                  fillColor="#4a90e2"
+                  unfillColor="#FFFFFF"
+                  text={`${num}`}
+                  iconStyle={{ borderColor: '#4a90e2' }}
+                  onPress={(isChecked) => handleBathroomsChange(num, isChecked)}
+                  isChecked={filterForm[`bathrooms${num}`] || false}
+                  style={styles.checkbox}
+                />
+                ))}
+              </View>
+            </View>
+            <Text>Location</Text>
+            {renderLocationCarousel()}
+            {renderCategoryCarousel()}
           </>
         );
-      default:
-        return null;
     }
   };
 
@@ -214,7 +353,7 @@ const SearchResultScreen = ({ route }) => {
     <Card style={styles.card} key={`${item.id}-${index}`}>
       <Card.Title
         title={item.title || 'No Title'}
-        subtitle={`$${item.price}`}
+        subtitle={`K${item.price}`}
         left={(props) => <Avatar.Icon {...props} icon="home-outline" />}
         right={(props) => (
           <IconButton
@@ -242,8 +381,8 @@ const SearchResultScreen = ({ route }) => {
         )}
       </Card.Content>
       <Card.Actions>
-        <IconButton icon="phone" onPress={() => Linking.openURL(`tel:${item.user.phone}`)} />
-        <IconButton icon="whatsapp" onPress={() => Linking.openURL(`https://wa.me/${item.user.phone}`)} />
+        <IconButton icon="phone" onPress={() => Linking.openURL(`tel:26${item.user.phone}`)} />
+        <IconButton icon="whatsapp" onPress={() => Linking.openURL(`https://wa.me/26${item.user.phone}`)} />
         <IconButton icon="message" onPress={() => Linking.openURL(`sms:${item.user.phone}`)} />
         <IconButton icon="share" />
         <IconButton icon="comment-outline" onPress={() => openCommentsModal(item.id)} />
@@ -251,11 +390,14 @@ const SearchResultScreen = ({ route }) => {
     </Card>
   );
 
-  const renderAdvert = () => (
-    <View style={styles.advertContainer}>
-      <Text style={styles.advertText}>Advertisement</Text>
-      {/* Your advertisement component goes here */}
-      <Text>Advertisement Content</Text>
+  // Placeholder view when data is empty
+  const renderEmptyView = () => (
+    <View style={styles.emptyContainer}>
+      <Image source={require('../../assets/icon/empty.webp')} style={styles.placeholderImage} />
+      <Text style={styles.emptyText}>Didnt find anything?</Text>
+      <Button mode="contained" onPress={() => getAllProperties()}>
+        Look for properties here
+      </Button>
     </View>
   );
 
@@ -273,15 +415,18 @@ const SearchResultScreen = ({ route }) => {
           setModalVisible(true);
         }}
       />
-      {renderAdvert()}
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={loading ? <ActivityIndicator animating size="large" /> : null}
-        contentContainerStyle={styles.listContainer}
-      />
+      {data.length === 0 ? (
+        renderEmptyView()
+      ) : (
+        <FlatList
+          data={data}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={loading ? <ActivityIndicator animating size="large" /> : null}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
       <PostViewerModal
         visible={isPostViewerModalVisible}
         images={currentImages}
@@ -327,18 +472,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 10,
   },
-  filterScroll: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-  },
-  filterButton: {
-    marginHorizontal: 5,
-    paddingVertical: 15,
-  },
-  categoryButton: {
-    marginHorizontal: 5,
-    marginBottom: 10,
-  },
   card: {
     margin: 10,
   },
@@ -362,6 +495,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginBottom: 12,
   },
+  carousel:{
+    paddingHorizontal:5,
+  },
   formGroup: {
     marginBottom: 20,
     width: '100%',
@@ -384,23 +520,6 @@ const styles = StyleSheet.create({
     width: checkboxWidth,
     marginHorizontal: 5,
     marginBottom: 10,
-  },
-  advertContainer: {
-    backgroundColor: '#f0f0f0',
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 10,
-    borderRadius: 5,
-    marginTop: 10,
-  },
-  advertText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
-  buttonLabel: {
-    fontSize: 14,
   },
   imageContainer: {
     position: 'relative',
@@ -426,6 +545,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     textAlign: 'center',
+  },
+  categoryButton: {
+    marginHorizontal: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#4a90e2',
+  },
+  buttonLabel: {
+    fontSize: 14,
+    color: '#4a90e2',
+  },
+  selectedCategory: {
+    backgroundColor: '#4a90e2',
+    marginHorizontal: 10,
+  },
+  selectedCategoryLabel: {
+    color: '#fff',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderImage: {
+    width: 150,
+    height: 100,
+    marginBottom: 40,
+  },
+  emptyText: {
+    fontSize: 14,
+    marginBottom: 20,
+    color: 'gray',
   },
 });
 

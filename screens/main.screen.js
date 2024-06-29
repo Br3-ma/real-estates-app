@@ -1,49 +1,66 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Modal } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import HomeScreen from './home.screen';
 import MyPropertyScreen from './account/food/my-properties.screen';
 import NotificationScreen from './account/donation/box.screen';
 import MeScreen from './account/profile/me.screen';
+import SearchResultScreen from './search/search-result.screen';
 
 const Tab = createBottomTabNavigator();
 
-const TabBarIcon = (props) => {
+const TabBarIcon = ({ name, size, color, focused }) => {
+  let iconName;
+
+  switch (name) {
+    case 'Home':
+      iconName = focused ? 'home' : 'home-outline';
+      break;
+    case 'My Property':
+      iconName = focused ? 'home-city' : 'home-city-outline';
+      break;
+    case 'Notifications':
+      iconName = focused ? 'bell' : 'bell-outline';
+      break;
+    case 'Search':
+      iconName = focused ? 'magnify' : 'magnify';
+      break;
+    case 'Profile':
+      iconName = focused ? 'account' : 'account-outline';
+      break;
+    default:
+      iconName = focused ? 'home' : 'home-outline';
+  }
+
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 10 }}>
-      <MaterialCommunityIcons {...props} />
+      <MaterialCommunityIcons name={iconName} size={size} color={color} />
     </View>
   );
 };
 
 const MainScreen = () => {
+  const [searchParams, setSearchParams] = useState({}); // State to hold search parameters
+
   return (
     <View style={styles.container}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: true,  // Hide the header
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-            if (route.name === 'Home') {
-              iconName = focused ? 'home' : 'home-outline';
-            } else if (route.name === 'My Property') {
-              iconName = focused ? 'home-city' : 'home-city-outline';
-            } else if (route.name === 'Notifications') {
-              iconName = focused ? 'bell' : 'bell-outline';
-            } else if (route.name === 'Profile') {
-              iconName = focused ? 'account' : 'account-outline';
-            }
-            return <TabBarIcon name={iconName} size={focused ? 26 : 22} color={color} />;
-          },
-          tabBarActiveTintColor: '#FFA500', // Orange color for active tab
+          tabBarIcon: ({ focused, color, size }) => (
+            <TabBarIcon name={route.name} size={focused ? 26 : 22} color={color} focused={focused} />
+          ),
+          tabBarActiveTintColor: '#fff', 
           tabBarInactiveTintColor: 'gray',
           tabBarStyle: {
-            backgroundColor: '#415D77',
-            borderTopColor: '#1040AE',
+            backgroundColor: '#6750a4',
+            borderTopColor: '#6750a4',
             height: 60,
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
+            borderTopLeftRadius: 10,
+            borderTopRightRadius: 10,
+            borderBottomRightRadius: 10,
+            borderBottomLeftRadius: 10,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: 5 },
             shadowOpacity: 0.6,
@@ -51,10 +68,10 @@ const MainScreen = () => {
             elevation: 10,
             position: 'absolute',
             left: 8,
-            right:8,
+            right: 8,
             bottom: 8,
             borderWidth: 1,
-            borderColor: '#1040AE',
+            borderColor: '#644F81',
           },
           tabBarLabelStyle: {
             paddingBottom: 5,
@@ -64,6 +81,11 @@ const MainScreen = () => {
       >
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="My Property" component={MyPropertyScreen} />
+        <Tab.Screen
+          name="Search"
+          component={SearchResultScreen}
+          initialParams={{ results: [], searchKeyword: 'Search For House Properties' }}
+        />
         <Tab.Screen name="Notifications" component={NotificationScreen} />
         <Tab.Screen name="Profile" component={MeScreen} />
       </Tab.Navigator>
@@ -93,9 +115,6 @@ const styles = StyleSheet.create({
   textInput: {
     width: 300,
     marginBottom: 20,
-  },
-  button: {
-    backgroundColor: 'blue',
   },
 });
 

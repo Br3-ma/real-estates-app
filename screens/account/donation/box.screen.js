@@ -4,6 +4,7 @@ import { ListItem } from 'react-native-elements';
 import { BlurView } from 'expo-blur';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { fetchUserInfo } from '../../../controllers/auth/userController';
+import { API_BASE_URL } from '../../../confg/config';
 
 const NotificationScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -13,13 +14,13 @@ const NotificationScreen = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const userId = fetchUserInfo.user.id;
-        const response = await fetch(`https://your-api-endpoint.com/notifications?user_id=${userId}`);
+        const userId = 1;
+        const response = await fetch(`${API_BASE_URL}/notify/${userId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch notifications');
         }
         const data = await response.json();
-        setNotifications(data.notifications);
+        setNotifications(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -67,12 +68,12 @@ const NotificationScreen = () => {
             {notifications.map((notification) => (
               <TouchableOpacity key={notification.id} onPress={() => openNotificationPreview(notification)}>
                 <ListItem bottomDivider>
-                  <Image source={{ uri: notification.image }} style={styles.image} />
+                  {/* <Image source={{ uri: notification.image }} style={styles.image} /> */}
                   <ListItem.Content>
-                    <ListItem.Title>{notification.title}</ListItem.Title>
-                    <ListItem.Subtitle>{getHumanReadableDate(notification.date)}</ListItem.Subtitle>
+                    <ListItem.Title>{notification.data['title']}</ListItem.Title>
+                    <ListItem.Subtitle>{getHumanReadableDate(notification.created_at)}</ListItem.Subtitle>
                     <ListItem.Subtitle numberOfLines={2} ellipsizeMode="tail" style={styles.messageText}>
-                      {notification.message}
+                      {notification.data['message']}
                     </ListItem.Subtitle>
                   </ListItem.Content>
                 </ListItem>
@@ -176,6 +177,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     marginBottom: 20,
+    borderRadius:20,
   },
   emptyText: {
     fontSize: 20,
