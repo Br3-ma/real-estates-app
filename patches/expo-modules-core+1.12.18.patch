@@ -1,0 +1,24 @@
+diff --git a/node_modules/expo-modules-core/android/ExpoModulesCorePlugin.gradle b/node_modules/expo-modules-core/android/ExpoModulesCorePlugin.gradle
+index bcf9b00..0bb438d 100644
+--- a/node_modules/expo-modules-core/android/ExpoModulesCorePlugin.gradle
++++ b/node_modules/expo-modules-core/android/ExpoModulesCorePlugin.gradle
+@@ -72,7 +72,7 @@ ext.useExpoPublishing = {
+ 
+   project.android {
+     publishing {
+-      singleVariant("release") {
++      singleVariant("main") {
+         withSourcesJar()
+       }
+     }
+@@ -81,8 +81,8 @@ ext.useExpoPublishing = {
+   project.afterEvaluate {
+     publishing {
+       publications {
+-        release(MavenPublication) {
+-          from components.release
++        main(MavenPublication) {
++          from components.main
+         }
+       }
+       repositories {
