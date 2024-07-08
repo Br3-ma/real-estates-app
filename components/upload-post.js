@@ -44,7 +44,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
         console.error('Failed to fetch data:', error);
       }
     };
-    requestPermissions();
+    // requestPermissions();
     fetchData();
   }, []);
 
@@ -114,12 +114,12 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
               />
               <View style={styles.inputRow}>
                 <TextInput
-                  placeholder="Beds"
+                  placeholder="No. of Beds"
                   style={[styles.input, styles.inputRowItem]}
                   onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bedrooms: text })}
                 />
                 <TextInput
-                  placeholder="Baths"
+                  placeholder="No. of Baths"
                   style={[styles.input, styles.inputRowItem]}
                   onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bathrooms: text })}
                 />
@@ -134,12 +134,12 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
 
               <View style={styles.inputRow}>
                 <TextInput
-                  placeholder="Square Foot"
+                  placeholder="Longitute"
                   style={[styles.input, styles.inputRowItem]}
                   onChangeText={(text) => setPropertyDetails({ ...propertyDetails, long: text })}
                 />
                 <TextInput
-                  placeholder="Square Foot"
+                  placeholder="Latitude"
                   style={[styles.input, styles.inputRowItem]}
                   onChangeText={(text) => setPropertyDetails({ ...propertyDetails, lat: text })}
                 />
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: '100%', // Full width
     height: '100%', // Full height
-    paddingHorizontal: 20,
+    paddingHorizontal: 5,
     paddingTop: 40, // Adjust top padding as needed
   },
   modalHeader: {

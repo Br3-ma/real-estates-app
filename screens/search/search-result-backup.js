@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, Linking, StyleSheet, FlatList, ActivityIndicator, TextInput, Dimensions, Image } from 'react-native';
 import { Button, Card, IconButton, Avatar } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -44,7 +44,7 @@ const SearchResultScreen = ({ route, navigation }) => {
     fetchLocationOptions();
   }, []);
 
-  const fetchCategoryOptions = async () => {
+  const fetchCategoryOptions = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/categories`);
       const data = await response.json();
@@ -52,9 +52,9 @@ const SearchResultScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
-  };
+  },[]);
 
-  const fetchLocationOptions = async () => {
+  const fetchLocationOptions = useCallback( async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/locations`);
       const data = await response.json();
@@ -62,9 +62,9 @@ const SearchResultScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to fetch locations:', error);
     }
-  };
+  },[]);
 
-  const loadFavorites = async () => {
+  const loadFavorites = useCallback(async () => {
     try {
       const storedFavorites = await AsyncStorage.getItem('favorites');
       if (storedFavorites) {
@@ -73,48 +73,49 @@ const SearchResultScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to load favorites:', error);
     }
-  };
+  },[]);
 
-  const saveFavorites = async (newFavorites) => {
+  const saveFavorites = useCallback(async (newFavorites) => {
     try {
       await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
       setFavorites(newFavorites);
     } catch (error) {
       console.error('Failed to save favorites:', error);
     }
-  };
+  },[]);
 
-  const toggleFavorite = (item) => {
+  const toggleFavorite =useCallback( (item) => {
     const isFavorite = favorites.some(fav => fav.id === item.id);
     const updatedFavorites = isFavorite
       ? favorites.filter(fav => fav.id !== item.id)
       : [...favorites, item];
     saveFavorites(updatedFavorites);
-  };
+  },[]);
 
   const openCommentsModal = async (itemId) => {
     try {
       setSelectedItemId(itemId);
       setCommentsModalVisible(true);
+      console.log('here');
     } catch (error) {
       console.error('Failed to open comments modal:', error);
     }
   };
 
-  const handleFilterChange = (field, value) => {
+  const handleFilterChange = useCallback((field, value) => {
     setFilterForm({
       ...filterForm,
       [field]: value,
     });
-  };
+  },[]);
 
-  const showImageViewer = async (images, itemId, property) => {
+  const showImageViewer = useCallback(async (images, itemId, property) => {
     setCurrentImages(images);
     setSelectedProperty(property);
     setPostViewerModalVisible(true);
-  };
+  },[]);
   // checkboxes 
-  const handleBedroomsChange = (num, isChecked) => {
+  const handleBedroomsChange = useCallback((num, isChecked) => {
     console.log('Previous numBeds:', numBeds);
     if (Array.isArray(numBeds)) {
       if (isChecked) {
@@ -126,9 +127,9 @@ const SearchResultScreen = ({ route, navigation }) => {
     } else {
       console.error('numBeds is not an array:', numBeds);
     }
-  };
+  },[]);
   
-  const handleBathroomsChange = (num, isChecked) => {
+  const handleBathroomsChange = useCallback((num, isChecked) => {
     console.log('Previous numBaths:', numBaths);
     if (Array.isArray(numBaths)) {
       if (isChecked) {
@@ -140,9 +141,9 @@ const SearchResultScreen = ({ route, navigation }) => {
     } else {
       console.error('numBaths is not an array:', numBaths);
     }
-  };
+  },[]);
   
-  const handleLocationChange = (locationId) => {
+  const handleLocationChange = useCallback((locationId) => {
     setSelectedLocations(prevSelectedLocations => {
       if (prevSelectedLocations.includes(locationId)) {
         return prevSelectedLocations.filter(id => id !== locationId);
@@ -150,7 +151,7 @@ const SearchResultScreen = ({ route, navigation }) => {
         return [...prevSelectedLocations, locationId];
       }
     });
-  };  
+  },[]);  
 
 // Submit Filter Form
   const applyFilters = async () => {
@@ -174,7 +175,7 @@ const SearchResultScreen = ({ route, navigation }) => {
     setLoading(false);
   };
 
-  const getAllProperties = async () => {
+  const getAllProperties = useCallback(async () => {
     setData([]);
     setLoading(true);
     try {
@@ -190,7 +191,7 @@ const SearchResultScreen = ({ route, navigation }) => {
       console.error('Failed to apply filters:', error);
     }
     setLoading(false);
-  };
+  },[]);
 
   const renderCategoryCarousel = () => (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>

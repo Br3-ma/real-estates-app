@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Image, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import HomeScreen from './home.screen';
@@ -41,42 +41,34 @@ const TabBarIcon = ({ name, size, color, focused }) => {
 };
 
 const MainScreen = () => {
-  const [searchParams, setSearchParams] = useState({}); // State to hold search parameters
+  const [searchParams, setSearchParams] = useState({});
 
   return (
     <View style={styles.container}>
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          headerShown: true,  // Hide the header
+          headerShown: true,
+          headerTitle: () => (
+            <View style={styles.headerTitleContainer}>
+              <Image
+                source={{ uri: 'https://t3.ftcdn.net/jpg/03/19/15/80/360_F_319158029_4JKXm8ZJy7BaaciR3SB6ZuGxL1mVGPRA.jpg' }}
+                style={styles.headerImage}
+              />
+              <Text style={styles.headerText}>SQuare</Text>
+            </View>
+          ),
+          // headerRight: () => (
+          //   <View style={styles.headerRightContainer}>
+          //     <MaterialCommunityIcons name="bell" size={24} color="#6750a4" />
+          //   </View>
+          // ),
           tabBarIcon: ({ focused, color, size }) => (
             <TabBarIcon name={route.name} size={focused ? 26 : 22} color={color} focused={focused} />
           ),
-          tabBarActiveTintColor: '#fff', 
+          tabBarActiveTintColor: '#fff',
           tabBarInactiveTintColor: 'gray',
-          tabBarStyle: {
-            backgroundColor: '#6750a4',
-            borderTopColor: '#6750a4',
-            height: 60,
-            borderTopLeftRadius: 10,
-            borderTopRightRadius: 10,
-            borderBottomRightRadius: 10,
-            borderBottomLeftRadius: 10,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 5 },
-            shadowOpacity: 0.6,
-            shadowRadius: 5,
-            elevation: 10,
-            position: 'absolute',
-            left: 8,
-            right: 8,
-            bottom: 8,
-            borderWidth: 1,
-            borderColor: '#644F81',
-          },
-          tabBarLabelStyle: {
-            paddingBottom: 5,
-            fontSize: 12,
-          },
+          tabBarStyle: styles.tabBarStyle,
+          tabBarLabelStyle: styles.tabBarLabelStyle,
         })}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
@@ -96,6 +88,48 @@ const MainScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerImage: {
+    width: 30,
+    height: 30,
+    marginRight: 10,
+    borderRadius: 15, // Makes the image circular if it is a square
+  },
+  headerText: {
+    fontSize: 18,
+    color: '#6750a4',
+    fontWeight: 'bold',
+  },
+  headerRightContainer: {
+    marginRight: 15,
+  },
+  tabBarStyle: {
+    backgroundColor: '#6750a4',
+    borderTopColor: '#6750a4',
+    height: 60,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 10,
+    shadowColor: '#6750a4',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 1,
+    elevation: 10,
+    position: 'absolute',
+    left: 8,
+    right: 8,
+    bottom: 8,
+    borderWidth: 1,
+    borderColor: '#644F81',
+  },
+  tabBarLabelStyle: {
+    paddingBottom: 5,
+    fontSize: 12,
   },
   modalView: {
     margin: 20,

@@ -37,11 +37,15 @@ const SearchModal = ({
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/categories`);
+        const response1 = await axios.get(`${API_BASE_URL}/property-types`);
+        const response2 = await axios.get(`${API_BASE_URL}/locations`);
         const fetchedCategories = response.data.data || [];
+        const fetchedTypes = response1.data.data || [];
+        const fetchedLocations = response2.data.data || [];
 
-        setPropertyTypes(fetchedCategories);
+        setPropertyTypes(fetchedTypes);
         setCategories(fetchedCategories);
-        setLocations(fetchedCategories);
+        setLocations(fetchedLocations);
       } catch (err) {
         setError(err);
       }

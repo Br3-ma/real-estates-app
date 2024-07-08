@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Animated, Easing, ActivityIndicator, Text, ScrollView, Image, TouchableOpacity, TouchableWithoutFeedback, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions } from 'react-native';
-import { Card, Button, Icon, SearchBar, ButtonGroup, Avatar } from 'react-native-elements';
-import { BlurView } from 'expo-blur';
-import { Picker } from '@react-native-picker/picker';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Animated, Easing, ActivityIndicator, Text, ScrollView, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions, RefreshControl } from 'react-native';
+import { Button, Icon, SearchBar, Avatar } from 'react-native-elements';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
@@ -15,39 +13,39 @@ import { SERVER_BASE_URL } from '../confg/config';
 import AdAdPost from '../components/ad-ad-post';
 import BlankView from '../components/blank-bottom';
 import { LinearGradient } from 'expo-linear-gradient';
-import ReactNativeModal from 'react-native-modal';
 import SearchModal from '../components/search-filter';
 import MovingPlaceholder from '../components/placeholder-effect';
 import { fetchUserInfo } from '../controllers/auth/userController';
+import RenderPropertyItem from '../components/display-properties';
+import CategoryButtonGroup from '../components/button-group';
+import UploadPost from '../components/upload-post';
+import RecommendedProperties from '../components/recommended';
+import Communications from 'react-native-communications';
 
 const { width } = Dimensions.get('window');
-
-// Mock data for Recommended Properties
-const recommendedPropertiesData = [
-  {
-    id: 1,
-    title: 'Beautiful House in Suburbia',
-    price: 250000,
-    description: 'A lovely house with a big garden and beautiful surroundings.',
-    image: 'https://example.com/recommended-house-1.jpg',
-  },
-  // Add more items as needed
-];
+const placeholderImage = 'https://cdn.vectorstock.com/i/500p/90/02/profile-photo-placeholder-icon-design-vector-43189002.jpg';
 
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
+  const [propertyDetails, setPropertyDetails] = useState({
+    title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '', property_type_id: '', category_id: '', location_id: '',
+    status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [],
+  });
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [buttons, setButtons] = useState([]);
+  const [selectedButton, setSelectedButton] = useState(null);
   const [isImageViewVisible, setImageViewVisible] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isUploadModalVisible, setUploadModalVisible] = useState(false);
   const [currentImages, setCurrentImages] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   const scrollViewRef = useRef();
   const fetchIntervalRef = useRef(null);
   const [category, setCategory] = useState('');
@@ -57,6 +55,9 @@ const HomeScreen = ({ navigation }) => {
   const [propertyType, setPropertyType] = useState('');
   const [numBeds, setNumBeds] = useState(0);
   const [numBaths, setNumBaths] = useState(0);
+  const [uploadImages, setUploadImages] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -64,24 +65,45 @@ const HomeScreen = ({ navigation }) => {
       try {
         const response = await axios.get(`${API_BASE_URL}/property-posts`);
         setProperties(response.data);
+
+        const response2 = await axios.get(`${API_BASE_URL}/categories`); // Replace with your API endpoint
+        setButtons(response2.data.data);
       } catch (error) {
         console.error('Failed to fetch properties:', error);
       } finally {
         setLoading(false);
       }
     };
-
     const fetchUser = async () => {
       const user = await fetchUserInfo();
       setUserInfo(user);
     };
-
     fetchUser();
     fetchProperties();
-
     return () => {
       terminateFetchInterval();
     };
+  }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setProperties([]);
+    // Fetch data again
+    const fetchProperties = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/property-posts`);
+        setProperties(response.data);
+  
+        const response2 = await axios.get(`${API_BASE_URL}/categories`); // Replace with your API endpoint
+        setButtons(response2.data.data);
+      } catch (error) {
+        console.error('Failed to fetch properties:', error);
+      } finally {
+        setRefreshing(false);
+        setLoading(false);
+      }
+    };
+    fetchProperties();
   }, []);
 
   const terminateFetchInterval = () => {
@@ -98,6 +120,67 @@ const HomeScreen = ({ navigation }) => {
   const closeModal = () => {
     setIsModalVisible(false);
   };
+
+  const uploadPost = useCallback(async () => {
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('title', propertyDetails.title);
+      formData.append('description', propertyDetails.description);
+      formData.append('price', propertyDetails.price);
+      formData.append('location', propertyDetails.location);
+      formData.append('long', propertyDetails.long);
+      formData.append('lat', propertyDetails.lat);
+      formData.append('user_id', userInfo.user.id);
+      formData.append('status_id', propertyDetails.status_id);
+      formData.append('bedrooms', propertyDetails.bedrooms);
+      formData.append('bathrooms', propertyDetails.bathrooms);
+      formData.append('area', propertyDetails.area);
+      formData.append('amenities', propertyDetails.amenities);
+      formData.append('property_type_id', propertyDetails.property_type_id);
+      formData.append('location_id', propertyDetails.location_id);
+      formData.append('category_id', propertyDetails.category_id);
+      formData.append('status_id', 1);
+
+      // Convert image URIs to Blobs and append them to formData
+      for (let index = 0; index < uploadImages.length; index++) {
+        const image = uploadImages[index];
+        const newImageUri = Constants.platform.android
+          ? image.uri
+          : image.uri.replace('file://', '');
+        
+        const fileType = mime.getType(newImageUri) || 'image/jpeg';
+        formData.append(`images[${index}]`, {
+          name: `photo_${index}.jpg`,
+          type: fileType,
+          uri: newImageUri,
+        });
+      }
+
+      const response = await fetch(`${API_BASE_URL}/post`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      });
+
+      if (response.status === 201) {
+        Alert.alert('Success', 'Post created successfully');
+        setUploadModalVisible(false);
+        setUploadImages([]);
+      } else {
+        const errorResponse = await response.json();
+        Alert.alert('Error', `Failed to create property post: ${errorResponse.message}`);
+      }
+    } catch (error) {
+      Alert.alert('Error', `Failed to create property post: ${error.message}`);
+    } finally {
+      setUploading(false);
+    }
+  }, [propertyDetails, uploadImages, userInfo]);
   
   const handleSearch = async (searchData) => {
     setIsLoading(true);
@@ -119,29 +202,48 @@ const HomeScreen = ({ navigation }) => {
     }
   };
 
-  const buttons = ['Buy', 'Rent', 'Projects'];
-  const updateIndex = (selectedIndex) => {
-    setSelectedIndex(selectedIndex);
+  const handleButtonPress = (buttonId) => {
+    console.log('Button Id:', buttonId);
+    // Implement further logic based on buttonId
   };
 
   const showImageViewer = async (images, itemId, property) => {
+    setImageViewVisible(false);
+    setCurrentImages([]);
+    setSelectedProperty(null);
     setCurrentImages(images);
     setSelectedProperty(property);
     setImageViewVisible(true);
   };
 
   const sendSMS = (phoneNumber) => {
-    // Implement SMS sending functionality
+    Communications.text(phoneNumber, 'Hello, this is a test message.');
     console.log('Sending SMS to:', phoneNumber);
   };
-
+  
   const callNumber = (phoneNumber) => {
-    // Implement phone call functionality
+    Communications.phonecall(phoneNumber, true);
     console.log('Calling number:', phoneNumber);
   };
-
+  
   const openWhatsApp = (phoneNumber) => {
-    // Implement WhatsApp opening functionality
+    let msg = 'Hello, this is a test message.';
+    let mobile =
+      Platform.OS === 'ios' ? phoneNumber : `+${phoneNumber}`;
+  
+    if (mobile) {
+      let url = 'whatsapp://send?text=' + msg + '&phone=' + mobile;
+      Linking.openURL(url)
+        .then((data) => {
+          console.log('WhatsApp Opened');
+        })
+        .catch(() => {
+          console.log('Make sure WhatsApp installed on your device');
+        });
+    } else {
+      alert('Please insert mobile no');
+    }
+  
     console.log('Opening WhatsApp for number:', phoneNumber);
   };
 
@@ -191,75 +293,33 @@ const HomeScreen = ({ navigation }) => {
     }, 100);
   };
 
-  const getImageStyle = (imageCount) => ({
-    width: imageCount === 1 ? width : width / Math.min(imageCount, 3),
-    height: 250,
-    resizeMode: 'cover',
-    marginRight: 5,
-  });
+  const updateSelectedButton = (id) => {
+    setSelectedButton(id);
+  };
 
   const handleFilterChange = (filterName, filterValue) => {
     setFilterForm((prevForm) => ({ ...prevForm, [filterName]: filterValue }));
-  };
-
-  const renderPropertyItem = ({ item }) => (
-    <Card containerStyle={styles.fullWidthCard}>
-      <Card.Title style={styles.postTitle}>{item.title}</Card.Title>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {item.images.map((img, index) => (
-          <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>
-            <Image
-              source={{ uri: `${SERVER_BASE_URL}/storage/app/` + img.path }}
-              style={getImageStyle(item.images.length)}
-            />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-      <View style={styles.overlayStyle}>
-        <Text style={styles.ribbonTag}>{  `posted `+moment(item.created_at).fromNow() }</Text>
-      </View>
-      <View>
-        <View style={styles.priceLocationRow}>
-          <Text style={styles.priceText}>K{item.price}</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('MapScreen', { location: item.location })}>
-            <Text>
-              <MaterialIcons name="place" size={20} color="#000" />
-              {item.location}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.iconRow}>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="hotel" size={20} color="#165F56" />
-            <Text style={styles.iconText}>{item.bedrooms} Beds</Text>
-          </View>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="bathtub" size={20} color="#165F56" />
-            <Text style={styles.iconText}>{item.bathrooms} Baths</Text>
-          </View>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="aspect-ratio" size={20} color="#165F56" />
-            <Text style={styles.iconText}>{item.area} sqft</Text>
-          </View>
-        </View>
-      </View>
-      <View style={styles.buttonRow}>
-        <Button type="clear" style={styles.buttonCover} icon={<MaterialIcons name="favorite-border" size={24} color="gray" />} />
-        <Button type="clear" style={styles.buttonCover} icon={<MaterialIcons name="comment" size={24} color="gray" />} onPress={() => openCommentsModal(item.id)} />
-        <Button type="clear" style={styles.buttonCover} icon={<MaterialIcons name="share" size={24} color="gray" />} />
-      </View>
-    </Card>
-  );
+  };  
 
   const timeElapsed = (date) => {
     return moment(date).fromNow();
+  };
+
+  const renderPropertyItem = ({ item }) => {
+    return (
+      <RenderPropertyItem 
+        item={item} 
+        showImageViewer={showImageViewer} 
+        openCommentsModal={openCommentsModal}
+      />
+    );
   };
 
   const renderMessage = (message) => (
     <View key={message.id} style={styles.messageContainer}>
       <Avatar
         rounded
-        source={{ uri: message?.user?.picture }}
+        source={{ uri: `${SERVER_BASE_URL}/storage/app/${message?.user?.picture}` || placeholderImage }}
         size="small"
         containerStyle={{ marginRight: 10 }}
       />
@@ -267,9 +327,9 @@ const HomeScreen = ({ navigation }) => {
         <Text style={styles.messageTextTitle}>{message.user?.name}</Text>
         <Text style={styles.messageText}>{message.content}</Text>
         <Text style={styles.messageTime}>{timeElapsed(message.created_at)}</Text>
-        <TouchableOpacity onPress={() => console.log('Reply to:', message.user.name)}>
+        {/* <TouchableOpacity onPress={() => console.log('Reply to:', message.user.name)}>
           <Text style={styles.replyLink}>Reply</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
@@ -373,33 +433,13 @@ const HomeScreen = ({ navigation }) => {
           <View style={styles.mapFinderContainer}>
             <Text style={styles.sectionTitle}>Map Finder</Text>
             <ImageBackground
-              source={{ uri: 'https://www.dubizzle.com.eg/assets/mapPlaceholder_noinline.af3a4b7300a65b66f974eed7023840ac.svg' }}
+              source={{ uri: 'https://cms-assets.tutsplus.com/cdn-cgi/image/width=850/uploads/users/346/posts/6709/final_image/informativemap_final.jpg' }}
               style={styles.mapImage}
             >
               <Button title="Open Map" style={styles.openMapButton} onPress={() => openMap(selectedProperty.location)} />
             </ImageBackground>
           </View>
-
-          {/* Recommended Properties */}
-          <View style={styles.recommendedPropertiesContainer}>
-            <Text style={styles.sectionTitle}>Recommended Properties</Text>
-            {recommendedPropertiesData && recommendedPropertiesData.length > 0 ? (
-              recommendedPropertiesData.map((property, index) => (
-                <View key={index} style={styles.recommendedPropertyItem}>
-                  <ImageBackground
-                    source={{ uri: `${SERVER_BASE_URL}/storage/app/` + property.image }}
-                    style={styles.recommendedPropertyImage}
-                  >
-                    <Text style={styles.recommendedPropertyTitle}>{property.title}</Text>
-                  </ImageBackground>
-                  <Text style={styles.recommendedPropertyPrice}>K{property.price}</Text>
-                  <Text style={styles.recommendedPropertyDescription}>{property.description}</Text>
-                </View>
-              ))
-            ) : (
-              <Text>No recommended properties available</Text>
-            )}
-          </View>
+          <RecommendedProperties showImageViewer={showImageViewer} recommendedPropertiesData={properties} />
         </ScrollView>
 
         {/* View Comments Button */}
@@ -471,7 +511,7 @@ const HomeScreen = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="white-content" />
       <LinearGradient
-        colors={['#fff', '#7D7399', '#173955']}
+        colors={['#fff', '#fff', '#fff']}
         style={styles.gradient}
       >
       <SearchBar
@@ -485,18 +525,16 @@ const HomeScreen = ({ navigation }) => {
         searchIcon={<Icon name="search" color="#438ab5" />}
         renderPlaceholder={(focused) => <MovingPlaceholder text="Search properties..." />}
       />
-        <ScrollView style={styles.homeBody}>
-          <ButtonGroup
-            buttons={buttons}
-            selectedIndex={selectedIndex}
-            onPress={updateIndex}
-            containerStyle={styles.buttonGroupContainer}
-            selectedButtonStyle={styles.selectedButton}
-          />
+        <ScrollView style={styles.homeBody} 
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }>
+          
+          <CategoryButtonGroup onButtonPress={updateSelectedButton} />
 
           {/* Add the new section below the ButtonGroup */}
           <View style={styles.featuredSection}>
-            <Text style={styles.featuredSectionTitle}>Featured Items</Text>
+            <Text style={styles.featuredSectionTitle}>Browse Properties</Text>
             <FeaturedItems />
           </View>
 
@@ -541,6 +579,23 @@ const HomeScreen = ({ navigation }) => {
       />
       {renderImageViewerModal()}
       {renderCommentsModal()}
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => setUploadModalVisible(true)}
+      >
+        <MaterialIcons name="add" size={30} color="white" />
+      </TouchableOpacity>
+      
+      <UploadPost
+        isModalVisible={isUploadModalVisible}
+        setModalVisible={setUploadModalVisible}
+        propertyDetails={propertyDetails}
+        setPropertyDetails={setPropertyDetails}
+        uploadImages={uploadImages}
+        setUploadImages={setUploadImages}
+        uploadPost={uploadPost}
+        uploading={uploading}
+      />
       {isLoading && (
         <View style={styles.fullScreenLoading}>
           <ActivityIndicator size="large" color="#0000ff" />

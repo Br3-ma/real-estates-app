@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, TextInput } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, TextInput, RefreshControl } from 'react-native';
 import { fetchUserInfo } from '../../../controllers/auth/userController';
+import { ToastProvider, useToast } from 'react-native-toast-notifications';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 import axios from 'axios';
-import Modal from 'react-native-modal';
-import { API_BASE_URL } from '../../../confg/config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL, SERVER_BASE_URL } from '../../../confg/config';
 import mime from "mime";
 import Constants from 'expo-constants';
 import ChangePasswordModal from '../../../components/update-password-modal';
@@ -18,25 +19,20 @@ const MeScreen = () => {
   const [uploadProfileModalVisible, setUploadProfileModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
+  const [likesCount, setLikesCount] = useState(0); 
   const [uploadImages, setUploadImages] = useState([]);
+  const toast = useToast();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    bio: '',
-    location: '',
-    website: '',
-    password: '',
-    newPassword: '',
-    confirmNewPassword: '',
-    picture: '',
+    name: '', email: '', bio: '', location: '', website: '', password: '', newPassword: '', confirmNewPassword: '', picture: '',
   });
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
+  // Define fetchUser to fetch user info
+  const fetchUser = useCallback(async () => {
+    try {
       const user = await fetchUserInfo();
       setUserInfo(user);
       setFormData({
-        ...formData,
         name: user.user.name,
         email: user.user.email,
         bio: user.user.bio,
@@ -44,10 +40,33 @@ const MeScreen = () => {
         website: user.user.website,
         picture: user.user.picture,
       });
-    };
+    } catch (error) {
+      console.error('Error fetching user:', error);
+    }
+  }, []); 
 
-    fetchUser();
+  const fetchLikesCount = useCallback(async () => {
+    try {
+      const favorites = await AsyncStorage.getItem('favorites');
+      const favoritesArray = favorites ? JSON.parse(favorites) : [];
+      setLikesCount(favoritesArray.length);
+    } catch (error) {
+      console.error('Error fetching likes count:', error);
+    }
   }, []);
+
+  useEffect(() => {
+    // Fetch user info on component mount
+    fetchUser();
+    fetchLikesCount();
+  }, [fetchUser, fetchLikesCount]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchUser();
+    await fetchLikesCount();
+    setRefreshing(false);
+  }, [fetchUser, fetchLikesCount]);
 
   const openChangePasswordModal = () => setChangePasswordModalVisible(true);
   const openEditProfileModal = () => setEditProfileModalVisible(true);
@@ -68,9 +87,22 @@ const MeScreen = () => {
     setSaving(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/update-profile`, updatedData);
-      setUserInfo(response.data);
+      setUserInfo(null);
+      setUserInfo(response.data.user);
+      onRefresh();
+      toast.show(JSON.stringify(response.data.message), {
+        type: 'success',
+        placement: 'top',
+        duration: 4000,
+        animationType: 'slide-in',
+      });
     } catch (error) {
-      console.error("Error updating profile:", error);
+      toast.show(JSON.stringify(error), {
+        type: 'danger',
+        placement: 'top',
+        duration: 4000,
+        animationType: 'slide-in',
+      });
     } finally {
       setSaving(false);
     }
@@ -98,18 +130,6 @@ const MeScreen = () => {
     const { password, newPassword, confirmNewPassword } = formData;
     saveChanges({ password, newPassword, confirmNewPassword, segment, user_id });
     closeChangePasswordModal();
-  };
-
-  const convertImageToBlob = async (uri) => {
-    try {
-      const blob = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      return blob;
-    } catch (error) {
-      console.error('Error converting image to blob:', error);
-      throw error;
-    }
   };
 
   const handleSavePicture = async () => {
@@ -142,11 +162,32 @@ const MeScreen = () => {
         },
         body: formPicData,
       });
-      setUserInfo(response.data);
-      setSaving(false);
+      
+      const responseData = await response.json();
+
+      // Save the updated user info back to AsyncStorage
+      await AsyncStorage.setItem('userInfo', JSON.stringify(responseData));
+
+      // Update state with new user info
+      setUserInfo(null);
+      setUserInfo(responseData.user);
+      setSaving(false); 
       closeUploadProfileModal();
+      onRefresh();
+      toast.show("Profile Picture Updated Successfully", {
+        type: 'success',
+        placement: 'top',
+        duration: 4000,
+        animationType: 'slide-in',
+      });
     } catch (error) {
-      console.error('Error saving picture:', error);
+      console.error();
+      toast.show("Check your image and try again", {
+        type: 'danger',
+        placement: 'top',
+        duration: 4000,
+        animationType: 'slide-in',
+      });
     } finally {
       setSaving(false);
     }
@@ -156,18 +197,28 @@ const MeScreen = () => {
   const placeholderProfileImage = 'https://www.shutterstock.com/image-vector/blank-avatar-photo-icon-design-600nw-1682415103.jpg';
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }>
       {/* Profile Header with editable cover image */}
       <View style={styles.profileHeader}>
-        <Image source={{ uri: userInfo.user?.cover || placeholderCoverImage }} style={styles.coverImage} />
+      <Image
+        source={{
+          uri: userInfo?.user?.cover
+            ? `${SERVER_BASE_URL}/storage/app/${userInfo.user.cover}`
+            : `${SERVER_BASE_URL}/storage/app/profile/no-cover.jpg`,
+        }}
+        style={styles.coverImage}
+      />
         <TouchableOpacity onPress={() => alert('Change Cover')} style={styles.editCoverButton}>
           <AntDesign name="edit" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={styles.profileInfo}>
-          <Image source={{ uri: userInfo.user?.picture || placeholderProfileImage }} style={styles.profilePicture} />
+          <Image source={{ uri:`${SERVER_BASE_URL}/storage/app/` +  userInfo?.user?.picture || placeholderProfileImage }} style={styles.profilePicture} />
           <View style={styles.profileText}>
-            <Text style={styles.profileName}>{userInfo.user?.name}</Text>
-            <Text style={styles.profileBio}>{userInfo.user?.bio}</Text>
+            <Text style={styles.profileName}>{userInfo?.user?.name}</Text>
+            <Text style={styles.profileBio}>{userInfo?.user?.bio}</Text>
           </View>
         </View>
       </View>
@@ -183,7 +234,7 @@ const MeScreen = () => {
           <Text style={styles.statText}>Properties</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>0</Text>
+          <Text style={styles.statNumber}>{likesCount}</Text>
           <Text style={styles.statText}>Likes</Text>
         </View>
         <View style={styles.statItem}>
@@ -410,4 +461,10 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MeScreen;
+const Screen = () => (
+  <ToastProvider>
+    <MeScreen />
+  </ToastProvider>
+);
+
+export default Screen;

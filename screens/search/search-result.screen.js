@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, Linking, StyleSheet, FlatList, ActivityIndicator, TextInput, Dimensions, Image } from 'react-native';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, Linking, StyleSheet, FlatList, ActivityIndicator, TextInput, Dimensions, Image, RefreshControl } from 'react-native';
 import { Button, Card, IconButton, Avatar } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Modal from 'react-native-modal';
-import RNPickerSelect from 'react-native-picker-select';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
-import { useNavigation } from '@react-navigation/native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { API_BASE_URL, SERVER_BASE_URL } from '../../confg/config';
 import PostViewerModal from '../../components/post-details';
 import CommentsModal from '../../components/post-comments-modal';
 import FilterScroll from '../../components/filterScroll';
+import ShareModal from '../../components/share-modal';
 
 const { width } = Dimensions.get('window');
 const checkboxWidth = (width - 40) / 5;
+const PAGE_SIZE = 10;
 
 const SearchResultScreen = ({ route, navigation }) => {
   const { results, searchKeyword } = route.params;
@@ -35,8 +34,10 @@ const SearchResultScreen = ({ route, navigation }) => {
   const [locationOptions, setLocationOptions] = useState([]);
   const [numBeds, setNumBeds] = useState([]);
   const [numBaths, setNumBaths] = useState([]);
+  const [isShareModalVisible, setShareModalVisible] = useState(false);
   const [selectedLocations, setSelectedLocations] = useState([]);
-
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadFavorites();
@@ -84,13 +85,13 @@ const SearchResultScreen = ({ route, navigation }) => {
     }
   },[]);
 
-  const toggleFavorite =useCallback( (item) => {
+  const toggleFavorite = useCallback((item) => {
     const isFavorite = favorites.some(fav => fav.id === item.id);
     const updatedFavorites = isFavorite
       ? favorites.filter(fav => fav.id !== item.id)
       : [...favorites, item];
     saveFavorites(updatedFavorites);
-  },[]);
+  }, [favorites]);
 
   const openCommentsModal = useCallback(async (itemId) => {
     try {
@@ -99,58 +100,57 @@ const SearchResultScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to open comments modal:', error);
     }
-  },[]);
+  }, []);
+
+  const openShareModal = useCallback((item) => {
+    setSelectedItem(item);
+    setShareModalVisible(true);
+  }, [setSelectedItem, setShareModalVisible]);
+  
+
+  const closeShareModal = useCallback( () => {
+    setSelectedItem(null);
+    setShareModalVisible(false);
+  },[setShareModalVisible]);
 
   const handleFilterChange = useCallback((field, value) => {
     setFilterForm({
       ...filterForm,
       [field]: value,
     });
-  },[]);
+  },[filterForm]);
 
   const showImageViewer = useCallback(async (images, itemId, property) => {
     setCurrentImages(images);
     setSelectedProperty(property);
     setPostViewerModalVisible(true);
   },[]);
-  // checkboxes 
+  
   const handleBedroomsChange = useCallback((num, isChecked) => {
-    console.log('Previous numBeds:', numBeds);
-    if (Array.isArray(numBeds)) {
-      if (isChecked) {
-        setNumBeds(prev => [...prev, num]); // Add num to the array
-      } else {
-        setNumBeds(prev => prev.filter(item => item !== num)); // Remove num from the array
-      }
-      handleFilterChange(`bedrooms${num}`, isChecked);
-    } else {
-      console.error('numBeds is not an array:', numBeds);
-    }
-  },[]);
+    setNumBeds(prev => {
+      const updatedBeds = isChecked ? [...prev, num] : prev.filter(item => item !== num);
+      handleFilterChange('bedrooms', updatedBeds);
+      return updatedBeds;
+    });
+  }, [handleFilterChange]);
   
   const handleBathroomsChange = useCallback((num, isChecked) => {
-    console.log('Previous numBaths:', numBaths);
-    if (Array.isArray(numBaths)) {
-      if (isChecked) {
-        setNumBaths(prev => [...prev, num]); // Add num to the array
-      } else {
-        setNumBaths(prev => prev.filter(item => item !== num)); // Remove num from the array
-      }
-      handleFilterChange(`bathrooms${num}`, isChecked);
-    } else {
-      console.error('numBaths is not an array:', numBaths);
-    }
-  },[]);
-  
+    setNumBaths(prev => {
+      const updatedBaths = isChecked ? [...prev, num] : prev.filter(item => item !== num);
+      handleFilterChange('bathrooms', updatedBaths);
+      return updatedBaths;
+    });
+  }, [handleFilterChange]); 
+
   const handleLocationChange = useCallback((locationId) => {
     setSelectedLocations(prevSelectedLocations => {
-      if (prevSelectedLocations.includes(locationId)) {
-        return prevSelectedLocations.filter(id => id !== locationId);
-      } else {
-        return [...prevSelectedLocations, locationId];
-      }
+      const updatedLocations = prevSelectedLocations.includes(locationId)
+        ? prevSelectedLocations.filter(id => id !== locationId)
+        : [...prevSelectedLocations, locationId];
+      handleFilterChange('locations', updatedLocations);
+      return updatedLocations;
     });
-  },[]);  
+  }, [handleFilterChange]);
 
 // Submit Filter Form
   const applyFilters = async () => {
@@ -191,6 +191,33 @@ const SearchResultScreen = ({ route, navigation }) => {
     }
     setLoading(false);
   },[]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    // Fetch new data here
+    getAllProperties();
+    setRefreshing(false);
+  }, []);
+
+  const loadMore = useCallback(async () => {
+    if (loading) return; // Prevent multiple simultaneous requests
+    setLoading(true);
+    try {
+      const nextPage = page + 1;
+      const response = await fetch(`${API_BASE_URL}/search-all?page=${nextPage}&limit=${PAGE_SIZE}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const newData = await response.json();
+      setData(prevData => [...prevData, ...newData]); // Append new data to existing data
+      setPage(nextPage);
+    } catch (error) {
+      console.error('Failed to load more:', error);
+    }
+    setLoading(false);
+  }, [loading, page]);
 
   const renderCategoryCarousel = () => (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
@@ -384,7 +411,7 @@ const SearchResultScreen = ({ route, navigation }) => {
         <IconButton icon="phone" onPress={() => Linking.openURL(`tel:26${item.user.phone}`)} />
         <IconButton icon="whatsapp" onPress={() => Linking.openURL(`https://wa.me/26${item.user.phone}`)} />
         <IconButton icon="message" onPress={() => Linking.openURL(`sms:${item.user.phone}`)} />
-        <IconButton icon="share" />
+        <IconButton icon="share" onPress={() => openShareModal(item)} />
         <IconButton icon="comment-outline" onPress={() => openCommentsModal(item.id)} />
       </Card.Actions>
     </Card>
@@ -423,14 +450,19 @@ const SearchResultScreen = ({ route, navigation }) => {
           renderItem={renderItem}
           keyExtractor={(item, index) => `${item.id}-${index}`}
           onEndReachedThreshold={0.5}
+          // onEndReached={loadMore}
           ListFooterComponent={loading ? <ActivityIndicator animating size="large" /> : null}
           contentContainerStyle={styles.listContainer}
+          showsHorizontalScrollIndicator={false}
+          refreshing={refreshing} 
+          onRefresh={onRefresh} 
         />
       )}
       <PostViewerModal
         visible={isPostViewerModalVisible}
         images={currentImages}
         property={selectedProperty}
+        showImageViewer={showImageViewer}
         onClose={() => setPostViewerModalVisible(false)}
       />
       <CommentsModal
@@ -451,6 +483,12 @@ const SearchResultScreen = ({ route, navigation }) => {
           </Button>
         </View>
       </Modal>
+      <ShareModal
+        isVisible={isShareModalVisible}
+        onClose={closeShareModal}
+        item={selectedItem}
+        serverBaseUrl={SERVER_BASE_URL}
+      />
     </SafeAreaView>
   );
 };
@@ -459,7 +497,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 10,
+    padding: 4,
   },
   header: {
     flexDirection: 'row',

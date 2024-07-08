@@ -6,7 +6,7 @@ const SplashScreen = () => {
         <View style={styles.container}>
             <Image source={require('../assets/animation/2.gif')} style={styles.logo}/>
             <Text style={styles.text}>Square</Text>
-            <Text style={styles.text2}>Home dream home!</Text>
+            <Text style={styles.text2}>Find, Rent and Buy Houses!</Text>
             <Text style={styles.footerText}>powered by Twalitso</Text>
         </View>
     );
@@ -17,12 +17,13 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fff',
     },
     logo:{
-        width:200,
-        height:200,
-        resizeMode:'contain',
+        width:100,
+        height:100,
+        resizeMode:'cover',
+        backgroundColor: '#fff',
     },
     text:{
         marginTop:20,

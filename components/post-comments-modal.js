@@ -3,7 +3,7 @@ import { Modal, View, Text, ScrollView, SafeAreaView, TouchableOpacity, TextInpu
 import { MaterialIcons } from 'react-native-vector-icons';
 import moment from 'moment';
 import axios from 'axios';
-import { API_BASE_URL } from '../confg/config'; // Ensure this path is correct
+import { API_BASE_URL, SERVER_BASE_URL } from '../confg/config'; // Ensure this path is correct
 import styles from '../assets/css/home.css'; // Adjust path as per your project structure
 import { fetchUserInfo } from '../controllers/auth/userController';
 import { throttle } from 'lodash';
@@ -29,7 +29,12 @@ const CommentsModal = ({ visible, postId, onClose }) => {
         setLoading(false); // Clear loading state on successful fetch
 
         terminateFetchInterval();
-        startFetchInterval();
+        startFetchInterval(postId);
+
+        // Scroll to bottom after fetching comments
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
       } catch (error) {
         console.error('Failed to fetch comments:', error);
         setLoading(false); // Clear loading state on error
@@ -56,15 +61,15 @@ const CommentsModal = ({ visible, postId, onClose }) => {
     };
   }, [visible, postId]);
 
-  const terminateFetchInterval = () => {
+  const terminateFetchInterval = useCallback(() => {
     if (fetchIntervalRef.current !== null) {
       clearInterval(fetchIntervalRef.current);
       fetchIntervalRef.current = null;
     }
-  };
+  }, []);
 
   const startFetchInterval = useCallback(() => {
-    fetchIntervalRef.current = setInterval(async () => {
+    const fetchComments = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/post-comments/${postId}`);
         setMessages(response.data);
@@ -73,8 +78,11 @@ const CommentsModal = ({ visible, postId, onClose }) => {
         console.error('Failed to fetch comments:', error);
         backoffTimeRef.current = Math.min(backoffTimeRef.current * 2, 60000); // exponential backoff up to 60s
       }
-    }, backoffTimeRef.current);
-  },[]);
+    };
+
+    fetchIntervalRef.current = setInterval(fetchComments, backoffTimeRef.current);
+    fetchComments(); // Initial fetch
+  }, [postId]);
 
   const sendMessage = useCallback(async () => {
     if (newMessage.trim() === '' || !userInfo) return;
@@ -95,10 +103,10 @@ const CommentsModal = ({ visible, postId, onClose }) => {
     } catch (error) {
       console.error('Failed to send message:', error);
     }
-  },[]);
+  }, [newMessage, postId, userInfo]);
 
   // limit the number of times the sendMessage function can be called.
-  const throttledSendMessage = useCallback(throttle(sendMessage, 2000), [newMessage, userInfo]);
+  const throttledSendMessage = useCallback(throttle(sendMessage, 2000), [sendMessage]);
 
   const timeElapsed = (createdAt) => {
     return moment(createdAt).fromNow();
@@ -107,9 +115,9 @@ const CommentsModal = ({ visible, postId, onClose }) => {
   const renderMessage = useCallback((message) => (
     <View key={message.id} style={styles.messageContainer}>
       <Image
-        source={{ uri: message?.user?.picture || placeholderImage }}
+        source={{ uri: `${SERVER_BASE_URL}/storage/app/${message?.user?.picture}` || placeholderImage }}
         style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }}
-        onError={placeholderImage}
+        defaultSource={{ uri: placeholderImage }}
       />
       <View style={styles.messageContent}>
         <Text style={styles.messageTextTitle}>{message.user?.name}</Text>
@@ -120,7 +128,7 @@ const CommentsModal = ({ visible, postId, onClose }) => {
         </TouchableOpacity>
       </View>
     </View>
-  ),[]);
+  ), []);
 
   const renderCommentsModal = useCallback(() => (
     <Modal
@@ -158,7 +166,7 @@ const CommentsModal = ({ visible, postId, onClose }) => {
         </View>
       </SafeAreaView>
     </Modal>
-  ),[]);
+  ), [visible, loading, messages, newMessage, throttledSendMessage, onClose]);
 
   return renderCommentsModal();
 };

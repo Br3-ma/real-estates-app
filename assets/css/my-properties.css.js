@@ -3,6 +3,17 @@ import { StyleSheet, Dimensions, StatusBar } from 'react-native';
 const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
+    kabutton:{
+      padding:5,
+      borderRadius:20,
+      backgroundColor:'#FCF7F4',
+    },
+    menuContainer: {
+      position: 'absolute',
+      top: 10,
+      right: 0,
+      padding: 8,
+    },
     cardImage: {
       width: 200,
       height: 200,

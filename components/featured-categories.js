@@ -1,15 +1,17 @@
 // FeaturedItems.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { Icon } from 'react-native-elements';
 import axios from 'axios';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { API_BASE_URL } from '../confg/config';
+import { useNavigation } from '@react-navigation/native';
 
 const FeaturedItems = () => {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -31,6 +33,21 @@ const FeaturedItems = () => {
 
     fetchCategories();
   }, []);
+
+  const handlePress = useCallback( async (categoryId) => {
+    const searchData = new FormData();
+    searchData.append('property_type_id', categoryId);
+
+    const response = await fetch(`${API_BASE_URL}/search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(searchData),
+    });
+    const data = await response.json();
+    navigation.navigate('SearchResultScreen', { results: data, searchKeyword: 'Search Results' });
+  },[]);
 
   if (isLoading) {
     return (
@@ -57,8 +74,12 @@ const FeaturedItems = () => {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={featuredItemsStyles.featuredItemsContainer}>
       {Array.isArray(categories) && categories.map((category) => (
-        <TouchableOpacity key={category.id} style={featuredItemsStyles.featuredItem}>
-          <Icon name={category.icon_name || 'home'} type={category.type} size={30} color="#7D7399" />
+        <TouchableOpacity 
+          key={category.id} 
+          style={featuredItemsStyles.featuredItem}
+          onPress={() => handlePress(category.id)}
+          >
+          <Icon name={category.icon_name || 'home'} type={category.type} size={30} color="#438ab5" />
           <Text style={featuredItemsStyles.featuredItemTitle}>{category.name}</Text>
           <Text style={featuredItemsStyles.featuredItemDescription}>{category.desc}</Text>
         </TouchableOpacity>
@@ -79,11 +100,10 @@ const featuredItemsStyles = StyleSheet.create({
     padding: 10,
     marginRight: 15,
     borderRadius: 10,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
+    backgroundColor: '#FAF4FC',
+    borderColor:'#FAF4FC',
+    shadowOpacity: 0.6,
+    shadowRadius: 1,
     elevation: 3,
     alignItems: 'center',
   },
@@ -93,10 +113,11 @@ const featuredItemsStyles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 5,
     textAlign: 'center',
+    color:'#438ab5',
   },
   featuredItemDescription: {
     fontSize: 14,
-    color: '#666',
+    color:'#438ab5',
     textAlign: 'center',
   },
   shimmerIcon: {

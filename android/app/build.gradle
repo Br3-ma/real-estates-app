@@ -83,7 +83,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.realest"
+    namespace "com.br3mah.realest"
     defaultConfig {
         applicationId 'com.br3mah.realest'
         minSdkVersion rootProject.ext.minSdkVersion
@@ -116,6 +116,9 @@ android {
         jniLibs {
             useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
         }
+    }
+    kotlinOptions {
+        freeCompilerArgs += ["-Xlint:deprecation"]
     }
 }
 

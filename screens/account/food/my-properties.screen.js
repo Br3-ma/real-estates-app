@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, Image, Dimensions, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
+import axios from 'axios';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { fetchUserInfo } from '../../../controllers/auth/userController';
-import axios from 'axios';
-import { API_BASE_URL } from '../../../confg/config';
+import { API_BASE_URL, SERVER_BASE_URL } from '../../../confg/config';
 import { Card, Button } from '@rneui/themed';
 import styles from '../../../assets/css/my-properties.css';
 import UploadPost from '../../../components/upload-post';
 import mime from "mime";
 import Constants from 'expo-constants';
 import CommentsModal from '../../../components/post-comments-modal';
+import PostViewerModal from '../../../components/post-details';
+import { Menu, Provider } from 'react-native-paper';  // Import Menu from react-native-paper
+import { usePropertyActions } from '../../../tools/api/PropertyActions';
 
 const { width } = Dimensions.get('window');
 
@@ -19,14 +22,17 @@ const MyPropertyScreen = ({ navigation }) => {
   const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentImages, setCurrentImages] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [isPostViewerModalVisible, setPostViewerModalVisible] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState({
-    title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '', property_type_id: '', category_id: '', location_id: '',
-    status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [],
+    title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '', property_type_id: '', category_id: '', location_id: '', status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [],
   });
   const [uploadImages, setUploadImages] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [menuVisible, setMenuVisible] = useState({}); // Use a state to manage menu visibility for each item
 
   const fetchProperties = useCallback(async () => {
     setLoading(true);
@@ -55,9 +61,11 @@ const MyPropertyScreen = ({ navigation }) => {
     fetchData();
   }, [fetchProperties]);
 
-  const showImageViewer = useCallback((images) => {
-    // Set state or navigate to the image viewer screen with images
-  }, []);
+  const showImageViewer = useCallback(async (images, itemId, property) => {
+    setCurrentImages(images);
+    setSelectedProperty(property);
+    setPostViewerModalVisible(true);
+  },[]);
 
   const openCommentsModal = useCallback(async (itemId) => {
     try {
@@ -165,98 +173,143 @@ const MyPropertyScreen = ({ navigation }) => {
     }
   }, [propertyDetails, uploadImages, userInfo]);
 
-  const renderPropertyItem = useCallback(({ item }) => (
-    <Card>
-      <Card.Title>{item.name}</Card.Title>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {item.images.length > 0 ? (
-          item.images.map((img, index) => (
-            <TouchableOpacity key={index} onPress={() => showImageViewer(item.images)}>
-              <Image source={{ uri: img.url }} style={styles.cardImage} />
+
+  
+  const { hideFromPosts, bidForTopPosts, editProperty } = usePropertyActions(fetchProperties);
+  const renderPropertyItem = useCallback(({ item }) => {
+    const openMenu = (id) => setMenuVisible(prevState => ({ ...prevState, [id]: true }));
+    const closeMenu = (id) => setMenuVisible(prevState => ({ ...prevState, [id]: false }));
+  
+    return (
+      <Card>
+        <Card.Title>{item.name}</Card.Title>
+        <View style={styles.menuContainer}>
+          <Menu
+            visible={menuVisible[item.id] || false}
+            onDismiss={() => closeMenu(item.id)}
+            anchor={
+              <TouchableOpacity style={styles.kabutton} onPress={() => openMenu(item.id)}>
+                <MaterialIcons name="more-vert" size={24} color="black" />
+              </TouchableOpacity>
+            }
+          >
+            <Menu.Item
+              onPress={() => hideFromPosts(item.id)}
+              title={item.status_id === 1 ? 'Hide' : 'Show'}
+              leadingIcon={item.status_id === 1 ? 'eye-off-outline' : 'eye-on-outline'}
+            />
+            <Menu.Item
+              onPress={() => bidForTopPosts(item.id)}
+              title={item.on_bid ? 'Remove from Bids' : 'Bid for Top Posts'}
+              leadingIcon={item.on_bid ? 'check-circle-outline' : 'rocket-outline'}
+            />
+            <Menu.Item
+              onPress={() => editProperty(item.id)}
+              title="Edit"
+              leadingIcon="pencil-outline"
+            />
+            <Menu.Item
+              onPress={() => handleDeleteProperty(item.id)}
+              title="Delete"
+              leadingIcon="delete-outline"
+            />
+          </Menu>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {item.images.length > 0 ? (
+            item.images.map((img, index) => (
+              <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>
+                <Image source={{ uri: `${SERVER_BASE_URL}/storage/app/` + img.path }} style={styles.cardImage} />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Image
+              source={{ uri: 'https://bearhomes.com/wp-content/uploads/2019/01/default-featured.png' }}
+              style={styles.illustrativeImage}
+            />
+          )}
+        </ScrollView>
+        <View>
+          <View style={styles.priceLocationRow}>
+            <Text style={styles.priceText}>K{item.price}</Text>
+            <TouchableOpacity>
+              <Text>
+                <MaterialIcons name="place" size={20} color="#000" />
+                {item.location}
+              </Text>
             </TouchableOpacity>
-          ))
-        ) : (
-          <Image
-            source={{ uri: 'https://static.vecteezy.com/system/resources/previews/021/433/526/non_2x/empty-box-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-vector.jpg' }}
-            style={styles.illustrativeImage}
+          </View>
+          <View style={styles.iconRow}>
+            <View style={styles.iconTextContainer}>
+              <MaterialIcons name="hotel" size={20} color="#000" />
+              <Text style={styles.iconText}>{item.bedrooms} Beds</Text>
+            </View>
+            <View style={styles.iconTextContainer}>
+              <MaterialIcons name="bathtub" size={20} color="#000" />
+              <Text style={styles.iconText}>{item.bathrooms} Baths</Text>
+            </View>
+            <View style={styles.iconTextContainer}>
+              <MaterialIcons name="aspect-ratio" size={20} color="#000" />
+              <Text style={styles.iconText}>{item.area} Sqm</Text>
+            </View>
+          </View>
+        </View>
+        <Text>{item.description}</Text>
+        <View style={styles.buttonRow}>
+          <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="blue" />} onPress={() => openCommentsModal(item.id)} />
+          <Button
+            type="clear"
+            icon={() => deleting ? <ActivityIndicator size="small" color="red" /> : <MaterialIcons name="delete" size={24} color="red" />}
+            onPress={() => handleDeleteProperty(item.id)}
           />
-        )}
-      </ScrollView>
-      <View>
-        <View style={styles.priceLocationRow}>
-          <Text style={styles.priceText}>K{item.price}</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('MapScreen', { location: item.location })}>
-            <Text>
-              <MaterialIcons name="place" size={20} color="#000" />
-              {item.location}
-            </Text>
-          </TouchableOpacity>
         </View>
-        <View style={styles.iconRow}>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="hotel" size={20} color="#000" />
-            <Text style={styles.iconText}>{item.bedrooms} Beds</Text>
-          </View>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="bathtub" size={20} color="#000" />
-            <Text style={styles.iconText}>{item.bathrooms} Baths</Text>
-          </View>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="aspect-ratio" size={20} color="#000" />
-            <Text style={styles.iconText}>{item.area} sqft</Text>
-          </View>
-        </View>
-      </View>
-      <View style={styles.buttonRow}>
-        <Button type="clear" icon={() => <MaterialIcons name="favorite-border" size={24} color="black" />} />
-        <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="black" />} onPress={() => openCommentsModal(item.id)} />
-        <Button type="clear" icon={() => <MaterialIcons name="share" size={24} color="black" />} />
-        <Button
-          type="clear"
-          icon={() => deleting ? <ActivityIndicator size="small" color="red" /> : <MaterialIcons name="delete" size={24} color="red" />}
-          onPress={() => handleDeleteProperty(item.id)}
-        />
-      </View>
-    </Card>
-  ), [deleting, showImageViewer, handleDeleteProperty, openCommentsModal]);
+      </Card>
+    );
+  }, [deleting, showImageViewer, handleDeleteProperty, openCommentsModal, menuVisible]);
+  
+
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <Button
-        title="Create New Post"
-        onPress={() => setModalVisible(true)}
-        style={styles.createPostButton}
-      />
-      <ScrollView>
-        {properties.map((property, index) => (
-          <View key={index}>
-            {renderPropertyItem({ item: property })}
-          </View>
-        ))}
-      </ScrollView>
-      {/* Floating button to open UploadPost modal */}
-      <TouchableOpacity
-        style={styles.floatingButton}
-        onPress={() => setModalVisible(true)}
-      >
-        <MaterialIcons name="add" size={30} color="white" />
-      </TouchableOpacity>
-      <UploadPost
-        isModalVisible={isModalVisible}
-        setModalVisible={setModalVisible}
-        propertyDetails={propertyDetails}
-        setPropertyDetails={setPropertyDetails}
-        uploadImages={uploadImages}
-        setUploadImages={setUploadImages}
-        uploadPost={uploadPost}
-        uploading={uploading}
-      />
-      <CommentsModal
-        visible={isCommentsModalVisible}
-        postId={selectedItemId}
-        onClose={closeCommentsModal}
-      />
-    </SafeAreaView>
+    <Provider>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView>
+          {properties.map((property, index) => (
+            <View key={index}>
+              {renderPropertyItem({ item: property })}
+            </View>
+          ))}
+        </ScrollView>
+        {/* Floating button to open UploadPost modal */}
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <MaterialIcons name="add" size={30} color="white" />
+        </TouchableOpacity>
+        <UploadPost
+          isModalVisible={isModalVisible}
+          setModalVisible={setModalVisible}
+          propertyDetails={propertyDetails}
+          setPropertyDetails={setPropertyDetails}
+          uploadImages={uploadImages}
+          setUploadImages={setUploadImages}
+          uploadPost={uploadPost}
+          uploading={uploading}
+        />
+        <PostViewerModal
+          visible={isPostViewerModalVisible}
+          images={currentImages}
+          property={selectedProperty}
+          openCommentsModal={openCommentsModal}
+          onClose={() => setPostViewerModalVisible(false)}
+        />
+        <CommentsModal
+          visible={isCommentsModalVisible}
+          postId={selectedItemId}
+          onClose={closeCommentsModal}
+        />
+      </SafeAreaView>
+    </Provider>
   );
 };
 

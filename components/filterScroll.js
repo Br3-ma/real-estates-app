@@ -42,11 +42,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row', // Ensure items are placed in a row
     alignItems: 'center', // Align items vertically centered
+    backgroundColor:'transparent'
   },
   filterScroll: {
     marginLeft: 5, // Adjust spacing from the badge
-    paddingVertical: 10,
+    paddingVertical: 4,
     paddingHorizontal: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Semi-transparent background
+    borderRadius: 10,
+    overflow: 'hidden', // Ensure children are clipped
   },
   filterItem: {
     flexDirection: 'row',

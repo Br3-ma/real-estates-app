@@ -6,8 +6,8 @@ index bcf9b00..0bb438d 100644
  
    project.android {
      publishing {
--      singleVariant("release") {
-+      singleVariant("main") {
+-      singleVariant("main") {
++      singleVariant("release") {
          withSourcesJar()
        }
      }
@@ -15,10 +15,10 @@ index bcf9b00..0bb438d 100644
    project.afterEvaluate {
      publishing {
        publications {
--        release(MavenPublication) {
--          from components.release
-+        main(MavenPublication) {
-+          from components.main
+-        main(MavenPublication) {
+-          from components.main
++        release(MavenPublication) {
++          from components.release
          }
        }
        repositories {

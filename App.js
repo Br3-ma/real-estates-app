@@ -9,22 +9,26 @@ import axios from 'axios';
 
 // Screens
 import SignInScreen from './screens/auth/login.screen';
+import ForgotPasswordScreen from './screens/auth/forgot.screen';
+import ChangePasswordScreen from './screens/auth/reset.screen';
+import OTPVerificationScreen from './screens/auth/otp-verification.screen';
+
 import SignupRealEstateAgentScreen from './screens/auth/register.screen';
 import OverviewScreen from './screens/onboarding/overview.screen';
 import ContactsPermissions from './screens/onboarding/permissions.screen';
 import SplashScreen from './screens/splash.screen';
 import MainScreen from './screens/main.screen';
 import CartScreen from './screens/cart/my-cart.screen';
-import MapScreen from './screens/maps/find-property.screen';
+// import MapScreen from './screens/maps/find-property.screen';
 import SearchResultScreen from './screens/search/search-result.screen';
 
 const Stack = createStackNavigator();
 
 // Disable yellow box warnings
-console.disableYellowBox = true;
+// console.disableYellowBox = true;
 
 // Ignore all log notifications
-LogBox.ignoreAllLogs(true);
+// LogBox.ignoreAllLogs(true);
 
 const App = () => {
   const [showSplashScreen, setShowSplashScreen] = useState(true);
@@ -73,8 +77,8 @@ const App = () => {
         <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="Cart" component={CartScreen} />
-          
-          <Stack.Screen name="MapScreen" component={MapScreen} />
+                    
+
           <Stack.Screen name="SearchResultScreen" component={SearchResultScreen} />
           {/* <Stack.Screen name="ProductDetails" component={ProductDetails} /> */}
         </Stack.Navigator>
@@ -82,6 +86,9 @@ const App = () => {
         <Stack.Navigator initialRouteName="SignIn" screenOptions={{ headerShown: false }}>
           <Stack.Screen name="SignIn" component={SignInScreen} />
           <Stack.Screen name="RegisterByOTP" component={SignupRealEstateAgentScreen} />
+          <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} />
+          <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
+          <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
           <Stack.Screen name="Overview" component={OverviewScreen} />
           <Stack.Screen name="ContactsPermissions" component={ContactsPermissions} />
           <Stack.Screen name="Main" component={MainScreen} />

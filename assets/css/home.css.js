@@ -51,21 +51,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 50,
   },
-  // searchButton: {
-  //   backgroundColor: 'blue',
-  //   padding: 15,
-  //   borderRadius: 10,
-  // },
-  // searchButtonText: {
-  //   color: 'white',
-  //   fontWeight: 'bold',
-  // },
-  buttonGroupContainer: {
-    marginBottom: 10,
-    borderRadius:10,
-  },
-  selectedButton: {
-    backgroundColor: '#7D7399',
+  
+  buttonPlaceholder: {
+    width: 100,
+    height: 40,
+    borderRadius: 20,
+    marginHorizontal: 10,
   },
   fullWidthCard: {
     width: width - 20, // Full width of the screen minus padding
@@ -174,6 +165,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', // Center items vertically
     marginVertical: 5,
     paddingTop:5,
+    bottom:0,
     borderRadius:10,
     marginHorizontal:5,
     borderColor:'#f1f1f1',
@@ -367,6 +359,7 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     marginBottom: 10,
     borderRadius: 10, // Rounded corners for the image
+    paddingHorizontal:4,
     overflow: 'hidden', // Ensure borderRadius works
   },
   openMapButton: {
@@ -502,6 +495,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 100,
+    right: 20,
+    backgroundColor: '#f4511e',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
   },
 });
 
