@@ -522,7 +522,7 @@ const HomeScreen = ({ navigation }) => {
         containerStyle={styles.searchBarContainer}
         inputContainerStyle={styles.searchBarInput}
         inputStyle={{ color: '#000' }}
-        searchIcon={<Icon name="search" color="#438ab5" />}
+        searchIcon={<Icon name="search" color="#60279C" />}
         renderPlaceholder={(focused) => <MovingPlaceholder text="Search properties..." />}
       />
         <ScrollView style={styles.homeBody} 
@@ -534,7 +534,7 @@ const HomeScreen = ({ navigation }) => {
 
           {/* Add the new section below the ButtonGroup */}
           <View style={styles.featuredSection}>
-            <Text style={styles.featuredSectionTitle}>Browse Properties</Text>
+            <Text style={styles.featuredSectionTitle}>This might help you</Text>
             <FeaturedItems />
           </View>
 

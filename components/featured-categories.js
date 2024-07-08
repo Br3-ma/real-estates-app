@@ -34,7 +34,7 @@ const FeaturedItems = () => {
     fetchCategories();
   }, []);
 
-  const handlePress = useCallback( async (categoryId) => {
+  const handlePress = useCallback(async (categoryId) => {
     const searchData = new FormData();
     searchData.append('property_type_id', categoryId);
 
@@ -47,7 +47,7 @@ const FeaturedItems = () => {
     });
     const data = await response.json();
     navigation.navigate('SearchResultScreen', { results: data, searchKeyword: 'Search Results' });
-  },[]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -56,7 +56,6 @@ const FeaturedItems = () => {
           <View key={index} style={featuredItemsStyles.featuredItem}>
             <ShimmerPlaceholder style={featuredItemsStyles.shimmerIcon} />
             <ShimmerPlaceholder style={featuredItemsStyles.shimmerTextTitle} />
-            <ShimmerPlaceholder style={featuredItemsStyles.shimmerTextDescription} />
           </View>
         ))}
       </ScrollView>
@@ -78,10 +77,11 @@ const FeaturedItems = () => {
           key={category.id} 
           style={featuredItemsStyles.featuredItem}
           onPress={() => handlePress(category.id)}
-          >
-          <Icon name={category.icon_name || 'home'} type={category.type} size={30} color="#438ab5" />
+        >
+          <View style={featuredItemsStyles.iconContainer}>
+            <Icon name={category.icon_name || 'home'} type={category.type} size={30} color="#438ab5" />
+          </View>
           <Text style={featuredItemsStyles.featuredItemTitle}>{category.name}</Text>
-          <Text style={featuredItemsStyles.featuredItemDescription}>{category.desc}</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -96,47 +96,42 @@ const featuredItemsStyles = StyleSheet.create({
     marginVertical: 10,
   },
   featuredItem: {
-    width: 150,
-    padding: 10,
+    width: 80,
     marginRight: 15,
-    borderRadius: 10,
-    backgroundColor: '#FAF4FC',
-    borderColor:'#FAF4FC',
-    shadowOpacity: 0.6,
-    shadowRadius: 1,
-    elevation: 3,
     alignItems: 'center',
   },
-  featuredItemTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 10,
+  iconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#C1D5E1',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 5,
-    textAlign: 'center',
-    color:'#438ab5',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
-  featuredItemDescription: {
-    fontSize: 14,
-    color:'#438ab5',
+  featuredItemTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
     textAlign: 'center',
+    color: '#438ab5',
+    marginTop: 5,
   },
   shimmerIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    marginBottom: 10,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 5,
   },
   shimmerTextTitle: {
-    width: 100,
-    height: 20,
-    marginTop: 10,
-    marginBottom: 5,
+    width: 60,
+    height: 12,
     borderRadius: 5,
-  },
-  shimmerTextDescription: {
-    width: 80,
-    height: 15,
-    borderRadius: 5,
+    marginTop: 5,
   },
   errorContainer: {
     flex: 1,

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import axios from 'axios';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
+import { LinearGradient } from 'expo-linear-gradient';
 import { API_BASE_URL } from '../confg/config';
+import { Ionicons } from '@expo/vector-icons';
 
 const CategoryButtonGroup = ({ onButtonPress }) => {
   const [buttons, setButtons] = useState([]);
@@ -30,10 +32,18 @@ const CategoryButtonGroup = ({ onButtonPress }) => {
   };
 
   return (
-    <View style={styles.buttonGroupContainer}>
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.scrollViewContent}
+    >
       {loading ? (
         [1, 2, 3].map((item) => (
-          <ShimmerPlaceholder key={item} style={styles.buttonPlaceholder} />
+          <ShimmerPlaceholder
+            key={item}
+            LinearGradient={LinearGradient}
+            style={styles.buttonPlaceholder}
+          />
         ))
       ) : (
         buttons.map((button) => (
@@ -56,41 +66,47 @@ const CategoryButtonGroup = ({ onButtonPress }) => {
           </TouchableOpacity>
         ))
       )}
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  buttonGroupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginVertical: 10,
+  scrollViewContent: {
+    paddingVertical: 15,
+    paddingHorizontal: 10,
   },
   buttonPlaceholder: {
-    width: 80,
-    height: 40,
-    marginHorizontal: 5,
-    borderRadius: 20,
+    width: 120,
+    height: 60,
+    marginHorizontal: 8,
+    borderRadius: 30,
   },
   button: {
-    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 20,
-    backgroundColor: '#F7F5FD',
-    color:'#438ab5',
-    marginHorizontal: 5,
+    borderRadius: 30,
+    backgroundColor: '#D3C3E4',
+    marginHorizontal: 8,
+    shadowColor: '#6C63FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0,
+    shadowRadius: 1,
+    elevation: 1,
   },
   selectedButton: {
-    backgroundColor: '#7D7399',
+    backgroundColor: '#60279C',
   },
   buttonText: {
-    color: '#000',
-    fontWeight: 'bold',
+    color: '#60279C',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 8,
   },
   selectedButtonText: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
 });
-
 
 export default CategoryButtonGroup;

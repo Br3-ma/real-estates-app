@@ -26,8 +26,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ececec',
     borderRadius: 20,
     height: 40,
-    borderColor: '#c1dbeb',
-    borderWidth: 1,
   },
   searchModalContent: {
     width: '100%',
@@ -498,9 +496,9 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    bottom: 100,
-    right: 20,
-    backgroundColor: '#f4511e',
+    bottom: 50,
+    right: 15,
+    backgroundColor: '#438ab5',
     width: 60,
     height: 60,
     borderRadius: 30,
