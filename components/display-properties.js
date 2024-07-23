@@ -5,7 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
 import { SERVER_BASE_URL } from '../confg/config';
-import ShareModal from './share-modal'; // Import the ShareModal component
+import ShareModal from './share-modal';
+import { Video } from 'expo-av';
 
 const { width } = Dimensions.get('window');
 
@@ -48,11 +49,18 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
   const isFavorite = favorites.some(fav => fav.id === item.id);
 
   const getImageStyle = (imageCount) => ({
-    width: imageCount === 1 ? width : width / Math.min(imageCount, 3),
+    width: imageCount === 1 ? width - 20 : (width - 40) / Math.min(imageCount, 3),
     height: 250,
     resizeMode: 'cover',
-    marginRight: 5,
+    marginRight: 0,
   });
+
+  const truncateText = (text, maxLength) => {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    return text.substring(0, maxLength) + '...';
+  };
 
   const openShareModal = () => {
     setShareModalVisible(true);
@@ -64,41 +72,51 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
 
   return (
     <Card containerStyle={styles.fullWidthCard}>
-      <Card.Title style={styles.postTitle}>{item.title}</Card.Title>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
         {item.images.map((img, index) => (
-          <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>
+          <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.videos, item)}>
             <Image
               source={{ uri: `${SERVER_BASE_URL}/storage/app/` + img.path }}
               style={getImageStyle(item.images.length)}
             />
           </TouchableOpacity>
         ))}
+        {item.videos.map((video, index) => (
+          <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.videos, item)}>
+            <Video
+              source={{ uri: `${SERVER_BASE_URL}/storage/app/` + video.path }}
+              style={getImageStyle(item.videos.length)}
+              resizeMode="cover"
+              isMuted
+            />
+          </TouchableOpacity>
+        ))}
       </ScrollView>
-      <View style={styles.overlayStyle}>
-        <Text style={styles.ribbonTag}>{`Posted by ${item?.user?.name} \u2022 ` + moment(item.created_at).fromNow()}</Text>
+      <View style={styles.titleHeaders}>
+        <Text style={styles.postTitle}>{item.title}</Text>
+        <Text style={styles.ribbonTag}>{`Posted by ${item?.user?.name} \u2024 ${moment(item.created_at).fromNow()}`}</Text>
       </View>
-      <View>
+      <View style={styles.detailsContainer}>
         <View style={styles.priceLocationRow}>
           <Text style={styles.priceText}>K{item.price}</Text>
           <TouchableOpacity>
-            <Text>
-              <MaterialIcons name="place" size={20} color="#000" />
-              {item.location}
+            <Text style={styles.locationText}>
+              <MaterialIcons name="place" size={20} color="#333" />
+              {truncateText(item.location, 18)}
             </Text>
           </TouchableOpacity>
         </View>
         <View style={styles.iconRow}>
           <View style={styles.iconTextContainer}>
-            <MaterialIcons name="hotel" size={20} color="#7D7399" />
+            <MaterialIcons name="hotel" size={20} color="#333" />
             <Text style={styles.iconText}>{item.bedrooms} Beds</Text>
           </View>
           <View style={styles.iconTextContainer}>
-            <MaterialIcons name="bathtub" size={20} color="#7D7399" />
+            <MaterialIcons name="bathtub" size={20} color="#333" />
             <Text style={styles.iconText}>{item.bathrooms} Baths</Text>
           </View>
           <View style={styles.iconTextContainer}>
-            <MaterialIcons name="aspect-ratio" size={20} color="#7D7399" />
+            <MaterialIcons name="aspect-ratio" size={20} color="#333" />
             <Text style={styles.iconText}>{item.area} sqft</Text>
           </View>
         </View>
@@ -107,7 +125,7 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
         <Button
           type="clear"
           style={styles.buttonCover}
-          icon={<MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={24} color={isFavorite ? "#7D7399" : "gray"} />}
+          icon={<MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={24} color={isFavorite ? "#E91E63" : "gray"} />}
           onPress={() => toggleFavorite(item)}
         />
         <Button
@@ -137,32 +155,54 @@ const styles = StyleSheet.create({
   fullWidthCard: {
     width: '100%',
     margin: 0,
+    padding: 0,
+    borderRadius: 10,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   postTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#333',
   },
-  overlayStyle: {
-    position: 'absolute',
-    bottom: 150,
-    right: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 5,
-    borderRadius: 5,
+  scrollContainer: {
+    paddingLeft: 0,
+    paddingRight: 0,
+  },
+  titleHeaders: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: '#f8f8f8',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
   ribbonTag: {
-    color: '#fff',
-    fontSize: 12,
+    color: '#666',
+    fontSize: 14,
+  },
+  detailsContainer: {
+    paddingHorizontal: 15,
+    paddingVertical: 10,
   },
   priceLocationRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 10,
+    marginBottom: 10,
   },
   priceText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#E91E63',
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#333',
   },
   iconRow: {
     flexDirection: 'row',
@@ -175,11 +215,16 @@ const styles = StyleSheet.create({
   },
   iconText: {
     marginLeft: 5,
+    fontSize: 14,
+    color: '#333',
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginVertical: 10,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    backgroundColor: '#f8f8f8',
   },
   buttonCover: {
     paddingHorizontal: 10,

@@ -1,190 +1,274 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-  },
-  loader: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 10,
-  },
-  buttonCover:{
     backgroundColor: '#f5f5f5',
-    paddingHorizontal: 20,
+  },
+  gradient: {
+    flex: 1,
   },
   searchBarContainer: {
     backgroundColor: 'transparent',
     borderBottomColor: 'transparent',
     borderTopColor: 'transparent',
-    paddingHorizontal:15,
+    paddingHorizontal: 15,
+    marginBottom: 10,
   },
   searchBarInput: {
-    backgroundColor: '#ececec',
-    borderRadius: 20,
-    height: 40,
-  },
-  searchModalContent: {
-    width: '100%',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    alignItems: 'center',
-  },
-  searchInput: {
-    width: '100%',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    marginBottom: 20,
-    padding: 10,
-  },
-  dropdownContainer: {
-    width: '100%',
-    marginBottom: 20,
-  },
-  dropdown: {
-    width: '100%',
-    height: 50,
-  },
-  
-  buttonPlaceholder: {
-    width: 100,
-    height: 40,
-    borderRadius: 20,
-    marginHorizontal: 10,
-  },
-  fullWidthCard: {
-    width: width - 20, // Full width of the screen minus padding
-    alignSelf: 'center', // Center horizontally
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 10,
+    backgroundColor: '#fff',
+    borderRadius: 25,
+    height: 45,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  homeBody:{
-    marginTop:-1,
-    backgroundColor: 'transparent',
-  },
-  bodyContent:{
-    borderRadius: 10,
-    backgroundColor: '#fff',
-    padding: 2,
-  },
-  backgroundImage: {
+  homeBody: {
     flex: 1,
-    resizeMode: 'cover', // or 'contain' as per your preference
-  },  
-  postTitle: {
-    textAlign:'left',
   },
-  priceLocationRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
+  featuredSection: {
+    marginTop: 20,
+    marginBottom: 30,
   },
-  priceText: {
-    fontSize: 20,
+  featuredSectionTitle: {
+    fontSize: 22,
     fontWeight: 'bold',
+    marginLeft: 15,
+    marginBottom: 10,
+    color: '#333',
   },
-  iconRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
+  bodyContent: {
+    paddingHorizontal: 5,
   },
-  iconTextContainer: {
-    flexDirection: 'row',
+  loader: {
+    padding: 15,
+  },
+  placeholder: {
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  floatingButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#60279C',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
-  iconText: {
-    marginLeft: 5,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  fullScreenLoading: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     alignItems: 'center',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    flexGrow: 1,
   },
   closeButton: {
-    marginLeft: 10,
-    marginTop: 10,
-    paddingBottom:10,
-  },
-  modalContent:{
-    backgroundColor: '#fff',
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 1,
+    padding: 10,
   },
   topImageContainer: {
-    flexDirection: 'row',
-    marginBottom: 0,
+    height: height * 0.4,
   },
   imageContainer: {
     width: width,
-    height: 300,
-  },
-  imageBackground: {
-    width: '100%',
     height: '100%',
   },
-  overlayDetails: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
-    borderRadius: 20,
+  imageBackground: {
+    flex: 1,
+    resizeMode: 'cover',
+    justifyContent: 'flex-end',
   },
-  overlayIconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  overlayDetails: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 15,
   },
   overlayText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
   overlayTextSmall: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 14,
+  },
+  overlayIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  videoCover: {
+    width: width,
+    height: height * 0.4,
+  },
+  detailsContainer: {
+    padding: 20,
+    backgroundColor: '#fff',
+  },
+  propertyTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  propertyPrice: {
+    fontSize: 20,
+    color: '#60279C',
+    fontWeight: '600',
+    marginBottom: 10,
+  },
+  propertyDescription: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 15,
+    lineHeight: 24,
+  },
+  propertyDetailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  propertyDetailsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  propertyDetailsText: {
+    marginLeft: 5,
+    fontSize: 16,
+    color: '#333',
+  },
+  featureAmenitiesContainer: {
+    padding: 20,
+    backgroundColor: '#f9f9f9',
+  },
+  featureAmenitiesTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+  },
+  featureAmenitiesItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  featureAmenitiesText: {
+    marginLeft: 10,
+    fontSize: 16,
+    color: '#555',
+  },
+  featureAmenitiesLink: {
+    color: '#60279C',
+    marginLeft: 10,
+    textDecorationLine: 'underline',
+  },
+  mapFinderContainer: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15,
+  },
+  mapImage: {
+    width: '100%',
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  openMapButton: {
+    backgroundColor: '#60279C',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
   },
   toggleButton: {
-    flexDirection: 'row', // Changed to row layout
-    justifyContent: 'space-around', // Adjusted spacing between buttons
-    alignItems: 'center', // Center items vertically
-    marginVertical: 5,
-    paddingTop:5,
-    bottom:0,
-    borderRadius:10,
-    marginHorizontal:5,
-    borderColor:'#f1f1f1',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 15,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
   },
-  commentSection: {
-    backgroundColor: '#f1f1f1',
+  commentButton: {
+    alignItems: 'center',
+  },
+  whatsappIcon: {
+    alignItems: 'center',
+  },
+  buttonLabel: {
+    marginTop: 5,
+    fontSize: 12,
+    color: '#333',
+  },
+  messageContainer: {
+    flexDirection: 'row',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  messageContent: {
+    flex: 1,
+  },
+  messageTextTitle: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  messageText: {
+    fontSize: 14,
+    color: '#333',
+    marginBottom: 5,
+  },
+  messageTime: {
+    fontSize: 12,
+    color: '#888',
+  },
+  replyLink: {
+    color: '#60279C',
+    marginTop: 5,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    backgroundColor: '#fff',
   },
   input: {
     flex: 1,
-    height: 40,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
     borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
     marginRight: 10,
+    fontSize: 16,
   },
+
   messageContainer: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -426,7 +510,6 @@ const styles = StyleSheet.create({
     color:'#3f7a9d'
   },
 
-
   featuredSection: {
     backgroundColor: 'transparent',
     paddingHorizontal: 20,
@@ -439,8 +522,10 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color:'#405466', 
   },
-
-
+  videoCover: {
+    width: width,
+    height: 300,
+  },
   //search bottom sheet
   bottomModal: {
     justifyContent: 'flex-end',
@@ -496,7 +581,7 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    bottom: 50,
+    bottom: 10,
     right: 15,
     backgroundColor: '#438ab5',
     width: 60,

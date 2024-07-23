@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Animated, Easing, ActivityIndicator, Text, ScrollView, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions, RefreshControl } from 'react-native';
+import { View, Animated,Linking, Easing, ActivityIndicator, Text, ScrollView, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions, RefreshControl } from 'react-native';
 import { Button, Icon, SearchBar, Avatar } from 'react-native-elements';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,6 +21,7 @@ import CategoryButtonGroup from '../components/button-group';
 import UploadPost from '../components/upload-post';
 import RecommendedProperties from '../components/recommended';
 import Communications from 'react-native-communications';
+import { Video } from 'expo-av';
 
 const { width } = Dimensions.get('window');
 const placeholderImage = 'https://cdn.vectorstock.com/i/500p/90/02/profile-photo-placeholder-icon-design-vector-43189002.jpg';
@@ -29,7 +30,7 @@ const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [propertyDetails, setPropertyDetails] = useState({
     title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '', property_type_id: '', category_id: '', location_id: '',
-    status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [],
+    status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [], videos: [],
   });
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +41,7 @@ const HomeScreen = ({ navigation }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isUploadModalVisible, setUploadModalVisible] = useState(false);
   const [currentImages, setCurrentImages] = useState([]);
+  const [currentVideos, setCurrentVideos] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -207,11 +209,13 @@ const HomeScreen = ({ navigation }) => {
     // Implement further logic based on buttonId
   };
 
-  const showImageViewer = async (images, itemId, property) => {
+  const showImageViewer = async (images, videos, property) => {
     setImageViewVisible(false);
     setCurrentImages([]);
+    setCurrentVideos([]);
     setSelectedProperty(null);
     setCurrentImages(images);
+    setCurrentVideos(videos);
     setSelectedProperty(property);
     setImageViewVisible(true);
   };
@@ -278,7 +282,7 @@ const HomeScreen = ({ navigation }) => {
       // Mock implementation of sending message
       await axios.post(`${API_BASE_URL}/comment-reply`, {
         post_id: selectedProperty.id,
-        user_id: userInfo.id,
+        user_id: userInfo.user.id,
         content: newMessage,
       });
     } catch (error) {
@@ -383,6 +387,16 @@ const HomeScreen = ({ navigation }) => {
                   </ImageBackground>
                 </View>
               ))}
+              {currentVideos.map((video, index) => (
+                <Video
+                  key={index}
+                  source={{ uri: `${SERVER_BASE_URL}/storage/app/` + video.path }}
+                  style={styles.videoCover}
+                  useNativeControls
+                  resizeMode="cover"
+                  // isLooping
+                />
+              ))}
             </ScrollView>
   
             <View style={styles.detailsContainer}>
@@ -391,6 +405,7 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.propertyTitle}>{selectedProperty.title}</Text>
                   <Text style={styles.propertyPrice}>Price: K{selectedProperty.price}</Text>
                   <Text style={styles.propertyDescription}>{selectedProperty.description}</Text>
+                  <Text style={styles.propertyDescription}>{selectedProperty.location}</Text>
                   <View style={styles.propertyDetailsRow}>
                     <View style={styles.propertyDetailsItem}>
                       <MaterialIcons name="hotel" size={20} color="#ffeded" />
@@ -439,7 +454,7 @@ const HomeScreen = ({ navigation }) => {
               <Button title="Open Map" style={styles.openMapButton} onPress={() => openMap(selectedProperty.location)} />
             </ImageBackground>
           </View>
-          <RecommendedProperties showImageViewer={showImageViewer} recommendedPropertiesData={properties} />
+          {/* <RecommendedProperties showImageViewer={showImageViewer} recommendedPropertiesData={properties} /> */}
         </ScrollView>
 
         {/* View Comments Button */}
@@ -495,7 +510,7 @@ const HomeScreen = ({ navigation }) => {
               style={styles.input}
               value={newMessage}
               onChangeText={setNewMessage}
-              placeholder="Add a comment..."
+              placeholder="Write a comment..."
               multiline
             />
             <TouchableOpacity onPress={sendMessage}>
@@ -530,7 +545,7 @@ const HomeScreen = ({ navigation }) => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }>
           
-          <CategoryButtonGroup onButtonPress={updateSelectedButton} />
+          {/* <CategoryButtonGroup onButtonPress={updateSelectedButton} /> */}
 
           {/* Add the new section below the ButtonGroup */}
           <View style={styles.featuredSection}>

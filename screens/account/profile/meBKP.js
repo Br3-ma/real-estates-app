@@ -75,19 +75,7 @@ const MeScreen = () => {
   const closeChangePasswordModal = () => setChangePasswordModalVisible(false);
   const closeEditProfileModal = () => setEditProfileModalVisible(false);
   const closeUploadProfileModal = () => setUploadProfileModalVisible(false);
-  
-  const formatEstimateProfit = (amount) => {
-    if (!amount) {
-      return '0';
-    }
-    if (amount >= 1000000) {
-      return `${(amount / 1000000).toFixed(1)}M`;
-    } else if (amount >= 1000) {
-      return `${(amount / 1000).toFixed(1)}k`;
-    }
-    return amount.toString();
-  };
-  
+
   const handleInputChange = (name, value) => {
     setFormData({
       ...formData,
@@ -212,51 +200,36 @@ const MeScreen = () => {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>
-      {saving && <Preloader />}
       {/* Profile Header with editable cover image */}
       <View style={styles.profileHeader}>
-        <Image
-          source={{
-            uri: userInfo?.user?.cover
-              ? `${SERVER_BASE_URL}/storage/app/${userInfo.user.cover}`
-              : `${SERVER_BASE_URL}/storage/app/profile/no-cover.jpg`,
-          }}
-          style={styles.coverImage}
-        />
-        <View style={styles.coverOverlay} />
-        <View style={styles.blurOverlay} />
+      <Image
+        source={{
+          uri: userInfo?.user?.cover
+            ? `${SERVER_BASE_URL}/storage/app/${userInfo.user.cover}`
+            : `${SERVER_BASE_URL}/storage/app/profile/no-cover.jpg`,
+        }}
+        style={styles.coverImage}
+      />
         <TouchableOpacity onPress={() => alert('Change Cover')} style={styles.editCoverButton}>
           <AntDesign name="edit" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={styles.profileInfo}>
-          <View style={styles.profilePictureContainer}>
-            <Image
-              source={{ uri: `${SERVER_BASE_URL}/storage/app/` + userInfo?.user?.picture || placeholderProfileImage }}
-              style={styles.profilePicture}
-            />
-            <TouchableOpacity onPress={openUploadProfileModal} style={[styles.linkButton, styles.pictureButton]}>
-              <AntDesign name="picture" color={'#fff'} />
-            </TouchableOpacity>
-          </View>
+          <Image source={{ uri:`${SERVER_BASE_URL}/storage/app/` +  userInfo?.user?.picture || placeholderProfileImage }} style={styles.profilePicture} />
           <View style={styles.profileText}>
             <Text style={styles.profileName}>{userInfo?.user?.name}</Text>
             <Text style={styles.profileBio}>{userInfo?.user?.bio}</Text>
-            
-            <TouchableOpacity onPress={openEditProfileModal} style={styles.editButton}>
-              <MaterialCommunityIcons name="account-edit-outline" style={styles.linkIcon} />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
-  
+
       {/* Profile Stats */}
       <View style={styles.profileStats}>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{userInfo.user?.total_posts}</Text>
+          <Text style={styles.statNumber}>{userInfo.user?.total_posts }</Text>
           <Text style={styles.statText}>Posts</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{userInfo.user?.total_properties}</Text>
+          <Text style={styles.statNumber}>{userInfo.user?.total_properties }</Text>
           <Text style={styles.statText}>Properties</Text>
         </View>
         <View style={styles.statItem}>
@@ -264,12 +237,24 @@ const MeScreen = () => {
           <Text style={styles.statText}>Likes</Text>
         </View>
         <View style={styles.statItem}>
-          {/* shorten estimate_profit amont */}
-          <Text style={styles.statNumber}>{formatEstimateProfit(userInfo.user?.estimate_profit)}</Text>
+          <Text style={styles.statNumber}>{userInfo.user?.estimate_profit }</Text>
           <Text style={styles.statText}>Estimate Profits</Text>
         </View>
       </View>
-  
+
+      {/* Profile Links */}
+      <View style={styles.profileLinks}>
+        <TouchableOpacity onPress={openChangePasswordModal} style={styles.linkButton}>
+          <MaterialCommunityIcons name="lock" style={styles.linkIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={openEditProfileModal} style={styles.linkButton}>
+          <MaterialCommunityIcons name="account-edit-outline" size={24} style={styles.linkIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={openUploadProfileModal} style={styles.linkButton}>
+          <AntDesign name="picture" style={styles.linkIcon} size={24} />
+        </TouchableOpacity>
+      </View>
+
       {/* Change Password Bottom Sheet */}
       <ChangePasswordModal
         isVisible={changePasswordModalVisible}
@@ -279,8 +264,8 @@ const MeScreen = () => {
         handleSavePassword={handleSavePassword}
         saving={saving}
       />
-  
-      {/* Edit Profile Bottom Sheet */}
+
+      {/* Edit Profile Bottom Sheet */}  
       <EditProfileModal
         isVisible={editProfileModalVisible}
         onClose={closeEditProfileModal}
@@ -289,7 +274,7 @@ const MeScreen = () => {
         handleSaveProfile={handleSaveProfile}
         saving={saving}
       />
-  
+
       {/* Upload Profile Picture Bottom Sheet */}
       <UploadProfilePictureModal
         isVisible={uploadProfileModalVisible}
@@ -299,26 +284,19 @@ const MeScreen = () => {
         handleSavePicture={handleSavePicture}
         saving={saving}
       />
-  
+
       {/* Details Container */}
       <View style={styles.detailsContainer}>
-            
-        {/* Change password link action buttion section */}
-        <View>
-          <TouchableOpacity onPress={openChangePasswordModal} style={styles.linkButton}>
-            <Text>Change your password</Text>
-            <MaterialCommunityIcons name="lock" style={styles.linkIcon} />
-          </TouchableOpacity>
-        </View>
         <Card title="Location" value={userInfo.user?.location} />
         <Card title="Email" value={userInfo.user?.email} />
         <Card title="Website" value={userInfo.user?.website} onPress={() => alert('Visit website')} />
       </View>
       {/* Add more cards as needed */}
-  
 
+      
+      {saving && <Preloader />}
     </ScrollView>
-  ); 
+  );
 };
 
 const Card = ({ title, value, onPress }) => (
@@ -331,234 +309,154 @@ const Card = ({ title, value, onPress }) => (
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: '#F0F2F5',
+    backgroundColor: '#f9f9f9',
   },
   profileHeader: {
     position: 'relative',
-    height: 300,
     overflow: 'hidden',
+    marginBottom: 20,
   },
   coverImage: {
     width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  coverOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)', // Increased opacity for better readability
-  },
-  blurOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backdropFilter: 'blur(5px)', // Add blur effect
+    height: 200,
   },
   editCoverButton: {
     position: 'absolute',
-    top: 40,
-    right: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    padding: 12,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
-  profileInfo: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    paddingBottom: 20,
-  },
-  profilePictureContainer: {
-    marginBottom: 15,
-  },
-  profilePicture: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 4,
-    borderColor: '#fff',
-  },
-  pictureButton: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#60279C',
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     padding: 10,
     borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+  },
+  profileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: 0,
+  },
+  profilePicture: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 20,
   },
   profileText: {
-    alignItems: 'center',
+    flex: 1,
   },
   profileName: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: -1, height: 1 },
-    textShadowRadius: 10,
-    marginBottom: 5,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2ecc71',
   },
   profileBio: {
     fontSize: 16,
-    color: '#E0E0E0',
-    textAlign: 'center',
-    maxWidth: '80%',
-    lineHeight: 22,
-  },
-  editButton: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    padding: 12,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    color: '#34495e',
   },
   profileStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    marginHorizontal: 20,
-    marginTop: -40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 10,
+    marginBottom: 20,
+    paddingHorizontal: 20,
   },
   statItem: {
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#60279C',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2c3e50',
   },
   statText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
+    fontSize: 12,
+    color: '#555',
+  },
+  profileLinks: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    paddingHorizontal: 20,
+  },
+  linkButton: {
+    borderRadius: 50,
+    backgroundColor: '#3498db',
+    padding: 15,
+  },
+  linkIcon: {
+    fontSize: 24,
+    color: '#fff',
   },
   detailsContainer: {
     paddingHorizontal: 20,
-    marginTop: 30,
     marginBottom: 20,
   },
   card: {
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 25,
-    marginBottom: 20,
+    borderRadius: 10,
+    padding: 20,
+    marginBottom: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 10,
+    fontWeight: 'bold',
+    color: '#2c3e50',
   },
   cardValue: {
     fontSize: 16,
     color: '#555',
+    marginTop: 5,
   },
   modalTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 25,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
     textAlign: 'center',
-    color: '#333',
   },
   buttonContainer: {
-    marginTop: 30,
+    marginTop: 20,
     alignItems: 'center',
   },
   button: {
-    backgroundColor: '#60279C',
-    paddingVertical: 16,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-    shadowColor: '#60279C',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 5,
+    backgroundColor: '#3498db',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
   },
   loadingContainer: {
-    ...StyleSheet.absoluteFillObject,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    zIndex: 1000,
   },
   profilePicturePreview: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    marginVertical: 30,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginVertical: 20,
     alignSelf: 'center',
-    borderWidth: 5,
-    borderColor: '#60279C',
   },
   bottomSheetContainer: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: 30,
+    borderRadius: 10,
+    padding: 20,
   },
   bottomModal: {
     justifyContent: 'flex-end',
     margin: 0,
   },
   input: {
-    height: 55,
-    borderColor: '#E0E0E0',
-    borderWidth: 1,
-    borderRadius: 15,
-    marginBottom: 20,
-    paddingHorizontal: 20,
-    backgroundColor: '#F9F9F9',
-    fontSize: 16,
-    color: '#333',
-  },
-  changePasswordButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#F0F2F5',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 20,
-  },
-  changePasswordText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#60279C',
-  },
-  iconContainer: {
-    width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: '#60279C',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
   },
 });
 

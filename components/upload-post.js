@@ -5,10 +5,10 @@ import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Button as RNButton } from '@rneui/themed';
 import axios from 'axios';
-// import * as Permissions from 'expo-permissions'; // Import Permissions from Expo
-import { API_BASE_URL } from '../confg/config'; // Adjust path as necessary
+import { API_BASE_URL } from '../confg/config';
+import { Video } from 'expo-av';
 
-const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPropertyDetails, uploadImages, setUploadImages, uploadPost, uploading }) => {
+const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPropertyDetails, uploadImages, uploadVideos, setUploadImages, setUploadVideos, uploadPost, uploading }) => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [locations, setLocations] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -16,17 +16,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [uploadingImages, setUploadingImages] = useState(false);
-
-  // Function to request necessary permissions
-  // const requestPermissions = async () => {
-  //   const { status: cameraStatus } = await Permissions.askAsync(Permissions.CAMERA);
-  //   const { status: readStorageStatus } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY_READ_ONLY);
-  //   const { status: writeStorageStatus } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
-
-  //   if (cameraStatus !== 'granted' || readStorageStatus !== 'granted' || writeStorageStatus !== 'granted') {
-  //     Alert.alert('Permissions required', 'This app requires camera and storage permissions to function correctly.');
-  //   }
-  // };
+  const [uploadingVideos, setUploadingVideos] = useState(false);
 
   // Fetch mock data for property types, locations, and categories
   useEffect(() => {
@@ -47,7 +37,6 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
     // requestPermissions();
     fetchData();
   }, []);
-
   // Function to pick images from gallery
   const pickImages = useCallback(async () => {
     try {
@@ -58,19 +47,34 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
         aspect: [4, 3],
         quality: 1,
       });
-      if (!result.cancelled) {
-        if (Array.isArray(result.assets)) {
-          setUploadImages(prevImages => [...prevImages, ...result.assets]);
-        } else {
-          setUploadImages(prevImages => [...prevImages, result.assets]);
-        }
+      if (result && !result.cancelled && result.assets) {
+        setUploadImages(prevImages => [...prevImages, ...result.assets]);
       }
     } catch (error) {
       console.log('Error picking images:', error);
     } finally {
       setUploadingImages(false);
     }
-  },[]);
+  }, []);
+
+  // Function to pick videos from gallery
+  const pickVideos = useCallback(async () => {
+    try {
+      setUploadingVideos(true);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+        allowsMultipleSelection: true,
+        quality: 1,
+      });
+      if (result && !result.cancelled && result.assets) {
+        setUploadVideos(prevVideos => [...prevVideos, ...result.assets]);
+      }
+    } catch (error) {
+      console.log('Error picking videos:', error);
+    } finally {
+      setUploadingVideos(false);
+    }
+  }, []);
 
   return (
     <Modal
@@ -147,7 +151,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
 
               {/* Property Type selection */}
               <View style={styles.categoryContainer}>
-                <Text style={styles.categoryTitle}>Property Type</Text>
+                <Text style={styles.categoryTitle}>What's the type of property?</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
                   {propertyTypes.map((type) => (
                     <TouchableOpacity
@@ -169,7 +173,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
 
               {/* Location selection */}
               <View style={styles.categoryContainer}>
-                <Text style={styles.categoryTitle}>Location</Text>
+                <Text style={styles.categoryTitle}>Where is the property located?</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
                   {locations.map((location) => (
                     <TouchableOpacity
@@ -191,7 +195,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
 
               {/* Category selection */}
               <View style={styles.categoryContainer}>
-                <Text style={styles.categoryTitle}>Category</Text>
+                <Text style={styles.categoryTitle}>Select a category</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
                   {categories.map((category) => (
                     <TouchableOpacity
@@ -217,15 +221,36 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
                   {uploadingImages ? 'Opening...' : 'Upload Images'}
                 </Text>
               </TouchableOpacity>
+
+              <TouchableOpacity onPress={pickVideos} style={styles.uploadButton}>
+                <AntDesign name="videocamera" style={{ width: 30, height: 25 }} />
+                <Text style={styles.uploadButtonText}>
+                  {uploadingVideos ? 'Opening...' : 'Upload Videos'}
+                </Text>
+              </TouchableOpacity>
+
+
               <View style={styles.uploadedImageContainer}>
                 {uploadImages.map((image, index) => (
                   <Image key={index} source={{ uri: image.uri }} style={styles.uploadedImage} />
+                ))}
+                
+                {(uploadVideos ?? []).map((video, index) => (
+                  <Video
+                    key={index}
+                    source={{ uri: video.uri }}
+                    style={styles.uploadedVideo}
+                    resizeMode="cover"
+                    useNativeControls={false}
+                    isLooping
+                    shouldPlay={false}
+                  />
                 ))}
               </View>
             </ScrollView>
 
             <View style={styles.modalFooter}>
-              <RNButton title="Create Post" onPress={uploadPost} disabled={uploading} />
+              <RNButton style={styles.btnCreate} title="Create Post" onPress={uploadPost} disabled={uploading} />
             </View>
           </View>
         </View>
@@ -257,6 +282,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    color:'#438ab5',
   },
   modalScrollView: {
     flexGrow: 1,
@@ -299,7 +325,7 @@ const styles = StyleSheet.create({
   categoryItem: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#C1D5E1',
     borderRadius: 5,
     marginBottom: 10,
     marginRight: 10,
@@ -328,6 +354,19 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     margin: 5,
+    borderRadius:10,
+  },
+  uploadedVideo: {
+    width: 100,
+    height: 100,
+    marginRight: 5,
+    marginBottom: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#eee',
+  },
+  btnCreate:{
+    backgroundColor:'#438ab5',
   },
   modalFooter: {
     marginTop: 20,

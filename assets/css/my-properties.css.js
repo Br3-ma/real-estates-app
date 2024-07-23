@@ -1,173 +1,231 @@
-import { StyleSheet, Dimensions, StatusBar } from 'react-native';
+import { StyleSheet, Dimensions, StatusBar, Platform } from 'react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
-    kabutton:{
-      padding:5,
-      borderRadius:20,
-      backgroundColor:'#FCF7F4',
-    },
-    menuContainer: {
-      position: 'absolute',
-      top: 10,
-      right: 0,
-      padding: 8,
-    },
-    cardImage: {
-      width: 200,
-      height: 200,
-      borderRadius: 10,
-      marginRight: 10,
-    },
-    illustrativeImage: {
-      width: 200,
-      height: 200,
-      borderRadius: 10,
-      marginRight: 10,
-      resizeMode: 'contain',
-    },
-    priceLocationRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginVertical: 10,
-    },
-    priceText: {
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
-    iconRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginVertical: 10,
-    },
-    iconTextContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    iconText: {
-      marginLeft: 5,
-      fontSize: 14,
-    },
-    buttonRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-    },
-    createPostButton: {
-      position: 'absolute',
-      top: StatusBar.currentHeight + 10, // Adjust as needed
-      right: 10,
-      zIndex: 1, // Ensure it's above other content
-    },
-    modalContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      margin: 0,
-      padding:0,
-    },
-    modalContent: {
-      backgroundColor: 'white',
-      padding: 20,
-      borderRadius: 10,
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    modalTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-    modalScrollView: {
-      paddingVertical: 20,
-      width: width - 40,
-      margin:0,
-    },
-    textarea: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 10,
-      padding: 10,
-      marginVertical: 10,
-      textAlignVertical: 'top',
-    },
-    input: {
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 10,
-      padding: 10,
-      marginVertical: 10,
-    },
-    inputRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
-    inputRowItem: {
-      width: '30%',
-    },
-    uploadButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#f0f0f0',
-      padding: 10,
-      borderRadius: 10,
-      marginVertical: 10,
-    },
-    uploadButtonText: {
-      marginLeft: 10,
-    },
-    uploadedImageContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-    },
-    uploadedImage: {
-      width: 60,
-      height: 60,
-      borderRadius: 10,
-      margin: 5,
-    },
-    modalFooter: {
-      marginTop: 10,
-    },
-    overlayDetails: {
-      position: 'absolute',
-      bottom: 10,
-      left: 10,
-    },
-    overlayText: {
-      color: '#fff',
-      fontWeight: 'bold',
-      fontSize: 16,
-    },
-    overlayTextSmall: {
-      color: '#fff',
-      fontSize: 14,
-    },
-    overlayIconRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 5,
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    floatingButton: {
-      position: 'absolute',
-      bottom: 100,
-      right: 20,
-      backgroundColor: '#f4511e',
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      justifyContent: 'center',
-      alignItems: 'center',
-      elevation: 8,
-    },
-  });
-  export default styles;
+  container: {
+    flex: 1,
+    backgroundColor: '#F7F9FC',
+  },
+  cardContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginHorizontal: 16,
+    marginVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    overflow: 'hidden',
+  },
+  kabutton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#F0F4F8',
+  },
+  menuContainer: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+  },
+  cardImage: {
+    width: width - 32,
+    height: 220,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  illustrativeImage: {
+    width: width - 32,
+    height: 220,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    resizeMode: 'cover',
+  },
+  cardContent: {
+    padding: 16,
+  },
+  priceLocationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  priceText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2ECC71',
+  },
+  locationText: {
+    fontSize: 16,
+    color: '#34495E',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  iconTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconText: {
+    marginLeft: 6,
+    fontSize: 14,
+    color: '#7F8C8D',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+    borderTopColor: '#EAEAEA',
+    paddingTop: 12,
+  },
+  createPostButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 44 : StatusBar.currentHeight + 10,
+    right: 16,
+    zIndex: 100,
+    backgroundColor: '#3498DB',
+    padding: 12,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 24,
+    width: width - 40,
+    maxHeight: height * 0.8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+  },
+  modalScrollView: {
+    marginVertical: 16,
+  },
+  textarea: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
+    textAlignVertical: 'top',
+    minHeight: 100,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  inputRowItem: {
+    width: '30%',
+  },
+  uploadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#3498DB',
+    padding: 14,
+    borderRadius: 12,
+    marginVertical: 16,
+  },
+  uploadButtonText: {
+    marginLeft: 10,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  uploadedImageContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 16,
+  },
+  uploadedImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    margin: 4,
+  },
+  modalFooter: {
+    marginTop: 20,
+  },
+  overlayDetails: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 12,
+    borderRadius: 8,
+  },
+  overlayText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginBottom: 4,
+  },
+  overlayTextSmall: {
+    color: '#FFFFFF',
+    fontSize: 14,
+  },
+  overlayIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F7F9FC',
+  },
+  floatingButton: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    backgroundColor: '#3498DB',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+});
 
+export default styles;

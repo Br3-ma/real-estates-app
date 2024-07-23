@@ -137,7 +137,6 @@ const MyPropertyScreen = ({ navigation }) => {
         const newImageUri = Constants.platform.android
           ? image.uri
           : image.uri.replace('file://', '');
-        
         const fileType = mime.getType(newImageUri) || 'image/jpeg';
         formData.append(`images[${index}]`, {
           name: `photo_${index}.jpg`,

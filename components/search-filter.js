@@ -87,7 +87,7 @@ const SearchModal = ({
     >
       <View style={styles.modalContent}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.modalTitle}>Search Properties</Text>
+          <Text style={styles.modalTitle}>Looking For</Text>
 
           <Text style={styles.label}>Location</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginHorizontal: 5,
     borderRadius: 5,
-    backgroundColor: '#eee',
+    backgroundColor: '#C1D5E1',
   },
   scrollItemText: {
     fontSize: 16,
@@ -243,13 +243,13 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     width: '100%',
-    backgroundColor: '#165F56',
+    backgroundColor: '#438ab5',
     paddingVertical: 10,
-    borderRadius: 5,
+    borderRadius: 10,
     alignItems: 'center',
   },
   searchButtonText: {
-    color: 'white',
+    color: '#C1D5E1',
     fontSize: 16,
     fontWeight: 'bold',
   },

@@ -7,7 +7,9 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "plugins": ["expo-image-picker"],
+    "plugins": [
+      "expo-image-picker"
+    ],
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -17,7 +19,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.br3mah.realest"
     },
     "android": {
       "permissions": [
@@ -40,10 +43,10 @@
         "projectId": "a136b0be-69e2-42d4-87e8-7dce2b3c4ebd"
       }
     },
-    "updates": {  
+    "updates": {
       "enabled": false,
       "checkAutomatically": "NEVER"
     },
-    "runtimeVersion":"1.0.0"
+    "runtimeVersion": "1.0.0"
   }
 }

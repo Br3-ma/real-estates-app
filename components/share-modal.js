@@ -4,13 +4,14 @@ import Modal from 'react-native-modal';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { IconButton, Text as PaperText } from 'react-native-paper';
 import * as Sharing from 'expo-sharing';
+import Toast from 'react-native-toast-message';
 
 const ShareModal = ({ isVisible, onClose, item, serverBaseUrl }) => {
   const shareItem = async (platform) => {
     try {
       const shareOptions = {
         message: `Check out this property: ${item.title}\nPrice: K${item.price}\nLocation: ${item.location}\nMore details: ${serverBaseUrl}/property/${item.id}`,
-        url: `${serverBaseUrl}/storage/app/${item.images[0].path}`
+        url: `${serverBaseUrl}/storage/app/${item.images[0]?.path || 'placeholder.jpg'}` // optional placeholder if empty
       };
 
       let url = '';
@@ -36,6 +37,11 @@ const ShareModal = ({ isVisible, onClose, item, serverBaseUrl }) => {
         await Linking.openURL(url);
       }
     } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Sharing Failed',
+        text2: error.message || 'An error occurred while trying to share.'
+      });
       console.error('Failed to share:', error);
     }
     onClose();
