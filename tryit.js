@@ -1,114 +1,282 @@
-import axios from 'axios';
-import mime from 'mime';
-import { Platform, Alert } from 'react-native';
-import { useCallback } from 'react';
+// src/screens/SearchResultScreen.js
 
-const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB per chunk
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, Linking, StyleSheet, FlatList, ActivityIndicator, TextInput, Dimensions, Image, RefreshControl } from 'react-native';
+import { Button, IconButton, Avatar } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Modal from 'react-native-modal';
+import BouncyCheckbox from 'react-native-bouncy-checkbox';
+import { API_BASE_URL } from '../../config/config';
+import PostViewerModal from '../../components/post-details';
+import CommentsModal from '../../components/post-comments-modal';
+import FilterScroll from '../../components/filterScroll';
+import ShareModal from '../../components/share-modal';
+import RenderItem from '../../components/RenderItem';
 
-const uploadVideoChunk = async (chunk, index, totalChunks, videoId) => {
-  const formData = new FormData();
-  formData.append('chunk', {
-    uri: Platform.OS === 'android' ? chunk.uri : chunk.uri.replace('file://', ''),
-    type: mime.getType(chunk.uri) || 'video/mp4',
-    name: `chunk_${index}`,
-  });
-  formData.append('index', index);
-  formData.append('totalChunks', totalChunks);
-  formData.append('videoId', videoId);
+const { width, height } = Dimensions.get('window');
+const PAGE_SIZE = 10;
 
-  const response = await axios.post(`${API_BASE_URL}/upload-video-chunk`, formData, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+const SearchResultScreen = ({ route, navigation }) => {
+  const { results, searchKeyword } = route.params;
 
-  return response.data;
+  const [filters, setFilters] = useState(['All', 'Price', 'Category', 'Location']);
+  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [favorites, setFavorites] = useState([]);
+  const [data, setData] = useState(results);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [filterForm, setFilterForm] = useState({});
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [isPostViewerModalVisible, setPostViewerModalVisible] = useState(false);
+  const [currentImages, setCurrentImages] = useState([]);
+  const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [locationOptions, setLocationOptions] = useState([]);
+  const [numBeds, setNumBeds] = useState([]);
+  const [numBaths, setNumBaths] = useState([]);
+  const [isShareModalVisible, setShareModalVisible] = useState(false);
+  const [selectedLocations, setSelectedLocations] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    loadFavorites();
+    fetchCategoryOptions();
+    fetchLocationOptions();
+  }, []);
+
+  const fetchCategoryOptions = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/categories`);
+      const data = await response.json();
+      setCategoryOptions(data.data);
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  }, []);
+
+  const fetchLocationOptions = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/locations`);
+      const data = await response.json();
+      setLocationOptions(data.data);
+    } catch (error) {
+      console.error('Failed to fetch locations:', error);
+    }
+  }, []);
+
+  const loadFavorites = useCallback(async () => {
+    try {
+      const storedFavorites = await AsyncStorage.getItem('favorites');
+      if (storedFavorites) {
+        setFavorites(JSON.parse(storedFavorites));
+      }
+    } catch (error) {
+      console.error('Failed to load favorites:', error);
+    }
+  }, []);
+
+  const saveFavorites = useCallback(async (newFavorites) => {
+    try {
+      await AsyncStorage.setItem('favorites', JSON.stringify(newFavorites));
+      setFavorites(newFavorites);
+    } catch (error) {
+      console.error('Failed to save favorites:', error);
+    }
+  }, []);
+
+  const toggleFavorite = useCallback((item) => {
+    const isFavorite = favorites.some(fav => fav.id === item.id);
+    const updatedFavorites = isFavorite
+      ? favorites.filter(fav => fav.id !== item.id)
+      : [...favorites, item];
+    saveFavorites(updatedFavorites);
+  }, [favorites]);
+
+  const openCommentsModal = useCallback(async (itemId) => {
+    try {
+      setSelectedItemId(itemId);
+      setCommentsModalVisible(true);
+    } catch (error) {
+      console.error('Failed to open comments modal:', error);
+    }
+  }, []);
+
+  const openShareModal = useCallback((item) => {
+    setSelectedItem(item);
+    setShareModalVisible(true);
+  }, []);
+
+  const showImageViewer = useCallback((images, itemId, item) => {
+    setCurrentImages(images);
+    setSelectedItemId(itemId);
+    setSelectedProperty(item);
+    setPostViewerModalVisible(true);
+  }, []);
+
+  const handleFilter = useCallback(async () => {
+    // Handle filter logic
+  }, []);
+
+  const fetchMoreData = useCallback(async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/search?keyword=${searchKeyword}&page=${page + 1}`);
+      const newData = await response.json();
+      setData([...data, ...newData.data]);
+      setPage(page + 1);
+    } catch (error) {
+      console.error('Failed to fetch more data:', error);
+    }
+    setLoading(false);
+  }, [page, data]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/search?keyword=${searchKeyword}&page=1`);
+      const newData = await response.json();
+      setData(newData.data);
+      setPage(1);
+    } catch (error) {
+      console.error('Failed to refresh data:', error);
+    }
+    setRefreshing(false);
+  }, []);
+
+  const renderItem = useCallback(({ item, index }) => (
+    <RenderItem
+      item={item}
+      index={index}
+      favorites={favorites}
+      toggleFavorite={toggleFavorite}
+      showImageViewer={showImageViewer}
+      openShareModal={openShareModal}
+      openCommentsModal={openCommentsModal}
+      styles={styles}
+    />
+  ), [favorites]);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <FilterScroll
+        filters={filters}
+        selectedFilter={selectedFilter}
+        setSelectedFilter={setSelectedFilter}
+      />
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
+        onEndReached={fetchMoreData}
+        onEndReachedThreshold={0.5}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        ListFooterComponent={loading ? <ActivityIndicator size="large" color="#0000ff" /> : null}
+      />
+      <PostViewerModal
+        isVisible={isPostViewerModalVisible}
+        images={currentImages}
+        selectedItemId={selectedItemId}
+        selectedProperty={selectedProperty}
+        onClose={() => setPostViewerModalVisible(false)}
+      />
+      <CommentsModal
+        isVisible={isCommentsModalVisible}
+        itemId={selectedItemId}
+        onClose={() => setCommentsModalVisible(false)}
+      />
+      <ShareModal
+        isVisible={isShareModalVisible}
+        item={selectedItem}
+        onClose={() => setShareModalVisible(false)}
+      />
+    </SafeAreaView>
+  );
 };
 
-const uploadVideoInChunks = async (video) => {
-  const videoId = Date.now().toString(); // Unique ID for the video
-  const totalChunks = Math.ceil(video.size / CHUNK_SIZE);
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  card: {
+    marginBottom: 10,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: '#7f8c8d',
+  },
+  avatarIcon: {
+    backgroundColor: '#3498db',
+  },
+  description: {
+    fontSize: 14,
+    color: '#7f8c8d',
+    marginBottom: 8,
+  },
+  location: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  bedBathContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  bedBathIconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bedBathIcon: {
+    marginRight: 5,
+  },
+  bedBathText: {
+    fontSize: 14,
+  },
+  imageContainer: {
+    position: 'relative',
+  },
+  image: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+  },
+  imageCountContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: '#00000099',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  imageCount: {
+    color: '#ffffff',
+    fontSize: 12,
+  },
+  video: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+  },
+  cardActions: {
+    justifyContent: 'space-between',
+  },
+  actionButton: {
+    flex: 1,
+    margin: 5,
+  },
+  actionButtonLabel: {
+    fontSize: 12,
+  },
+});
 
-  for (let index = 0; index < totalChunks; index++) {
-    const start = index * CHUNK_SIZE;
-    const end = Math.min(start + CHUNK_SIZE, video.size);
-    const chunk = video.slice(start, end);
-
-    await uploadVideoChunk(chunk, index, totalChunks, videoId);
-  }
-
-  // Notify the server to reassemble the chunks
-  const formData = new FormData();
-  formData.append('videoId', videoId);
-  await axios.post(`${API_BASE_URL}/complete-upload`, formData, {
-    headers: {
-      'Accept': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-};
-
-const uploadPost = useCallback(async () => {
-  setUploading(true);
-  try {
-    // Append property details
-    const formData = new FormData();
-    formData.append('title', propertyDetails.title);
-    formData.append('description', propertyDetails.description);
-    formData.append('price', propertyDetails.price);
-    formData.append('location', propertyDetails.location);
-    formData.append('long', propertyDetails.long);
-    formData.append('lat', propertyDetails.lat);
-    formData.append('user_id', userInfo.user.id);
-    formData.append('status_id', propertyDetails.status_id);
-    formData.append('bedrooms', propertyDetails.bedrooms);
-    formData.append('bathrooms', propertyDetails.bathrooms);
-    formData.append('area', propertyDetails.area);
-    formData.append('amenities', propertyDetails.amenities);
-    formData.append('property_type_id', propertyDetails.property_type_id);
-    formData.append('location_id', propertyDetails.location_id);
-    formData.append('category_id', propertyDetails.category_id);
-    formData.append('status_id', 1);
-
-    // Append images to formData to be compatible with Android
-    for (let index = 0; index < uploadImages.length; index++) {
-      const image = uploadImages[index];
-      const newImageUri = Platform.OS === 'android'
-        ? image.uri
-        : image.uri.replace('file://', '');
-      const fileType = mime.getType(newImageUri) || 'image/jpeg';
-      formData.append(`images[${index}]`, {
-        name: `photo_${index}.jpg`,
-        type: fileType,
-        uri: newImageUri,
-      });
-    }
-
-    const response = await axios.post(`${API_BASE_URL}/post`, formData, {
-      headers: {
-        'Accept': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-
-    // Handle video uploads in chunks
-    for (let index = 0; index < uploadVideos.length; index++) {
-      const video = uploadVideos[index];
-      await uploadVideoInChunks(video);
-    }
-    
-    Alert.alert('Success', 'Post created successfully');
-    setModalVisible(false);
-    setUploadImages([]);
-  
-  } catch (error) {
-    console.log(error);
-    Alert.alert('Error', `Failed to create property post: ${error.message}`);
-  } finally {
-    setUploading(false);
-  }
-}, [propertyDetails, uploadImages, uploadVideos, userInfo]);
-
+export default SearchResultScreen;

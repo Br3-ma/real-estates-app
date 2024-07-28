@@ -203,6 +203,7 @@ const styles = StyleSheet.create({
   },
   shimmerItem: {
     height: 100,
+    width:'100%',
     marginBottom: 12,
     borderRadius: 12,
   },

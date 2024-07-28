@@ -12,6 +12,8 @@ import CommentsModal from '../../components/post-comments-modal';
 import FilterScroll from '../../components/filterScroll';
 import ShareModal from '../../components/share-modal';
 import { Video } from 'expo-av';
+import renderModalContent from '../../components/search-modal-filter';
+import RenderItem from '../../components/search-render-item';
 
 const { width, height } = Dimensions.get('window');
 const PAGE_SIZE = 10;
@@ -257,191 +259,19 @@ const SearchResultScreen = ({ route, navigation }) => {
       ))}
     </ScrollView>
   );
-  
-  const renderModalContent = () => {
-    switch (selectedFilter) {
-      case 'Price':
-        return (
-          <>
-            <View style={styles.formGroup}>
-              <Text>Price Range</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Min Price"
-                value={filterForm.minPrice}
-                onChangeText={(text) => handleFilterChange('minPrice', text)}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Max Price"
-                value={filterForm.maxPrice}
-                onChangeText={(text) => handleFilterChange('maxPrice', text)}
-              />
-            </View>
-            <View style={styles.formGroup}>
-              <Text>Bedrooms</Text>
-              <View style={styles.checkboxContainer}>
-                {[1, 2, 3, 4, 5].map(num => (
-                  <BouncyCheckbox
-                    key={`bedrooms-${num}`}
-                    size={25}
-                    fillColor="#4a90e2"
-                    unfillColor="#FFFFFF"
-                    text={`${num}`}
-                    iconStyle={{ borderColor: '#4a90e2' }}
-                    onPress={(isChecked) => handleBedroomsChange(num, isChecked)}
-                    isChecked={filterForm[`bedrooms${num}`] || false}
-                    style={styles.checkbox}
-                  />
-                ))}
-              </View>
-              <Text>Bathrooms</Text>
-              <View style={styles.checkboxContainer}>
-                {[1, 2, 3, 4, 5].map(num => (
-                  <BouncyCheckbox
-                    key={`bathrooms-${num}`}
-                    size={25}
-                    fillColor="#4a90e2"
-                    unfillColor="#FFFFFF"
-                    text={`${num}`}
-                    iconStyle={{ borderColor: '#4a90e2' }}
-                    onPress={(isChecked) => handleBathroomsChange(num, isChecked)}
-                    isChecked={filterForm[`bathrooms${num}`] || false}
-                    style={styles.checkbox}
-                  />
-                ))}
-              </View>
-            </View>
-          </>
-        );
-      case 'Category':
-        return renderCategoryCarousel();
-      case 'Location':
-        return renderLocationCarousel();
-      default:
-        return (
-          <>
-            <View style={styles.formGroup}>
-              <Text>Price Range</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Min Price"
-                value={filterForm.minPrice}
-                onChangeText={(text) => handleFilterChange('minPrice', text)}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Max Price"
-                value={filterForm.maxPrice}
-                onChangeText={(text) => handleFilterChange('maxPrice', text)}
-              />
-            </View>
-            <View style={styles.formGroup}>
-              <Text>Bedrooms</Text>
-              <View style={styles.checkboxContainer}>
-                {[1, 2, 3, 4, 5].map(num => (
-                  <BouncyCheckbox
-                  key={`bedrooms-${num}`}
-                  size={25}
-                  fillColor="#4a90e2"
-                  unfillColor="#FFFFFF"
-                  text={`${num}`}
-                  iconStyle={{ borderColor: '#4a90e2' }}
-                  onPress={(isChecked) => handleBedroomsChange(num, isChecked)}
-                  isChecked={filterForm[`bedrooms${num}`] || false}
-                  style={styles.checkbox}
-                />
-                ))}
-              </View>
-              <Text>Bathrooms</Text>
-              <View style={styles.checkboxContainer}>
-                {[1, 2, 3, 4, 5].map(num => (
-                  <BouncyCheckbox
-                  key={`bathrooms-${num}`}
-                  size={25}
-                  fillColor="#4a90e2"
-                  unfillColor="#FFFFFF"
-                  text={`${num}`}
-                  iconStyle={{ borderColor: '#4a90e2' }}
-                  onPress={(isChecked) => handleBathroomsChange(num, isChecked)}
-                  isChecked={filterForm[`bathrooms${num}`] || false}
-                  style={styles.checkbox}
-                />
-                ))}
-              </View>
-            </View>
-            <Text>Location</Text>
-            {renderLocationCarousel()}
-            {renderCategoryCarousel()}
-          </>
-        );
-    }
-  };
 
-  const renderItem = ({ item, index }) => (
-    <Card style={styles.card} key={`${item.id}-${index}`}>
-      <Card.Title
-        title={item.title || 'No Title'}
-        titleStyle={styles.cardTitle}
-        subtitle={`K${item.price.toLocaleString()}`}
-        subtitleStyle={styles.cardSubtitle}
-        left={(props) => <Avatar.Icon {...props} icon="home-outline" style={styles.avatarIcon} color="#ffffff" />}
-        right={(props) => (
-          <IconButton
-            {...props}
-            icon={favorites.some(fav => fav.id === item.id) ? 'heart' : 'heart-outline'}
-            color={favorites.some(fav => fav.id === item.id) ? '#e74c3c' : '#7f8c8d'}
-            size={24}
-            onPress={() => toggleFavorite(item)}
-          />
-        )}
-      />
-      <Card.Content>
-        <Text style={styles.description}>{item.description}</Text>
-        <Text style={styles.location}>📍 {item.location}</Text>
-        <View style={styles.bedBathContainer}>
-          <View style={styles.bedBathIconContainer}>
-            <MaterialCommunityIcons name="bed" size={24} color="#3498db" style={styles.bedBathIcon} />
-            <Text style={styles.bedBathText}>{item.bedrooms} Bedrooms</Text>
-          </View>
-          <View style={styles.bedBathIconContainer}>
-            <MaterialCommunityIcons name="bathtub" size={24} color="#3498db" style={styles.bedBathIcon} />
-            <Text style={styles.bedBathText}>{item.bathrooms} Bathrooms</Text>
-          </View>
-        </View>
-        {item.images && item.images.length > 0 ? (
-          <TouchableOpacity onPress={() => showImageViewer(item.images, item.id, item)}>
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: `${SERVER_BASE_URL}/storage/app/` + item.images[0].path }} style={styles.image} />
-              {item.images.length > 1 && (
-                <View style={styles.imageCountContainer}>
-                  <Text style={styles.imageCount}>{`+${item.images.length - 1}`}</Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
-        ) : item.videos && item.videos.length > 0 ? (
-          <TouchableOpacity onPress={() => showImageViewer(item.images, item.id, item)}>
-          <Video
-            source={{ uri: `${SERVER_BASE_URL}/storage/app/` + item.videos[0].path }}
-            style={styles.video}
-            // useNativeControls
-            resizeMode="cover"
-            isLooping
-          /></TouchableOpacity>
-        ) : (
-          <Image source={{ uri: `${SERVER_BASE_URL}/storage/app/images/home.webp` }} style={styles.image} />
-        )}
-      </Card.Content>
-      <Card.Actions style={styles.cardActions}>
-        <Button icon="phone" mode="contained" onPress={() => Linking.openURL(`tel:26${item.user.phone}`)} style={styles.actionButton} labelStyle={styles.actionButtonLabel}>Call</Button>
-        <Button icon="whatsapp" mode="contained" onPress={() => Linking.openURL(`https://wa.me/26${item.user.phone}`)} style={styles.actionButton} labelStyle={styles.actionButtonLabel}>WhatsApp</Button>
-        <Button icon="message" mode="contained" onPress={() => Linking.openURL(`sms:${item.user.phone}`)} style={styles.actionButton} labelStyle={styles.actionButtonLabel}>SMS</Button>
-        <IconButton icon="share" size={24} onPress={() => openShareModal(item)} />
-        <IconButton icon="comment-outline" size={24} onPress={() => openCommentsModal(item.id)} />
-      </Card.Actions>
-    </Card>
-  );
+  const renderItem = useCallback(({ item, index }) => (
+    <RenderItem
+      item={item}
+      index={index}
+      favorites={favorites}
+      toggleFavorite={toggleFavorite}
+      showImageViewer={showImageViewer}
+      openShareModal={openShareModal}
+      openCommentsModal={openCommentsModal}
+      styles={styles}
+    />
+  ), [favorites]);
 
   // Placeholder view when data is empty
   const renderEmptyView = () => (
@@ -507,10 +337,18 @@ const SearchResultScreen = ({ route, navigation }) => {
             <MaterialIcons name="close" size={24} color="black" />
           </TouchableOpacity>
           <Text style={styles.modalTitle}>{selectedFilter} Filter</Text>
-          {renderModalContent()}
-          <Button mode="contained" onPress={applyFilters}>
-            Apply
-          </Button>
+            {renderModalContent({ 
+              selectedFilter, 
+              filterForm, 
+              handleFilterChange, 
+              handleBedroomsChange, 
+              handleBathroomsChange, 
+              renderCategoryCarousel, 
+              renderLocationCarousel 
+            })}
+            <Button mode="contained" onPress={applyFilters}>
+              Apply
+            </Button>
         </View>
       </Modal>
       <ShareModal
@@ -533,8 +371,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)', // Semi-transparent white
-    backdropFilter: 'blur(10px)', // This works for web, but not for React Native
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -564,8 +401,7 @@ const styles = StyleSheet.create({
   categoryButton: {
     marginHorizontal: 8,
     borderRadius: 24,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    padding: 2,
     borderWidth: 2,
     borderColor: '#4299E1',
     backgroundColor: '#EBF8FF',
@@ -584,8 +420,7 @@ const styles = StyleSheet.create({
   locationButton: {
     marginHorizontal: 8,
     borderRadius: 24,
-    paddingHorizontal: 18,
-    paddingVertical: 10,
+    padding: 2,
     borderWidth: 2,
     borderColor: '#48BB78',
     backgroundColor: '#F0FFF4',
@@ -752,6 +587,5 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
-
 
 export default SearchResultScreen;

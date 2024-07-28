@@ -155,6 +155,7 @@ const styles = StyleSheet.create({
   fullWidthCard: {
     width: '100%',
     margin: 0,
+    marginBottom:17,
     padding: 0,
     borderRadius: 10,
     overflow: 'hidden',
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
   iconRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginVertical: 10,
+    marginVertical: 5,
   },
   iconTextContainer: {
     flexDirection: 'row',
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 10,
+    paddingVertical: 1,
     borderTopWidth: 1,
     borderTopColor: '#ddd',
     backgroundColor: '#f8f8f8',

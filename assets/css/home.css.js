@@ -11,21 +11,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchBarContainer: {
-    backgroundColor: 'transparent',
+    backgroundColor: '#8E2DE2',
     borderBottomColor: 'transparent',
     borderTopColor: 'transparent',
     paddingHorizontal: 15,
     marginBottom: 10,
+    borderBottomRightRadius:10,
+    borderBottomLeftRadius:10,
   },
   searchBarInput: {
-    backgroundColor: '#fff',
+    backgroundColor: '#efd4f9',
     borderRadius: 25,
-    height: 45,
+    height: 35,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
   homeBody: {
     flex: 1,
@@ -591,6 +593,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     elevation: 8,
   },
+  
 });
 
 export default styles;

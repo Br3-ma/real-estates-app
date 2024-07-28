@@ -5,6 +5,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import FeaturedItems from './../components/featured-categories'; // Import the new component
+import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import axios from 'axios';
 import styles from '../assets/css/home.css';
@@ -58,6 +59,7 @@ const HomeScreen = ({ navigation }) => {
   const [numBeds, setNumBeds] = useState(0);
   const [numBaths, setNumBaths] = useState(0);
   const [uploadImages, setUploadImages] = useState([]);
+  const [uploadVideos, setUploadVideos] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -123,9 +125,13 @@ const HomeScreen = ({ navigation }) => {
     setIsModalVisible(false);
   };
 
+  
+  const MAX_VIDEO_SIZE = 25 * 1024 * 1024; // 25MB in bytes
   const uploadPost = useCallback(async () => {
     setUploading(true);
+    console.log('here');
     try {
+      // Append property details
       const formData = new FormData();
       formData.append('title', propertyDetails.title);
       formData.append('description', propertyDetails.description);
@@ -144,13 +150,10 @@ const HomeScreen = ({ navigation }) => {
       formData.append('category_id', propertyDetails.category_id);
       formData.append('status_id', 1);
 
-      // Convert image URIs to Blobs and append them to formData
+      // Append images to formData to be compatible with Android
       for (let index = 0; index < uploadImages.length; index++) {
         const image = uploadImages[index];
-        const newImageUri = Constants.platform.android
-          ? image.uri
-          : image.uri.replace('file://', '');
-        
+        const newImageUri = Platform.OS === 'android' ? image.uri : image.uri.replace('file://', '');
         const fileType = mime.getType(newImageUri) || 'image/jpeg';
         formData.append(`images[${index}]`, {
           name: `photo_${index}.jpg`,
@@ -159,30 +162,71 @@ const HomeScreen = ({ navigation }) => {
         });
       }
 
-      const response = await fetch(`${API_BASE_URL}/post`, {
-        method: 'POST',
+      // Upload Post details first
+      const response = await axios.post(`${API_BASE_URL}/post`, formData, {
         headers: {
           'Accept': 'application/json',
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'multipart/form-data',
         },
-        body: formData,
       });
 
-      if (response.status === 201) {
-        Alert.alert('Success', 'Post created successfully');
-        setUploadModalVisible(false);
-        setUploadImages([]);
-      } else {
-        const errorResponse = await response.json();
-        Alert.alert('Error', `Failed to create property post: ${errorResponse.message}`);
+      // Now handle multiple video uploads
+      if (uploadVideos.length > 0) {
+        for (let index = 0; index < uploadVideos.length; index++) {
+          const video = uploadVideos[index];
+          const videoInfo = await FileSystem.getInfoAsync(video.uri);
+          const videoSize = videoInfo.size;
+          console.log(`Video ${index + 1} size:`, videoSize);
+
+          if (videoSize > MAX_VIDEO_SIZE) {
+            Toast.show({
+              type: 'error',
+              text1: 'error',
+              text2: `Video ${index + 1} file size exceeds 25MB limit.`
+            });
+            throw new Error(`Video ${index + 1} file size exceeds 25MB limit.`);
+          }
+
+          const formData2 = new FormData();
+          formData2.append('post_id', response.data.property.id);
+
+          const videoUri = Platform.OS === 'android' ? video.uri : video.uri.replace('file://', '');
+          const fileType = mime.getType(videoUri) || 'video/mp4';
+          formData2.append('video', {
+            name: `video_${index}.mp4`,
+            type: fileType,
+            uri: videoUri,
+          });
+
+          await axios.post(`${API_BASE_URL}/upload-video`, formData2, {
+            headers: {
+              'Accept': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+        }
       }
+    
+      Toast.show({
+        type: 'Success',
+        text1: 'Posted',
+        text2: 'Post uploaded successfully!'
+      });
+      setModalVisible(false);
+      setUploadImages([]);
+      setUploadVideos([]);  // Clear uploaded videos as well
     } catch (error) {
-      Alert.alert('Error', `Failed to create property post: ${error.message}`);
+      Toast.show({
+        type: 'error',
+        text1: 'error',
+        text2: `Failed to create property post: ${error.message}`
+      });
     } finally {
       setUploading(false);
     }
-  }, [propertyDetails, uploadImages, userInfo]);
+  }, [propertyDetails, uploadImages, uploadVideos, userInfo]);
   
   const handleSearch = async (searchData) => {
     setIsLoading(true);
@@ -245,10 +289,12 @@ const HomeScreen = ({ navigation }) => {
           console.log('Make sure WhatsApp installed on your device');
         });
     } else {
-      alert('Please insert mobile no');
+      Toast.show({
+        type: 'info',
+        text1: 'Missing field',
+        text2: 'Please insert mobile no'
+      });
     }
-  
-    console.log('Opening WhatsApp for number:', phoneNumber);
   };
 
   const openCommentsModal = async (itemId) => {
@@ -594,12 +640,12 @@ const HomeScreen = ({ navigation }) => {
       />
       {renderImageViewerModal()}
       {renderCommentsModal()}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.floatingButton}
         onPress={() => setUploadModalVisible(true)}
       >
         <MaterialIcons name="add" size={30} color="white" />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       
       <UploadPost
         isModalVisible={isUploadModalVisible}
@@ -607,7 +653,9 @@ const HomeScreen = ({ navigation }) => {
         propertyDetails={propertyDetails}
         setPropertyDetails={setPropertyDetails}
         uploadImages={uploadImages}
+        uploadVideos={uploadVideos}
         setUploadImages={setUploadImages}
+        setUploadVideos={setUploadVideos}
         uploadPost={uploadPost}
         uploading={uploading}
       />
@@ -616,6 +664,7 @@ const HomeScreen = ({ navigation }) => {
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       )}
+      <Toast />
     </SafeAreaView>
   );
 };
