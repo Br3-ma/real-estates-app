@@ -1,83 +1,141 @@
 import React, { useState } from 'react';
-import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import { ImageBackground, StyleSheet, KeyboardAvoidingView, Platform, View } from 'react-native';
+import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+import { FontAwesome5 } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useToast } from 'react-native-toast-notifications';
 import { API_BASE_URL } from '../../confg/config';
 
-const backgroundImage = require('../../assets/img/otp.jpeg');
+const backgroundImage = require('../../assets/img/modern-city.jpg');
+
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#FFD700',
+    accent: '#FFF',
+    background: 'transparent',
+    text: '#FFF',
+  },
+};
 
 const SignupRealEstateAgentScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
 
   const handleSignup = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/signup/user-info`, {
         name,
         email,
         phone,
         password,
-      });
+      }, { timeout: 10000 });
       await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
       navigation.navigate('Main');
     } catch (error) {
-      toast.show('There was an issue with your signup. Please try again.', {
+      let errorMessage = 'There was an issue with your signup. Please try again.';
+      if (error.response) {
+        errorMessage = error.response.data.message || errorMessage;
+      } else if (error.request) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      }
+      toast.show(errorMessage, {
         type: 'danger',
         placement: 'top',
         duration: 4000,
         animationType: 'slide-in',
       });
       console.error('Signup Error:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <ImageBackground source={backgroundImage} style={styles.background}>
-      <View style={styles.overlay}>
-        <View style={styles.header}>
-          <FontAwesome name="user-circle" size={80} color="#FFF" />
-          <Text style={styles.title}>Sign Up</Text>
-        </View>
-        <TextInput
-          style={styles.input}
-          placeholder="Full Name"
-          placeholderTextColor="#cccccc"
-          value={name}
-          onChangeText={setName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#cccccc"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Phone"
-          placeholderTextColor="#cccccc"
-          value={phone}
-          onChangeText={setPhone}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#cccccc"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-        />
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <Text style={styles.buttonText}>Sign Up</Text>
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
+    <PaperProvider theme={theme}>
+      <ImageBackground source={backgroundImage} style={styles.background}>
+        <StatusBar style="light" />
+        <LinearGradient colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.8)']} style={styles.gradient}>
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.container}
+          >
+            <Surface style={styles.surface}>
+              <View style={styles.header}>
+                <FontAwesome5 name="home" size={60} color={theme.colors.primary} />
+                <Title style={styles.title}>Real Estate Agent Signup</Title>
+              </View>
+              
+              <TextInput
+                label="Full Name"
+                value={name}
+                onChangeText={setName}
+                mode="outlined"
+                style={styles.input}
+                theme={{ colors: { primary: theme.colors.primary } }}
+                left={<TextInput.Icon icon="account" color={theme.colors.primary} />}
+              />
+              
+              <TextInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                mode="outlined"
+                style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                theme={{ colors: { primary: theme.colors.primary } }}
+                left={<TextInput.Icon icon="email" color={theme.colors.primary} />}
+              />
+              
+              <TextInput
+                label="Phone"
+                value={phone}
+                onChangeText={setPhone}
+                mode="outlined"
+                style={styles.input}
+                keyboardType="phone-pad"
+                theme={{ colors: { primary: theme.colors.primary } }}
+                left={<TextInput.Icon icon="phone" color={theme.colors.primary} />}
+              />
+              
+              <TextInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                mode="outlined"
+                style={styles.input}
+                secureTextEntry
+                theme={{ colors: { primary: theme.colors.primary } }}
+                left={<TextInput.Icon icon="lock" color={theme.colors.primary} />}
+              />
+              
+              <Button 
+                mode="contained" 
+                onPress={handleSignup} 
+                loading={isLoading} 
+                disabled={isLoading}
+                style={styles.button}
+                contentStyle={styles.buttonContent}
+                labelStyle={styles.buttonLabel}
+              >
+                {isLoading ? 'Signing Up...' : 'Sign Up'}
+              </Button>
+            </Surface>
+          </KeyboardAvoidingView>
+        </LinearGradient>
+      </ImageBackground>
+    </PaperProvider>
   );
 };
 
@@ -86,50 +144,53 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: 'cover',
   },
-  overlay: {
+  gradient: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+  },
+  container: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  surface: {
+    padding: 32,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 24,
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#FFF',
-    marginTop: 10,
+    marginTop: 16,
+    textAlign: 'center',
   },
   input: {
     width: '100%',
-    borderWidth: 0,
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFF',
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-    marginBottom: 20,
-    fontSize: 16,
-    color: '#FFF',
+    marginBottom: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   button: {
-    backgroundColor: '#FF6F61',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 4,
+    width: '100%',
+    marginTop: 24,
+    paddingVertical: 8,
+    backgroundColor: theme.colors.primary,
   },
-  buttonText: {
-    color: '#FFF',
+  buttonContent: {
+    height: 50,
+  },
+  buttonLabel: {
     fontSize: 18,
-    fontWeight: 'bold',
+    color: '#000',
   },
 });
 

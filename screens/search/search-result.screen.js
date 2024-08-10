@@ -1,31 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Platform, Text, SafeAreaView, TouchableOpacity, ScrollView, Linking, StyleSheet, FlatList, ActivityIndicator, TextInput, Dimensions, Image, RefreshControl } from 'react-native';
-import { Button, Card, IconButton, Avatar } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { View, Platform, Text, SafeAreaView, TouchableOpacity, StyleSheet, FlatList, ActivityIndicator, Dimensions, Image } from 'react-native';
+import { Button, IconButton } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Modal from 'react-native-modal';
-import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import { API_BASE_URL, SERVER_BASE_URL } from '../../confg/config';
 import PostViewerModal from '../../components/post-details';
 import CommentsModal from '../../components/post-comments-modal';
 import FilterScroll from '../../components/filterScroll';
 import ShareModal from '../../components/share-modal';
-import { Video } from 'expo-av';
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import renderModalContent from '../../components/search-modal-filter';
 import RenderItem from '../../components/search-render-item';
 
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const { width, height } = Dimensions.get('window');
-const PAGE_SIZE = 10;
 
 const SearchResultScreen = ({ route, navigation }) => {
   const { results, searchKeyword } = route.params;
 
-  const [filters, setFilters] = useState(['All', 'Price', 'Category', 'Location']);
+  const [filters] = useState(['All', 'Price', 'Category', 'Location']);
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [favorites, setFavorites] = useState([]);
   const [data, setData] = useState(results);
-  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
   const [filterForm, setFilterForm] = useState({});
@@ -111,7 +109,6 @@ const SearchResultScreen = ({ route, navigation }) => {
     setShareModalVisible(true);
   }, [setSelectedItem, setShareModalVisible]);
   
-
   const closeShareModal = useCallback( () => {
     setSelectedItem(null);
     setShareModalVisible(false);
@@ -156,6 +153,9 @@ const SearchResultScreen = ({ route, navigation }) => {
     });
   }, [handleFilterChange]);
 
+
+// Submit Filter Form
+  
 // Submit Filter Form
   const applyFilters = async () => {
     setData([]);
@@ -174,7 +174,6 @@ const SearchResultScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('Failed to apply filters:', error);
     }
-
     setLoading(false);
   };
 
@@ -198,30 +197,9 @@ const SearchResultScreen = ({ route, navigation }) => {
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    // Fetch new data here
     getAllProperties();
     setRefreshing(false);
   }, []);
-
-  const loadMore = useCallback(async () => {
-    if (loading) return; // Prevent multiple simultaneous requests
-    setLoading(true);
-    try {
-      const nextPage = page + 1;
-      const response = await fetch(`${API_BASE_URL}/search-all?page=${nextPage}&limit=${PAGE_SIZE}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const newData = await response.json();
-      setData(prevData => [...prevData, ...newData]); // Append new data to existing data
-      setPage(nextPage);
-    } catch (error) {
-      console.error('Failed to load more:', error);
-    }
-    setLoading(false);
-  }, [loading, page]);
 
   const renderCategoryCarousel = () => (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
@@ -330,13 +308,19 @@ const SearchResultScreen = ({ route, navigation }) => {
         isVisible={isModalVisible}
         onBackdropPress={() => setModalVisible(false)}
         style={styles.modal}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+        backdropTransitionOutTiming={0}
+        propagateSwipe
       >
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <View style={styles.modalContent}>
-          
-          <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-            <MaterialIcons name="close" size={24} color="black" />
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>{selectedFilter} Filter</Text>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>{selectedFilter} Filter</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+              <MaterialIcons name="close" size={24} color="#4A5568" />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>{selectedFilter} Filter</Text>
             {renderModalContent({ 
               selectedFilter, 
               filterForm, 
@@ -346,9 +330,7 @@ const SearchResultScreen = ({ route, navigation }) => {
               renderCategoryCarousel, 
               renderLocationCarousel 
             })}
-            <Button mode="contained" onPress={applyFilters}>
-              Apply
-            </Button>
+          </ScrollView>
         </View>
       </Modal>
       <ShareModal
@@ -391,18 +373,56 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     letterSpacing: 0.5,
   },
+  modal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 24,
+    paddingTop: 16,
+    width: '100%',
+    maxHeight: '100%', // Increased to 90% for more content visibility
+  },
+  filterContent: {
+    marginBottom: 24,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1A202C',
+    letterSpacing: 0.5,
+  },
+  applyButton: {
+    width: '100%',
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  applyButtonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
   carousel: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
   categoryButton: {
-    marginHorizontal: 8,
-    borderRadius: 24,
-    padding: 2,
-    borderWidth: 2,
+    marginHorizontal: 4,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
     borderColor: '#4299E1',
     backgroundColor: '#EBF8FF',
   },
@@ -410,7 +430,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4299E1',
   },
   buttonLabel: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     color: '#4299E1',
   },
@@ -418,10 +438,11 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   locationButton: {
-    marginHorizontal: 8,
-    borderRadius: 24,
-    padding: 2,
-    borderWidth: 2,
+    marginHorizontal: 4,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
     borderColor: '#48BB78',
     backgroundColor: '#F0FFF4',
   },
@@ -430,134 +451,6 @@ const styles = StyleSheet.create({
   },
   selectedLocationLabel: {
     color: '#FFFFFF',
-  },
-  modal: {
-    justifyContent: 'flex-end',
-    margin: 0,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 28,
-    alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  modalTitle: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#1A202C',
-    marginBottom: 20,
-    letterSpacing: 0.5,
-  },
-  formGroup: {
-    marginBottom: 24,
-    width: '100%',
-  },
-  input: {
-    height: 52,
-    borderColor: '#CBD5E0',
-    borderWidth: 2,
-    borderRadius: 12,
-    paddingHorizontal: 18,
-    marginVertical: 10,
-    backgroundColor: '#FFFFFF',
-    fontSize: 16,
-    color: '#2D3748',
-  },
-  checkboxContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    marginTop: 8,
-  },
-  checkbox: {
-    marginHorizontal: 10,
-    marginVertical: 6,
-  },
-  card: {
-    marginHorizontal: 2,
-    marginVertical: 10,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 6,
-      },
-    }),
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2c3e50',
-  },
-  cardSubtitle: {
-    fontSize: 16,
-    color: '#27ae60',
-    fontWeight: '600',
-  },
-  bedBathContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginVertical: 14,
-  },
-  bedBathIconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 20,
-    backgroundColor: '#EDF2F7',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  bedBathIcon: {
-    marginRight: 8,
-    color: '#4A5568',
-  },
-  imageContainer: {
-    marginTop: 16,
-    position: 'relative',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  image: {
-    width: '100%',
-    height: height * 0.25,
-    borderRadius: 12,
-  },
-  video: {
-    width: '100%',
-    height: height * 0.25,
-    borderRadius: 12,
-  },
-  imageCount: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    color: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    fontSize: 13,
-    fontWeight: 'bold',
-    overflow: 'hidden',
   },
   emptyContainer: {
     flex: 1,
@@ -586,6 +479,21 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginBottom: 10,
   },
+  imageContainer: {
+    marginTop: 16,
+    position: 'relative',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: height * 0.25,
+    borderRadius: 12,
+  },
+  video: {
+    width: '100%',
+    height: height * 0.25,
+    borderRadius: 12,
+  },
 });
-
 export default SearchResultScreen;

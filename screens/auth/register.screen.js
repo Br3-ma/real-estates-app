@@ -1,12 +1,26 @@
 import React, { useState } from 'react';
-import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { ImageBackground, StyleSheet, View, ScrollView } from 'react-native';
+import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface, ProgressBar } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ToastProvider, useToast } from 'react-native-toast-notifications';
 import { API_BASE_URL } from '../../confg/config';
+import Toast from 'react-native-toast-message';
 
 const backgroundImage = require('../../assets/img/grad.gif');
+
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#8E2DE2',
+    accent: '#FFF',
+    background: 'transparent',
+    text: '#FFF',
+  },
+};
 
 const SignupRealEstateAgentScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -14,11 +28,9 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const toast = useToast();
 
-  // Function to handle signup
   const handleSignup = async () => {
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/signup/user-info`, {
         name,
@@ -26,132 +38,155 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
         phone,
         password,
       });
+      console.log(response);
       await AsyncStorage.removeItem('userInfo');
       await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
       navigation.navigate('Main');
     } catch (error) {
-      toast.show('There was an issue with your signup. Email already exists or Invalid Information.', {
-        type: 'danger',
-        placement: 'top',
-        duration: 4000,
-        animationType: 'slide-in',
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: `Error: ${error.message}`
       });
-      console.error('Signup Error:', error);
+      console.error('Signup Error:', error.message);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('Request data:', error.request);
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error('Error message:', error.message);
+      }
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
-  // Function to handle phone input change
   const handlePhoneChange = (inputText) => {
-    // Remove non-digit characters
     const formattedPhone = inputText.replace(/\D/g, '');
-    // Ensure it doesn't exceed 10 digits
     if (formattedPhone.length <= 10) {
       setPhone(formattedPhone);
     }
   };
 
-  // Function to calculate password strength
   const getPasswordStrength = () => {
-    // Define regex patterns for each criteria
-    const hasLetters = /[a-zA-Z]/.test(password); // Check for letters
-    const hasNumbers = /\d/.test(password);       // Check for numbers
-    const hasSymbols = /[!@#$%^&*(),.?":{}|<>]/.test(password); // Check for symbols
+    const hasLetters = /[a-zA-Z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSymbols = /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
-    // Calculate strength based on criteria met
     let strength = 0;
     if (password.length > 10) {
-      strength += 3; // Length bonus
+      strength += 3;
     } else {
-      strength += password.length / 4; // Partial length bonus
+      strength += password.length / 4;
     }
 
-    if (hasLetters) {
-      strength += 3; // Letters bonus
-    }
-    if (hasNumbers) {
-      strength += 2; // Numbers bonus
-    }
-    if (hasSymbols) {
-      strength += 3; // Symbols bonus
-    }
+    if (hasLetters) strength += 3;
+    if (hasNumbers) strength += 2;
+    if (hasSymbols) strength += 3;
 
-    // Determine color based on strength
-    const color =
-      strength > 7 ? 'green' : strength > 5 ? 'orange' : 'red';
+    const progress = Math.min(strength / 10, 1);
+    const color = progress > 0.7 ? 'green' : progress > 0.5 ? 'orange' : 'red';
 
-    // Return strength as a percentage of maximum possible strength
-    return {
-      width: `${Math.min(strength * 10, 100)}%`, // Cap at 100% width
-      backgroundColor: color,
-    };
+    return { progress, color };
   };
 
+  
+  const passwordStrength = getPasswordStrength();
+
   return (
-    <ImageBackground style={styles.background}>
-      <View style={styles.overlay}>
-        <View style={styles.header}>
-          <FontAwesome name="user-circle" size={80} color="#FFF" />
-          <Text style={styles.title}>Sign Up</Text>
-        </View>
-        <View style={styles.inputContainer}>
-        <MaterialCommunityIcons name="account" size={20} color="#FFF" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Full Name"
-            placeholderTextColor="#cccccc"
-            value={name}
-            onChangeText={setName}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-        <MaterialCommunityIcons name="email" size={20} color="#FFF" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#cccccc"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <MaterialCommunityIcons name="phone" size={20} color="#FFF" style={styles.icon} />
-          <Text color="#FFF" style={styles.hint}>+26</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Phone"
-            placeholderTextColor="#cccccc"
-            value={phone}
-            onChangeText={handlePhoneChange}
-            keyboardType="phone-pad"
-          />
-        </View>
-        <View style={styles.inputContainer}>
-        <MaterialCommunityIcons name="lock" size={20} color="#FFF" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#cccccc"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={true}
-          />
-        </View>
-        <View style={[styles.passwordStrength, getPasswordStrength()]} />
-        <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator size="small" color="#FFF" />
-          ) : (
-            <Text style={styles.buttonText}>Sign Up</Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
-          <Text style={styles.loginLink}>Already have an account? Log In</Text>
-        </TouchableOpacity>
-      </View>
-    </ImageBackground>
+    <PaperProvider theme={theme}>
+      <ImageBackground source={backgroundImage} style={styles.background}>
+        <StatusBar style="dark" />
+        <LinearGradient colors={['#fff', 'rgba(125, 115, 153, 0.8)']} style={styles.gradient}>
+          <ScrollView contentContainerStyle={styles.scrollView}>
+            <Surface style={styles.surface}>
+              <View style={styles.header}>
+                <FontAwesome name="user-circle" size={60} color={theme.colors.primary} />
+                <Title style={styles.title}>Create your account</Title>
+              </View>
+
+              <TextInput
+                label="Full Name"
+                value={name}
+                onChangeText={setName}
+                mode="outlined"
+                style={styles.input}
+                theme={{ colors: { primary: theme.colors.primary } }}
+                left={<TextInput.Icon icon="account" color={theme.colors.primary} size={20} />}
+                dense
+              />
+
+              <TextInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                mode="outlined"
+                style={styles.input}
+                keyboardType="email-address"
+                theme={{ colors: { primary: theme.colors.primary } }}
+                left={<TextInput.Icon icon="email" color={theme.colors.primary} size={20} />}
+                dense
+              />
+
+              <TextInput
+                label="Phone"
+                value={phone}
+                onChangeText={handlePhoneChange}
+                mode="outlined"
+                style={styles.input}
+                keyboardType="phone-pad"
+                theme={{ colors: { primary: theme.colors.primary } }}
+                left={<TextInput.Icon icon="phone" color={theme.colors.primary} size={20} />}
+                dense
+              />
+
+              <TextInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                mode="outlined"
+                style={styles.input}
+                secureTextEntry
+                theme={{ colors: { primary: theme.colors.primary } }}
+                left={<TextInput.Icon icon="lock" color={theme.colors.primary} size={20} />}
+                dense
+              />
+
+              <ProgressBar progress={passwordStrength.progress} color={passwordStrength.color} style={styles.progressBar} />
+
+              <Button 
+                mode="contained" 
+                onPress={handleSignup} 
+                loading={loading} 
+                disabled={loading}
+                style={styles.button}
+                contentStyle={styles.buttonContent}
+                labelStyle={styles.buttonLabel}
+              >
+                Sign Up
+              </Button>
+
+              <Button 
+                mode="text" 
+                onPress={() => navigation.navigate('SignIn')}
+                style={styles.loginLink}
+                labelStyle={styles.loginLinkText}
+              >
+                Already have an account? Log In
+              </Button>
+            </Surface>
+          </ScrollView>
+        </LinearGradient>
+      </ImageBackground>
+      
+      <Toast />
+    </PaperProvider>
   );
 };
 
@@ -159,87 +194,63 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     resizeMode: 'cover',
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    backgroundColor: '#6F428A', // Start color of the gradient
-    zIndex: -1,
   },
-  overlay: {
+  gradient: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  scrollView: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingVertical: 20,
+  },
+  surface: {
+    padding: 16,
+    width: '95%',
+    maxWidth: 400,
+    alignItems: 'center',
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFF',
-    marginTop: 10,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 20,
+    color: '#8E2DE2',
+    marginTop: 8,
   },
   input: {
-    flex: 1,
-    borderWidth: 0,
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFF',
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#FFF',
+    width: '100%',
+    marginBottom: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    height: 50,
   },
-  icon: {
-    marginRight: 10,
-  },
-  hint: {
-    marginRight: 5,
-    color:'#fff',
-  },
-  passwordStrength: {
+  progressBar: {
+    width: '100%',
     height: 3,
-    marginBottom: 5,
+    marginBottom: 8,
   },
   button: {
-    backgroundColor: '#7D7399',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 4,
+    width: '100%',
+    marginTop: 8,
   },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+  buttonContent: {
+    height: 40,
+  },
+  buttonLabel: {
+    fontSize: 16,
   },
   loginLink: {
+    marginTop: 8,
+  },
+  loginLinkText: {
     color: '#FFF',
-    fontSize: 16,
-    marginTop: 20,
+    fontSize: 14,
     textDecorationLine: 'underline',
   },
 });
 
-const App = ({ navigation }) => (
-  <ToastProvider>
-    <SignupRealEstateAgentScreen navigation={navigation} />
-  </ToastProvider>
-);
-
-export default App;
+export default SignupRealEstateAgentScreen;

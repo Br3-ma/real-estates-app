@@ -1,22 +1,31 @@
 import React, { useState } from 'react';
-import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons'; // Import MaterialCommunityIcons
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ToastProvider, useToast } from 'react-native-toast-notifications';
+import { ImageBackground, StyleSheet, ScrollView } from 'react-native';
+import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
 
 WebBrowser.maybeCompleteAuthSession();
-
 const backgroundImage = require('../../assets/img/sweet.gif');
+
+const theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: '#8E2DE2',
+    accent: '#03dac4',
+    background: 'transparent',
+  },
+};
 
 const SignInScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const toast = useToast();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: 'YOUR_EXPO_CLIENT_ID',
@@ -28,19 +37,11 @@ const SignInScreen = ({ navigation }) => {
   const handleSignIn = async () => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/signin`, {
-        email,
-        password,
-      });
+      const response = await axios.post(`${API_BASE_URL}/signin`, { email, password });
+      // console.log(response);
       await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
       navigation.navigate('Main');
     } catch (error) {
-      toast.show('Invalid email or password. Please try again.', {
-        type: 'danger',
-        placement: 'top',
-        duration: 4000,
-        animationType: 'slide-in',
-      });
       console.error('Sign In Error:', error);
     } finally {
       setLoading(false);
@@ -53,18 +54,10 @@ const SignInScreen = ({ navigation }) => {
     if (result.type === 'success') {
       const { id_token } = result.params;
       try {
-        const response = await axios.post(`${API_BASE_URL}/google-signin`, {
-          id_token,
-        });
+        const response = await axios.post(`${API_BASE_URL}/google-signin`, { id_token });
         await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
         navigation.navigate('Main');
       } catch (error) {
-        toast.show('Google Sign-In failed. Please try again.', {
-          type: 'danger',
-          placement: 'top',
-          duration: 4000,
-          animationType: 'slide-in',
-        });
         console.error('Google Sign-In Error:', error);
       } finally {
         setLoading(false);
@@ -76,55 +69,51 @@ const SignInScreen = ({ navigation }) => {
 
   return (
     <ImageBackground source={backgroundImage} style={styles.background}>
-      <View style={styles.overlay}>
-        <View style={styles.header}>
-          {/* <FontAwesome name="sign-in" size={30} color="#FFF" /> */}
-          <Text style={styles.title}>SQuare</Text>
-          <Text style={styles.subtitle}>Sign In</Text>
-        </View>
-        <View style={styles.inputContainer}>
-          <MaterialCommunityIcons name="email" size={20} color="#FFF" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#cccccc"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <MaterialCommunityIcons name="lock" size={20} color="#FFF" style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#cccccc"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={true}
-          />
-        </View>
-        <TouchableOpacity style={styles.button} onPress={handleSignIn} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator size="small" color="#FFF" />
-          ) : (
-            <Text style={styles.buttonText}>Sign In</Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.googleButton} onPress={handleGoogleSignIn} disabled={!request || loading}>
-          {loading ? (
-            <ActivityIndicator size="small" color="#FFF" />
-          ) : (
-            <Text style={styles.buttonText}>Sign In with Google</Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('ForgotPasswordScreen')}>
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('RegisterByOTP')}>
-          <Text style={styles.signupText}>Don't have an account? Sign Up</Text>
-        </TouchableOpacity>
-      </View>
+      <LinearGradient colors={['rgba(0,0,0,0.7)', '#fff']} style={styles.gradient}>
+        <StatusBar style="light" />
+        <ScrollView contentContainerStyle={styles.scrollView}>
+          <Surface style={styles.surface}>
+            <Title style={styles.title}>SQuare</Title>
+            <Text style={styles.subtitle}>Houses for rent and sale</Text>
+            
+            <TextInput
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              mode="outlined"
+              style={styles.input}
+              theme={{ colors: { primary: theme.colors.accent } }}
+              dense
+            />
+            <TextInput
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              mode="outlined"
+              style={styles.input}
+              theme={{ colors: { primary: theme.colors.accent } }}
+              dense
+            />
+            
+            <Button mode="contained" onPress={handleSignIn} loading={loading} style={styles.button} contentStyle={styles.buttonContent} labelStyle={styles.buttonLabel}>
+              Sign In
+            </Button>
+            
+            <Button mode="outlined" onPress={handleGoogleSignIn} disabled={!request || loading} style={styles.googleButton} contentStyle={styles.buttonContent} labelStyle={styles.buttonLabel}>
+              Sign In with Google
+            </Button>
+            
+            <Button onPress={() => navigation.navigate('ForgotPasswordScreen')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
+              Forgot Password?
+            </Button>
+            
+            <Button onPress={() => navigation.navigate('RegisterByOTP')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
+              Don't have an account? Sign Up
+            </Button>
+          </Surface>
+        </ScrollView>
+      </LinearGradient>
     </ImageBackground>
   );
 };
@@ -133,98 +122,69 @@ const styles = StyleSheet.create({
   background: {
     flex: 1,
     resizeMode: 'cover',
-    backgroundColor: '#fff',
   },
-  overlay: {
+  gradient: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  scrollView: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingVertical: 5,
   },
-  header: {
+  surface: {
+    padding: 10,
+    width: '92%',
+    maxWidth: 400,
     alignItems: 'center',
-    marginBottom: 30,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#FFF',
-    marginTop: 10,
+    marginVertical:4,
   },
   subtitle: {
-    fontSize: 20,
-    fontWeight: 'normal',
+    fontSize: 16,
     color: '#FFF',
-    marginTop: 4,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   input: {
-    flex: 1,
-    borderWidth: 0,
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFF',
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#FFF',
+    width: '100%',
+    marginBottom: 8,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  icon: {
-    marginRight: 10,
+    borderRadius:25,
+    height: 40,
   },
   button: {
-    backgroundColor: '#7D7399',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 4,
-    marginTop: 10,
+    width: '100%',
+    marginTop: 8,
   },
   googleButton: {
-    backgroundColor: '#4285F4',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 4,
-    marginTop: 10,
+    width: '100%',
+    marginTop: 8,
+    backgroundColor: '#fff',
   },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+  buttonContent: {
+    height: 36,
   },
-  forgotPasswordText: {
-    color: '#FFF',
-    fontSize: 16,
-    marginTop: 10,
-    textDecorationLine: 'underline',
+  buttonLabel: {
+    fontSize: 14,
   },
-  signupText: {
-    color: '#FFF',
-    fontSize: 16,
-    marginTop: 20,
-    textDecorationLine: 'underline',
+  textButton: {
+    marginTop: 8,
+  },
+  textButtonLabel: {
+    fontSize: 12,
   },
 });
 
 const Screen = ({ navigation }) => (
-  <ToastProvider>
+  <PaperProvider theme={theme}>
     <SignInScreen navigation={navigation} />
-  </ToastProvider>
+  </PaperProvider>
 );
 
 export default Screen;

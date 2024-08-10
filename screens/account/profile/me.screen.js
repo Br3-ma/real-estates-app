@@ -12,11 +12,13 @@ import ChangePasswordModal from '../../../components/update-password-modal';
 import EditProfileModal from '../../../components/update-profile-modal';
 import UploadProfilePictureModal from '../../../components/update-picture-modal';
 import Preloader from '../../../components/preloader-full';
+import UploadCoverPictureModal from '../../../components/update-cover-picture';
 
 const MeScreen = () => {
   const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
   const [editProfileModalVisible, setEditProfileModalVisible] = useState(false);
   const [uploadProfileModalVisible, setUploadProfileModalVisible] = useState(false);
+  const [uploadCoverProfileModalVisible, setUploadCoverProfileModalVisible] = useState(false);
   const [saving, setSaving] = useState(false);
   const [userInfo, setUserInfo] = useState(null);
   const [likesCount, setLikesCount] = useState(0); 
@@ -29,17 +31,23 @@ const MeScreen = () => {
 
   // Define fetchUser to fetch user info
   const fetchUser = useCallback(async () => {
+    
     try {
       const user = await fetchUserInfo();
-      setUserInfo(user);
-      setFormData({
-        name: user.user.name,
-        email: user.user.email,
-        bio: user.user.bio,
-        location: user.user.location,
-        website: user.user.website,
-        picture: user.user.picture,
-      });
+      console.log(user);
+      if (user && user.user) {
+        setUserInfo(user);
+        setFormData({
+          name: user.user.name,
+          email: user.user.email,
+          bio: user.user.bio,
+          location: user.user.location,
+          website: user.user.website,
+          picture: user.user.picture,
+        });
+      } else {
+        alert('Incorrect Structure');
+      }
     } catch (error) {
       console.error('Error fetching user:', error);
     }
@@ -55,13 +63,14 @@ const MeScreen = () => {
     }
   }, []);
 
+  // Fetch user info on component mount
   useEffect(() => {
-    // Fetch user info on component mount
     fetchUser();
     fetchLikesCount();
   }, [fetchUser, fetchLikesCount]);
 
   const onRefresh = useCallback(async () => {
+    setUserInfo(null); 
     setRefreshing(true);
     await fetchUser();
     await fetchLikesCount();
@@ -71,10 +80,12 @@ const MeScreen = () => {
   const openChangePasswordModal = () => setChangePasswordModalVisible(true);
   const openEditProfileModal = () => setEditProfileModalVisible(true);
   const openUploadProfileModal = () => setUploadProfileModalVisible(true);
+  const openUploadCoverProfileModal = () => setUploadCoverProfileModalVisible(true);
 
   const closeChangePasswordModal = () => setChangePasswordModalVisible(false);
   const closeEditProfileModal = () => setEditProfileModalVisible(false);
   const closeUploadProfileModal = () => setUploadProfileModalVisible(false);
+  const closeUploadCoverProfileModal = () => setUploadCoverProfileModalVisible(false);
   
   const formatEstimateProfit = (amount) => {
     if (!amount) {
@@ -98,18 +109,21 @@ const MeScreen = () => {
   const saveChanges = async (updatedData) => {
     setSaving(true);
     try {
-      const response = await axios.post(`${API_BASE_URL}/update-profile`, updatedData);
+      const responseData = await axios.post(`${API_BASE_URL}/update-profile`, updatedData);
+      console.log('Server: '+JSON.stringify(responseData.data));
+      await AsyncStorage.setItem('userInfo', JSON.stringify(responseData.data));
       setUserInfo(null);
-      setUserInfo(response.data.user);
+      setUserInfo(responseData.data.user);
       onRefresh();
-      toast.show(JSON.stringify(response.data.message), {
+      toast.show('Profile updated successfully', {
         type: 'success',
         placement: 'top',
         duration: 4000,
         animationType: 'slide-in',
       });
     } catch (error) {
-      toast.show(JSON.stringify(error), {
+      console.log(error);
+      toast.show('Failed to update your profile', {
         type: 'danger',
         placement: 'top',
         duration: 4000,
@@ -203,8 +217,67 @@ const MeScreen = () => {
       setSaving(false);
     }
   };
+  
+  const handleSaveCoverPicture = async () => {
+    try {
+      setSaving(true);
+      const formPicData = new FormData();
+      formPicData.append('segment', 'cover');
+      formPicData.append('user_id', userInfo.user.id);
 
-  const placeholderCoverImage = 'https://arteye.co.za/wp-content/uploads/2022/06/Fiona-Rowette-Diptych-140-x-100-cm-003-scaled.jpg';
+      // Convert image URIs to Blobs and append them to formPicData
+      for (let index = 0; index < uploadImages.length; index++) {
+        const image = uploadImages[index];
+        const newImageUri = Constants.platform.android
+          ? image.uri
+          : image.uri.replace('file://', '');
+        const fileType = mime.getType(newImageUri) || 'image/jpeg';
+        formPicData.append(`picture[${index}]`, {
+          name: `photo_${index}.jpg`,
+          type: fileType,
+          uri: newImageUri,
+        });
+      }
+
+      const response = await fetch(`${API_BASE_URL}/update-profile`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formPicData,
+      });
+      const responseData = await response.json();
+
+      // Save the updated user info back to AsyncStorage
+      await AsyncStorage.setItem('userInfo', JSON.stringify(responseData));
+
+      // Update state with new user info
+      setUserInfo(null);
+      setUserInfo(responseData.user);
+      setSaving(false); 
+      closeUploadCoverProfileModal();
+      onRefresh();
+      toast.show("Profile Picture Updated Successfully", {
+        type: 'success',
+        placement: 'top',
+        duration: 4000,
+        animationType: 'slide-in',
+      });
+    } catch (error) {
+      console.error();
+      toast.show("Check your image and try again", {
+        type: 'danger',
+        placement: 'top',
+        duration: 4000,
+        animationType: 'slide-in',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const placeholderProfileImage = 'https://www.shutterstock.com/image-vector/blank-avatar-photo-icon-design-600nw-1682415103.jpg';
 
   return (
@@ -213,6 +286,8 @@ const MeScreen = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>
       {saving && <Preloader />}
+
+
       {/* Profile Header with editable cover image */}
       <View style={styles.profileHeader}>
         <Image
@@ -225,7 +300,7 @@ const MeScreen = () => {
         />
         <View style={styles.coverOverlay} />
         <View style={styles.blurOverlay} />
-        <TouchableOpacity onPress={() => alert('Change Cover')} style={styles.editCoverButton}>
+        <TouchableOpacity onPress={openUploadCoverProfileModal} style={styles.editCoverButton}>
           <AntDesign name="edit" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={styles.profileInfo}>
@@ -239,12 +314,7 @@ const MeScreen = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.profileText}>
-            <Text style={styles.profileName}>{userInfo?.user?.name}</Text>
-            <Text style={styles.profileBio}>{userInfo?.user?.bio}</Text>
-            
-            <TouchableOpacity onPress={openEditProfileModal} style={styles.editButton}>
-              <MaterialCommunityIcons name="account-edit-outline" style={styles.linkIcon} />
-            </TouchableOpacity>
+            <Text style={styles.profileName}>{userInfo?.user?.name}</Text>            
           </View>
         </View>
       </View>
@@ -300,21 +370,41 @@ const MeScreen = () => {
         saving={saving}
       />
   
-      {/* Details Container */}
-      <View style={styles.detailsContainer}>
-            
-        {/* Change password link action buttion section */}
-        <View>
-          <TouchableOpacity onPress={openChangePasswordModal} style={styles.linkButton}>
-            <Text>Change your password</Text>
-            <MaterialCommunityIcons name="lock" style={styles.linkIcon} />
-          </TouchableOpacity>
+      {/* Upload Profile Picture Bottom Sheet */}
+      <UploadCoverPictureModal
+        isVisible={uploadCoverProfileModalVisible}
+        onClose={closeUploadCoverProfileModal}
+        uploadImages={uploadImages}
+        setUploadImages={setUploadImages}
+        handleSavePicture={handleSaveCoverPicture}
+        saving={saving}
+      />
+    {/* Details Container */}
+    <View style={styles.detailsContainer}>
+      {/* User Details Section */}
+      <View style={styles.userDetailsSection}>
+        <TouchableOpacity onPress={openEditProfileModal} style={styles.editButton}>
+          <MaterialCommunityIcons name="account-edit-outline" style={styles.linkIcon} />
+        </TouchableOpacity>
+        <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Location</Text>
+          <Text style={styles.detailValue}>{userInfo.user?.location || 'Not set'}</Text>
         </View>
-        <Card title="Location" value={userInfo.user?.location} />
-        <Card title="Email" value={userInfo.user?.email} />
-        <Card title="Website" value={userInfo.user?.website} onPress={() => alert('Visit website')} />
+        <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Email</Text>
+          <Text style={styles.detailValue}>{userInfo.user?.email}</Text>
+        </View>
+        <TouchableOpacity style={styles.detailItem}>
+          <Text style={styles.detailLabel}>About</Text>
+          <Text style={[styles.detailValue, styles.link]}>{userInfo.user?.bio || 'Not set'}</Text>
+        </TouchableOpacity>
       </View>
-      {/* Add more cards as needed */}
+      {/* Change password link action button section */}
+      <TouchableOpacity onPress={openChangePasswordModal} style={styles.actionButton}>
+        <Text style={styles.actionButtonText}>Change your password</Text>
+        <MaterialCommunityIcons name="lock" size={24} color="#60279C" />
+      </TouchableOpacity>
+    </View>
   
 
     </ScrollView>
@@ -332,6 +422,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: '#F0F2F5',
+    marginHorizontal:0,
   },
   profileHeader: {
     position: 'relative',
@@ -394,6 +485,7 @@ const styles = StyleSheet.create({
   },
   profileText: {
     alignItems: 'center',
+    marginBottom: 10,
   },
   profileName: {
     fontSize: 28,
@@ -413,8 +505,8 @@ const styles = StyleSheet.create({
   },
   editButton: {
     position: 'absolute',
-    top: 40,
-    left: 20,
+    top: 0,
+    right: 0,
     backgroundColor: 'rgba(255,255,255,0.2)',
     padding: 12,
     borderRadius: 30,
@@ -427,21 +519,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 20,
-    marginHorizontal: 20,
-    marginTop: -40,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 10,
+    marginHorizontal: 5,
+    marginTop: -40
   },
   statItem: {
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#60279C',
+    color: '#918895',
   },
   statText: {
     fontSize: 14,
@@ -449,9 +536,46 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   detailsContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     marginTop: 30,
     marginBottom: 20,
+  },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    marginBottom: 4,
+  },
+  actionButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#cdc5d0',
+  },
+  userDetailsSection: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginHorizontal:0,
+    padding: 20,
+  },
+  detailItem: {
+    marginBottom: 15,
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 5,
+  },
+  detailValue: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  link: {
+    color: '#60279C',
+    textDecorationLine: 'underline',
   },
   card: {
     backgroundColor: '#fff',

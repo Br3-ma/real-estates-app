@@ -40,27 +40,41 @@ const App = () => {
 
   const checkAuthentication = async () => {
     try {
-      // Retrieve the phone number from AsyncStorage
+      // Retrieve the userInfo from AsyncStorage
       const userInfoString = await AsyncStorage.getItem('userInfo');
       const userInfo = userInfoString ? JSON.parse(userInfoString) : null;
-      const phoneNumber = userInfo ? userInfo.user.phone : '0'; // Use '0' if no user info is found
-
+  
+      if (!userInfo) {
+        throw new Error('User info not found');
+      }
+  
+      // Determine the correct structure and extract the phone number
+      const phoneNumber = userInfo.data?.user?.phone || userInfo.user?.phone;
+  
+      if (!phoneNumber) {
+        throw new Error('Phone number not found in user info');
+      }
+  
       // Make an API request to check if the user is authenticated
-      // const response = await axios.post('http://localhost/realestserver/est-server/api/connectx', {
       const response = await axios.post(`${API_BASE_URL}/connectx`, {
         withCredentials: false, // Include credentials (cookies) in the request
         phone: phoneNumber,
       });
-
+  
       // If the request is successful, update the authenticated state based on the response
-      // setAuthenticated(true);
       setAuthenticated(response.data.status);
     } catch (error) {
-      console.error('Authentication check failed:', error);
-      setAuthenticated(false);
+      if (!error.response) {
+        // Network error or internet disconnection
+        console.error('Network error or internet disconnection:', error.message);
+      } else {
+        // Other types of errors (e.g., server error, authentication error)
+        console.error('Authentication check failed:', error);
+      }
     }
     setShowSplashScreen(false);
   };
+  
 
   if (showSplashScreen) {
     return (
