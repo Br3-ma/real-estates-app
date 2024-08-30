@@ -34,7 +34,7 @@ const CustomHeader = () => {
       <View style={styles.header}>
         <View style={styles.headerTitleContainer}>
           <Image
-            source={{ uri: 'https://t3.ftcdn.net/jpg/03/19/15/80/360_F_319158029_4JKXm8ZJy7BaaciR3SB6ZuGxL1mVGPRA.jpg' }}
+            source={require('../assets/icon/logo.png')}
             style={styles.headerImage}
           />
           <Text style={styles.headerText}>SQuare</Text>
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 22,
-    color: '#FFFFFF',
+    color: '#c27fe3',
     fontWeight: 'bold',
     fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
   },

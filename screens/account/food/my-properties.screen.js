@@ -15,6 +15,7 @@ import { usePropertyActions } from '../../../tools/api/PropertyActions';
 import * as FileSystem from 'expo-file-system';
 import BidWizardModal from '../../../components/bidwiz-modal'; // Import BidWizardModal
 import Toast from 'react-native-toast-message';
+import MenuContainer from '../../../components/menu-action-list';
 
 
 const { width, height } = Dimensions.get('window');
@@ -247,36 +248,14 @@ const renderPropertyItem = useCallback(({ item }) => {
     <Card>
       <Card.Title>{item.name}</Card.Title>
       <View style={styles.menuContainer}>
-        <Menu
-          visible={menuVisible[item.id] || false}
-          onDismiss={() => closeMenu(item.id)}
-          anchor={
-            <TouchableOpacity style={styles.kabutton} onPress={() => openMenu(item.id)}>
-              <MaterialIcons name="more-vert" size={24} color="black" />
-            </TouchableOpacity>
-          }
-        >
-          <Menu.Item
-            onPress={() => hideFromPosts(item.id)}
-            title={item.status_id === 1 ? 'Hide' : 'Show'}
-            leadingIcon={item.status_id === 1 ? 'eye-off-outline' : 'eye-on-outline'}
-          />
-          <Menu.Item
-            onPress={() => openSetBidModal(item.id)}
-            title={item.on_bid ? 'Cancel Boost' : 'Boost Post'}
-            leadingIcon={item.on_bid ? 'check-circle-outline' : 'rocket-outline'}
-          />
-          <Menu.Item
-            onPress={() => editProperty(item.id)}
-            title="Edit"
-            leadingIcon="pencil-outline"
-          />
-          <Menu.Item
-            onPress={() => handleDeleteProperty(item.id)}
-            title="Delete"
-            leadingIcon="delete-outline"
-          />
-        </Menu>
+      <MenuContainer 
+        itemId={item.id} 
+        hideFromPosts={hideFromPosts} 
+        openSetBidModal={openSetBidModal} 
+        editProperty={editProperty} 
+        handleDeleteProperty={handleDeleteProperty}
+        item={item}
+      />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {item.images.length > 0 ? (

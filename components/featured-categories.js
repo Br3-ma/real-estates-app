@@ -1,11 +1,14 @@
-// FeaturedItems.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { ScrollView, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { ScrollView, TouchableOpacity, Text, StyleSheet, View, Dimensions } from 'react-native';
 import { Icon } from 'react-native-elements';
 import axios from 'axios';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { API_BASE_URL } from '../confg/config';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
+const ITEM_WIDTH = width * 0.22;
 
 const FeaturedItems = () => {
   const [categories, setCategories] = useState([]);
@@ -51,12 +54,13 @@ const FeaturedItems = () => {
 
   if (isLoading) {
     return (
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={featuredItemsStyles.featuredItemsContainer}>
-        {[1, 2, 3, 4, 5].map((_, index) => (
-          <View key={index} style={featuredItemsStyles.featuredItem}>
-            <ShimmerPlaceholder style={featuredItemsStyles.shimmerIcon} />
-            <ShimmerPlaceholder style={featuredItemsStyles.shimmerTextTitle} />
-          </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.container}>
+        {[1, 2, 3, 4].map((_, index) => (
+          <ShimmerPlaceholder
+            key={index}
+            LinearGradient={LinearGradient}
+            style={styles.shimmerItem}
+          />
         ))}
       </ScrollView>
     );
@@ -64,83 +68,91 @@ const FeaturedItems = () => {
 
   if (error) {
     return (
-      <View style={featuredItemsStyles.errorContainer}>
-        <Text style={featuredItemsStyles.errorText}>{error}</Text>
+      <View style={styles.errorContainer}>
+        <Icon name="error-outline" type="material" size={36} color="#FF6B6B" />
+        <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={featuredItemsStyles.featuredItemsContainer}>
-      {Array.isArray(categories) && categories.map((category) => (
-        <TouchableOpacity 
-          key={category.id} 
-          style={featuredItemsStyles.featuredItem}
-          onPress={() => handlePress(category.id)}
-        >
-          <View style={featuredItemsStyles.iconContainer}>
-            <Icon name={category.icon_name || 'home'} type={category.type} size={30} color="#438ab5" />
-          </View>
-          <Text style={featuredItemsStyles.featuredItemTitle}>{category.name}</Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+    <View style={styles.wrapper}>
+      <Text style={styles.sectionTitle}>Browse categories</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.container}>
+        {Array.isArray(categories) && categories.map((category) => (
+          <TouchableOpacity 
+            key={category.id} 
+            style={styles.featuredItem}
+            onPress={() => handlePress(category.id)}
+          >
+            <View style={styles.iconContainer}>
+              <Icon name={category.icon_name || 'home'} type={category.type} size={24} color="#4FACFE" />
+            </View>
+            <Text style={styles.featuredItemTitle}>{category.name}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 
-const featuredItemsStyles = StyleSheet.create({
-  featuredItemsContainer: {
-    paddingVertical: 15,
-    paddingHorizontal: 10,
-    backgroundColor: 'transparent',
-    marginVertical: 10,
+const styles = StyleSheet.create({
+  wrapper: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E2E8F0',
+    marginVertical: 12,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#2D3748',
+    marginBottom: 8,
+    paddingHorizontal: 12,
+  },
+  container: {
+    paddingHorizontal: 12,
   },
   featuredItem: {
-    width: 80,
-    marginRight: 15,
+    width: ITEM_WIDTH,
+    marginRight: 12,
     alignItems: 'center',
   },
   iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#C1D5E1',
+    width: ITEM_WIDTH * 0.8,
+    height: ITEM_WIDTH * 0.8,
+    borderRadius: ITEM_WIDTH * 0.4,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   featuredItemTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 10,
+    fontWeight: '600',
     textAlign: 'center',
-    color: '#438ab5',
-    marginTop: 5,
+    color: '#4A5568',
+    marginTop: 4,
   },
-  shimmerIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginBottom: 5,
-  },
-  shimmerTextTitle: {
-    width: 60,
-    height: 12,
-    borderRadius: 5,
-    marginTop: 5,
+  shimmerItem: {
+    width: ITEM_WIDTH,
+    height: ITEM_WIDTH * 1.2,
+    marginRight: 12,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 12,
   },
   errorText: {
-    fontSize: 16,
-    color: 'red',
+    fontSize: 12,
+    color: '#FF6B6B',
+    textAlign: 'center',
+    marginTop: 4,
   },
 });
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Animated,Linking, ActivityIndicator, Text, ScrollView, SafeAreaView, Platform, StatusBar, Keyboard, RefreshControl } from 'react-native';
-import { Icon, SearchBar, Avatar } from 'react-native-elements';
+import { View,Linking, ActivityIndicator, Text, ScrollView, SafeAreaView, Platform, StatusBar, Keyboard, RefreshControl } from 'react-native';
+import { Icon, SearchBar } from 'react-native-elements';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import FeaturedItems from './../components/featured-categories'; // Import the new component
 import Toast from 'react-native-toast-message';
@@ -8,7 +8,6 @@ import moment from 'moment';
 import axios from 'axios';
 import styles from '../assets/css/home.css';
 import { API_BASE_URL } from '../confg/config';
-import { SERVER_BASE_URL } from '../confg/config';
 import AdAdPost from '../components/ad-ad-post';
 import BlankView from '../components/blank-bottom';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,18 +15,13 @@ import SearchModal from '../components/search-filter';
 import MovingPlaceholder from '../components/placeholder-effect';
 import { fetchUserInfo } from '../controllers/auth/userController';
 import RenderPropertyItem from '../components/display-properties';
-import UploadPost from '../components/upload-post';
 import Communications from 'react-native-communications';
 import HomeImageViewerModal from '../components/post-home-details';
 import CommentsModal from '../components/post-comments-modal';
-const placeholderImage = 'https://cdn.vectorstock.com/i/500p/90/02/profile-photo-placeholder-icon-design-vector-43189002.jpg';
+import TopListing from '../components/top-listing';
 
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
-  const [propertyDetails, setPropertyDetails] = useState({
-    title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '', property_type_id: '', category_id: '', location_id: '',
-    status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [], videos: [],
-  });
   const [properties, setProperties] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,8 +35,7 @@ const HomeScreen = ({ navigation }) => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  const scrollViewRef = useRef();
+  
   const fetchIntervalRef = useRef(null);
   const [category, setCategory] = useState('');
   const [filterForm, setFilterForm] = useState({});
@@ -52,8 +45,6 @@ const HomeScreen = ({ navigation }) => {
   const [numBeds, setNumBeds] = useState(0);
   const [numBaths, setNumBaths] = useState(0);
   const [btnOptions, setButtons] = useState(null);
-  const [uploadImages, setUploadImages] = useState([]);
-  const [uploadVideos, setUploadVideos] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -203,9 +194,9 @@ const HomeScreen = ({ navigation }) => {
     setFilterForm((prevForm) => ({ ...prevForm, [filterName]: filterValue }));
   };  
 
-  const timeElapsed = (date) => {
-    return moment(date).fromNow();
-  };
+  const handleTopListingPress = useCallback((item) => {
+    showImageViewer(item.images, item.videos, item);
+  }, [showImageViewer]);
 
   const renderPropertyItem = ({ item }) => {
     return (
@@ -264,7 +255,11 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.featuredSectionTitle}>This might help you</Text>
             <FeaturedItems />
           </View>
-
+          <TopListing 
+            properties={properties.slice(0, 10)} // Show only the first 10 properties
+            loading={loading}
+            onPress={handleTopListingPress}
+          />
           {loading ? (
             <View style={styles.loader}>
               {[1, 2, 3].map((item) => (

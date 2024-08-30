@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ImageBackground, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, Animated } from 'react-native';
 import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -8,16 +8,16 @@ import * as Google from 'expo-auth-session/providers/google';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
+import { Ionicons } from '@expo/vector-icons';
 
 WebBrowser.maybeCompleteAuthSession();
-const backgroundImage = require('../../assets/img/sweet.gif');
 
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#8E2DE2',
-    accent: '#03dac4',
+    primary: '#6C63FF',
+    accent: '#FF6584',
     background: 'transparent',
   },
 };
@@ -26,6 +26,7 @@ const SignInScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     expoClientId: 'YOUR_EXPO_CLIENT_ID',
@@ -33,6 +34,15 @@ const SignInScreen = ({ navigation }) => {
     androidClientId: 'YOUR_ANDROID_CLIENT_ID',
     webClientId: 'YOUR_WEB_CLIENT_ID',
   });
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
 
   const handleSignIn = async () => {
     setLoading(true);
@@ -68,61 +78,58 @@ const SignInScreen = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground source={backgroundImage} style={styles.background}>
-      <LinearGradient colors={['rgba(0,0,0,0.7)', '#fff']} style={styles.gradient}>
-        <StatusBar style="light" />
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          <Surface style={styles.surface}>
-            <Title style={styles.title}>SQuare</Title>
-            <Text style={styles.subtitle}>Houses for rent and sale</Text>
-            
-            <TextInput
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              mode="outlined"
-              style={styles.input}
-              theme={{ colors: { primary: theme.colors.accent } }}
-              dense
-            />
-            <TextInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              mode="outlined"
-              style={styles.input}
-              theme={{ colors: { primary: theme.colors.accent } }}
-              dense
-            />
-            
-            <Button mode="contained" onPress={handleSignIn} loading={loading} style={styles.button} contentStyle={styles.buttonContent} labelStyle={styles.buttonLabel}>
-              Sign In
-            </Button>
-            
-            <Button mode="outlined" onPress={handleGoogleSignIn} disabled={!request || loading} style={styles.googleButton} contentStyle={styles.buttonContent} labelStyle={styles.buttonLabel}>
-              Sign In with Google
-            </Button>
-            
-            <Button onPress={() => navigation.navigate('ForgotPasswordScreen')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
-              Forgot Password?
-            </Button>
-            
-            <Button onPress={() => navigation.navigate('RegisterByOTP')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
-              Don't have an account? Sign Up
-            </Button>
+    <LinearGradient colors={['#4158D0', '#C850C0', '#FFCC70']} style={styles.gradient}>
+      <StatusBar style="light" />
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        <Animated.View style={[styles.surface, { opacity: fadeAnim }]}>
+          <Surface style={styles.logoContainer}>
+            <Ionicons name="home-outline" size={64} color={theme.colors.primary} />
           </Surface>
-        </ScrollView>
-      </LinearGradient>
-    </ImageBackground>
+          <Title style={styles.title}>SQuare</Title>
+          <Text style={styles.subtitle}>Houses for rent and sale</Text>
+          
+          <TextInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            mode="outlined"
+            style={styles.input}
+            theme={{ colors: { primary: theme.colors.primary } }}
+            left={<TextInput.Icon name="email" color={theme.colors.primary} />}
+          />
+          <TextInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            mode="outlined"
+            style={styles.input}
+            theme={{ colors: { primary: theme.colors.primary } }}
+            left={<TextInput.Icon name="lock" color={theme.colors.primary} />}
+          />
+          
+          <Button mode="contained" onPress={handleSignIn} loading={loading} style={styles.button} contentStyle={styles.buttonContent} labelStyle={styles.buttonLabel}>
+            Sign In
+          </Button>
+          
+          <Button mode="outlined" onPress={handleGoogleSignIn} disabled={!request || loading} style={styles.googleButton} contentStyle={styles.buttonContent} labelStyle={styles.googleButtonLabel}>
+            Sign In with Google
+          </Button>
+          
+          <Button onPress={() => navigation.navigate('ForgotPasswordScreen')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
+            Forgot Password?
+          </Button>
+          
+          <Button onPress={() => navigation.navigate('RegisterByOTP')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
+            Don't have an account? Sign Up
+          </Button>
+        </Animated.View>
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
   gradient: {
     flex: 1,
   },
@@ -130,54 +137,72 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 5,
+    paddingVertical: 20,
   },
   surface: {
-    padding: 10,
+    padding: 24,
     width: '92%',
     maxWidth: 400,
     alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: 'transparent',
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    elevation: 4,
+  },
+  logoContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    elevation: 2,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFF',
-    marginVertical:4,
+    color: theme.colors.primary,
+    marginVertical: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: '#FFF',
-    marginBottom: 16,
+    color: '#666',
+    marginBottom: 24,
   },
   input: {
     width: '100%',
-    marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius:25,
-    height: 40,
+    marginBottom: 16,
+    backgroundColor: 'white',
   },
   button: {
     width: '100%',
     marginTop: 8,
+    borderRadius: 25,
   },
   googleButton: {
     width: '100%',
-    marginTop: 8,
-    backgroundColor: '#fff',
+    marginTop: 16,
+    backgroundColor: 'white',
+    borderColor: theme.colors.primary,
+    borderRadius: 25,
   },
   buttonContent: {
-    height: 36,
+    height: 48,
   },
   buttonLabel: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  googleButtonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
   },
   textButton: {
-    marginTop: 8,
+    marginTop: 16,
   },
   textButtonLabel: {
-    fontSize: 12,
+    fontSize: 14,
+    color: theme.colors.primary,
   },
 });
 

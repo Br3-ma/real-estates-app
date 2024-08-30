@@ -13,6 +13,8 @@ import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler
 import Animated from 'react-native-reanimated';
 import renderModalContent from '../../components/search-modal-filter';
 import RenderItem from '../../components/search-render-item';
+import RenderLocationCarousel from '../../components/carousel-locations';
+import RenderCategoryCarousel from '../../components/carousel-categories';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const { width, height } = Dimensions.get('window');
@@ -46,6 +48,30 @@ const SearchResultScreen = ({ route, navigation }) => {
     fetchCategoryOptions();
     fetchLocationOptions();
   }, []);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    getAllProperties();
+    setRefreshing(false);
+  }, []);
+
+  const getAllProperties = useCallback(async () => {
+    setData([]);
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/search-all`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const result = await response.json();
+      setData(result);
+    } catch (error) {
+      console.error('Failed to apply filters:', error);
+    }
+    setLoading(false);
+  },[]);
 
   const fetchCategoryOptions = useCallback(async () => {
     try {
@@ -121,11 +147,14 @@ const SearchResultScreen = ({ route, navigation }) => {
     });
   },[filterForm]);
 
-  const showImageViewer = useCallback(async (images, itemId, property) => {
+  const showImageViewer = useCallback(async (images, property) => {
+    if (isPostViewerModalVisible) {
+      setPostViewerModalVisible(false);
+    }
     setCurrentImages(images);
     setSelectedProperty(property);
     setPostViewerModalVisible(true);
-  },[]);
+  }, [isPostViewerModalVisible]);
   
   const handleBedroomsChange = useCallback((num, isChecked) => {
     setNumBeds(prev => {
@@ -142,6 +171,13 @@ const SearchResultScreen = ({ route, navigation }) => {
       return updatedBaths;
     });
   }, [handleFilterChange]); 
+  
+
+  const handleCategoryChange = useCallback( (selectedCategory) => { 
+    const newCategory = filterForm.category === selectedCategory ? null : selectedCategory;
+    handleFilterChange('category', newCategory);
+    return newCategory;
+  }, [handleFilterChange]); 
 
   const handleLocationChange = useCallback((locationId) => {
     setSelectedLocations(prevSelectedLocations => {
@@ -152,11 +188,7 @@ const SearchResultScreen = ({ route, navigation }) => {
       return updatedLocations;
     });
   }, [handleFilterChange]);
-
-
-// Submit Filter Form
   
-// Submit Filter Form
   const applyFilters = async () => {
     setData([]);
     setModalVisible(false);
@@ -177,65 +209,19 @@ const SearchResultScreen = ({ route, navigation }) => {
     setLoading(false);
   };
 
-  const getAllProperties = useCallback(async () => {
-    setData([]);
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/search-all`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const result = await response.json();
-      setData(result);
-    } catch (error) {
-      console.error('Failed to apply filters:', error);
-    }
-    setLoading(false);
-  },[]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    getAllProperties();
-    setRefreshing(false);
-  }, []);
-
-  const renderCategoryCarousel = () => (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
-      {categoryOptions.map((category, index) => (
-        <Button
-          key={index}
-          mode={filterForm.category === category.id ? 'contained' : 'outlined'}
-          onPress={() => handleCategoryChange(category.id)}
-          style={[styles.categoryButton, filterForm.category === category.id && styles.selectedCategory]}
-          labelStyle={[styles.buttonLabel, filterForm.category === category.id && styles.selectedCategoryLabel]}
-        >
-          {category.name}
-        </Button>
-      ))}
-    </ScrollView>
-  );
-
-  const handleCategoryChange = (selectedCategory) => {
-    const newCategory = filterForm.category === selectedCategory ? null : selectedCategory;
-    handleFilterChange('category', newCategory);
-  };
-
   const renderLocationCarousel = () => (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carousel}>
-      {locationOptions.map((location, index) => (
-        <Button
-          key={index}
-          mode={selectedLocations.includes(location.id) ? 'contained' : 'outlined'}
-          onPress={() => handleLocationChange(location.id)}
-          style={[styles.locationButton, selectedLocations.includes(location.id) && styles.selectedLocation]}
-          labelStyle={[styles.buttonLabel, selectedLocations.includes(location.id) && styles.selectedLocationLabel]}
-        >
-          {location.name}
-        </Button>
-      ))}
-    </ScrollView>
+    <RenderLocationCarousel
+      locationOptions={locationOptions}
+      selectedLocations={selectedLocations}
+      handleLocationChange={handleLocationChange}
+    />
+  );
+  const renderCategoryCarousel = () => (
+    <RenderCategoryCarousel
+      categoryOptions={categoryOptions}
+      selectedCategory={filterForm.category}
+      handleCategoryChange={handleCategoryChange}
+    />
   );
 
   const renderItem = useCallback(({ item, index }) => (
@@ -296,7 +282,9 @@ const SearchResultScreen = ({ route, navigation }) => {
         visible={isPostViewerModalVisible}
         images={currentImages}
         property={selectedProperty}
-        showImageViewer={showImageViewer}
+        allProperties={data}
+        openPostDetails={showImageViewer}
+        openCommentsModal={openCommentsModal}
         onClose={() => setPostViewerModalVisible(false)}
       />
       <CommentsModal
@@ -320,18 +308,30 @@ const SearchResultScreen = ({ route, navigation }) => {
             <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
               <MaterialIcons name="close" size={24} color="#4A5568" />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>{selectedFilter} Filter</Text>
-            {renderModalContent({ 
-              selectedFilter, 
-              filterForm, 
-              handleFilterChange, 
-              handleBedroomsChange, 
-              handleBathroomsChange, 
-              renderCategoryCarousel, 
-              renderLocationCarousel 
-            })}
+          </View>
+          <ScrollView style={styles.filterContent}>
+            <AnimatedScrollView
+              style={styles.filterContent}
+              bounces={false}
+              showsVerticalScrollIndicator={false}
+              scrollEventThrottle={16}
+            >
+              {renderModalContent({ 
+                selectedFilter, 
+                filterForm, 
+                handleFilterChange, 
+                handleBedroomsChange, 
+                handleBathroomsChange, 
+                renderCategoryCarousel, 
+                renderLocationCarousel 
+              })}
+            </AnimatedScrollView>
           </ScrollView>
         </View>
+        </GestureHandlerRootView>
+          <Button mode="contained" onPress={applyFilters}>
+                Apply
+          </Button>
       </Modal>
       <ShareModal
         isVisible={isShareModalVisible}
@@ -375,19 +375,18 @@ const styles = StyleSheet.create({
   },
   modal: {
     justifyContent: 'flex-end',
+    backgroundColor: '#fff',
     margin: 0,
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
+    padding: 10,
     paddingTop: 16,
     width: '100%',
     maxHeight: '100%', // Increased to 90% for more content visibility
   },
   filterContent: {
-    marginBottom: 24,
+    marginBottom: 15,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -400,57 +399,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1A202C',
     letterSpacing: 0.5,
-  },
-  applyButton: {
-    width: '100%',
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  applyButtonLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  carousel: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-  },
-  categoryButton: {
-    marginHorizontal: 4,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: '#4299E1',
-    backgroundColor: '#EBF8FF',
-  },
-  selectedCategory: {
-    backgroundColor: '#4299E1',
-  },
-  buttonLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#4299E1',
-  },
-  selectedCategoryLabel: {
-    color: '#FFFFFF',
-  },
-  locationButton: {
-    marginHorizontal: 4,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: '#48BB78',
-    backgroundColor: '#F0FFF4',
-  },
-  selectedLocation: {
-    backgroundColor: '#48BB78',
-  },
-  selectedLocationLabel: {
-    color: '#FFFFFF',
   },
   emptyContainer: {
     flex: 1,

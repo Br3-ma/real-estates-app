@@ -25,10 +25,10 @@ import SearchResultScreen from './screens/search/search-result.screen';
 const Stack = createStackNavigator();
 
 // Disable yellow box warnings
-// console.disableYellowBox = true;
+console.disableYellowBox = true;
 
 // Ignore all log notifications
-// LogBox.ignoreAllLogs(true);
+LogBox.ignoreAllLogs(true);
 
 const App = () => {
   const [showSplashScreen, setShowSplashScreen] = useState(true);

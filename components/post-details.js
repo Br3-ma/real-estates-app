@@ -1,6 +1,7 @@
-import React from 'react';
-import { Modal, View, Text, ScrollView, TouchableOpacity, ImageBackground, Dimensions, Platform, StyleSheet, Linking } from 'react-native';
+import React, { useRef, useState, useCallback } from 'react';
+import { Modal, View, Text, ScrollView, TouchableOpacity, ImageBackground, Dimensions, Platform, StyleSheet, Linking, SafeAreaView, Image, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from 'react-native-vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
 import { SERVER_BASE_URL } from '../confg/config';
@@ -8,38 +9,45 @@ import Communications from 'react-native-communications';
 
 const { width, height } = Dimensions.get('window');
 
-const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal }) => {
+const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal, allProperties, openPostDetails }) => {
+  const navigation = useNavigation();
+  const scrollViewRef = useRef(null); // Ref for ScrollView
+  const [loading, setLoading] = useState(false); // State for loading indicator
 
   const sendSMS = (phoneNumber) => {
     Communications.text(phoneNumber, 'Hello, I\'m interested in your property listing.');
-    console.log('Sending SMS to:', phoneNumber);
   };
 
   const callNumber = (phoneNumber) => {
     Communications.phonecall(phoneNumber, true);
-    console.log('Calling number:', phoneNumber);
   };
 
   const openWhatsApp = (phoneNumber) => {
     let msg = 'Hello, I\'m interested in your property listing.';
-    let mobile =
-      Platform.OS === 'ios' ? phoneNumber : `+${phoneNumber}`;
-  
+    let mobile = Platform.OS === 'ios' ? phoneNumber : `+${phoneNumber}`;
+    
     if (mobile) {
       let url = 'whatsapp://send?text=' + msg + '&phone=' + mobile;
       Linking.openURL(url)
-        .then((data) => {
-          console.log('WhatsApp Opened');
-        })
-        .catch(() => {
-          console.log('Make sure WhatsApp installed on your device');
-        });
+        .then(() => console.log('WhatsApp Opened'))
+        .catch(() => console.log('Make sure WhatsApp is installed on your device'));
     } else {
       alert('Please insert mobile no');
     }
-  
-    console.log('Opening WhatsApp for number:', phoneNumber);
   };
+
+  // Function to handle the showDetails and scroll to top
+  const handleShowDetails = useCallback(async (images, property) => {
+    setLoading(true); // Show loading indicator
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: true });
+    }
+    // Simulate a delay for loading effect (e.g., data fetching)
+    setTimeout(() => {
+      openPostDetails(images, property);
+      setLoading(false); // Hide loading indicator
+    }, 500); // Adjust delay as needed
+  }, [openPostDetails]);
 
   const renderImageViewerModal = () => {
     return (
@@ -49,94 +57,142 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
         visible={visible}
         onRequestClose={onClose}
       >
-        <View style={styles.container}>
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={onClose}
+        <SafeAreaView style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <MaterialIcons name="arrow-back" size={24} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Property Details</Text>
+          </View>
+
+          <ScrollView
+            contentContainerStyle={styles.modalContent}
+            ref={scrollViewRef} // Set the ref for ScrollView
           >
-            <MaterialIcons name="arrow-back" size={24} color="#fff" />
-          </TouchableOpacity>
-  
-          <ScrollView contentContainerStyle={styles.modalContent}>
-            <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.topImageContainer}>
+            <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.imageSlider}>
               {images.map((image, index) => (
-                <View key={index} style={styles.imageContainer}>
-                  <ImageBackground
-                    source={{ uri: `${SERVER_BASE_URL}/storage/app/` + image.path }}
-                    style={styles.imageBackground}
-                  >
-                    {property && (
-                      <View style={styles.overlayDetails}>
-                        <Text style={styles.overlayText}>{property.title}</Text>
-                        <Text style={styles.overlayPrice}>K{property.price.toLocaleString()}</Text>
-                        <View style={styles.overlayIconRow}>
-                          <View style={styles.iconContainer}>
-                            <MaterialIcons name="bed" size={18} color="#fff" />
-                            <Text style={styles.overlayTextSmall}>{property?.beds}</Text>
-                          </View>
-                          <View style={styles.iconContainer}>
-                            <MaterialIcons name="bathtub" size={18} color="#fff" />
-                            <Text style={styles.overlayTextSmall}>{property.baths}</Text>
-                          </View>
-                          <View style={styles.iconContainer}>
-                            <MaterialIcons name="square-foot" size={18} color="#fff" />
-                            <Text style={styles.overlayTextSmall}>{property?.sqft}</Text>
-                          </View>
-                        </View>
-                      </View>
-                    )}
-                  </ImageBackground>
-                </View>
+                <ImageBackground
+                  key={index}
+                  source={{ uri: `${SERVER_BASE_URL}/storage/app/` + image.path }}
+                  style={styles.imageBackground}
+                >
+                  <View style={styles.imageOverlay}>
+                    <Text style={styles.imageCount}>{`${index + 1}/${images.length}`}</Text>
+                  </View>
+                </ImageBackground>
               ))}
             </ScrollView>
-  
-            <View style={styles.detailsContainer}>
-              {property && (
-                <>
-                  <Text style={styles.propertyTitle}>{property.title}</Text>
-                  <Text style={styles.propertyPrice}>K{property.price.toLocaleString()}</Text>
-                  <Text style={styles.propertyDescription}>{property.description}</Text>
-                  <View style={styles.propertyDetailsRow}>
-                    <View style={styles.propertyDetailsItem}>
-                      <MaterialIcons name="hotel" size={24} color="#165F56" />
-                      <Text style={styles.propertyDetailsText}>{property.bedrooms} Beds</Text>
-                    </View>
-                    <View style={styles.propertyDetailsItem}>
-                      <MaterialIcons name="bathtub" size={24} color="#165F56" />
-                      <Text style={styles.propertyDetailsText}>{property.bathrooms} Baths</Text>
-                    </View>
-                    <View style={styles.propertyDetailsItem}>
-                      <MaterialIcons name="aspect-ratio" size={24} color="#165F56" />
-                      <Text style={styles.propertyDetailsText}>{property.area} sqft</Text>
-                    </View>
+
+            {property && (
+              <View style={styles.contentContainer}>
+                <Text style={styles.propertyTitle}>{property.title}</Text>
+                <Text style={styles.propertyPrice}>K{property.price.toLocaleString()}</Text>
+                
+                <View style={styles.propertyDetailsRow}>
+                  <View style={styles.propertyDetailsItem}>
+                    <MaterialIcons name="hotel" size={20} color="#165F56" />
+                    <Text style={styles.propertyDetailsText}>{property.bedrooms} Beds</Text>
                   </View>
-                </>
-              )}
-            </View>
-  
-            <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.actionButton} onPress={() => sendSMS(property.phone)}>
-                <MaterialIcons name="message" size={30} color="#fff" />
-                <Text style={styles.buttonLabel}>SMS</Text>
-              </TouchableOpacity>
+                  <View style={styles.propertyDetailsItem}>
+                    <MaterialIcons name="bathtub" size={20} color="#165F56" />
+                    <Text style={styles.propertyDetailsText}>{property.bathrooms} Baths</Text>
+                  </View>
+                  <View style={styles.propertyDetailsItem}>
+                    <MaterialIcons name="aspect-ratio" size={20} color="#165F56" />
+                    <Text style={styles.propertyDetailsText}>{property.area} sqft</Text>
+                  </View>
+                </View>
 
-              <TouchableOpacity style={styles.actionButton} onPress={() => callNumber(property.phone)}>
-                <MaterialIcons name="call" size={30} color="#fff" />
-                <Text style={styles.buttonLabel}>Call</Text>
-              </TouchableOpacity>
+                <Text style={styles.propertyDescription}>{property.description}</Text>
 
-              <TouchableOpacity style={styles.actionButton} onPress={() => openWhatsApp(property.phone)}>
-                <MaterialCommunityIcons name="whatsapp" size={30} color="#fff" />
-                <Text style={styles.buttonLabel}>WhatsApp</Text>
-              </TouchableOpacity>
+                <View style={styles.mapContainer}>
+                  <Text style={styles.sectionTitle}>Map Locatior</Text>
+                  <Image
+                    source={
+                      property.latitude && property.longitude
+                        ? { uri: `https://maps.googleapis.com/maps/api/staticmap?center=${property.latitude}&zoom=13&size=400x200&maptype=roadmap&markers=color:red%7C${property.longitude}&key=YOUR_GOOGLE_MAPS_API_KEY` }
+                        : 'https://www.instalki.pl/wp-content/uploads/webp/krolewiec_mapy_google-850x478.webp' // Placeholder image
+                    }
+                    style={styles.mapImage}
+                  />
+                  <Text style={styles.locationText}>{property.location || 'Location not available'}</Text>
+                </View>
 
-              <TouchableOpacity style={styles.actionButton} onPress={() => openCommentsModal(property.id)}>
-                <MaterialCommunityIcons name="chat" size={30} color="#fff" />
-                <Text style={styles.buttonLabel}>Comments</Text>
-              </TouchableOpacity>
-            </View>
+                <View style={styles.amenitiesContainer}>
+                  <Text style={styles.sectionTitle}>Amenities</Text>
+                  <View style={styles.amenitiesList}>
+                    {['Parking', 'Swimming Pool', 'Gym', 'Security'].map((amenity, index) => (
+                      <View key={index} style={styles.amenityItem}>
+                        <MaterialIcons name="check-circle" size={20} color="#4CAF50" />
+                        <Text style={styles.amenityText}>{amenity}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.promoContainer}>
+                  <Text style={styles.sectionTitle}>Special Offer</Text>
+                  <View style={styles.promoBox}>
+                    <Text style={styles.promoText}>Get 5% off if you book within the next 24 hours!</Text>
+                  </View>
+                </View>
+
+                <View style={styles.relatedPropertiesContainer}>
+                  <Text style={styles.sectionTitle}>You might also like this</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    {allProperties.map((item) => (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.relatedPropertyItem}
+                        onPress={() => handleShowDetails(item.images, item)} // Use handleShowDetails
+                      >
+                        <Image
+                          source={{ uri: `${SERVER_BASE_URL}/storage/app/` + item.images[0].path }}
+                          style={styles.relatedPropertyImage}
+                        />
+                        <Text style={styles.relatedPropertyTitle}>
+                          {item.name || item.title} {/* Adjust property name accordingly */}
+                        </Text>
+                        <Text style={styles.relatedPropertyPrice}>
+                          K{item.price}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+
+              </View>
+            )}
           </ScrollView>
-        </View>
+
+          {loading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+          )}
+
+          <View style={styles.actionButtons}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => sendSMS(property.phone)}>
+              <MaterialIcons name="message" size={20} color="#fff" />
+              <Text style={styles.buttonLabel}>SMS</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={() => callNumber(property.phone)}>
+              <MaterialIcons name="call" size={20} color="#fff" />
+              <Text style={styles.buttonLabel}>Call</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={() => openWhatsApp(property.phone)}>
+              <MaterialCommunityIcons name="whatsapp" size={20} color="#fff" />
+              <Text style={styles.buttonLabel}>WhatsApp</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={() => openCommentsModal(property.id)}>
+              <MaterialCommunityIcons name="chat" size={20} color="#fff" />
+              <Text style={styles.buttonLabel}>Comments</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </Modal>
     );
   };
@@ -147,72 +203,52 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
   },
   closeButton: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 20,
-    padding: 8,
+    marginRight: 15,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   modalContent: {
     flexGrow: 1,
   },
-  topImageContainer: {
-    height: height * 0.5,
+  imageSlider: {
+    height: height * 0.4,
   },
-  imageContainer: {
+  imageBackground: {
     width: width,
     height: '100%',
   },
-  imageBackground: {
-    flex: 1,
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.2)',
     justifyContent: 'flex-end',
+    alignItems: 'flex-end',
+    padding: 10,
   },
-  overlayDetails: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: 20,
-  },
-  overlayText: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  imageCount: {
     color: '#fff',
-    marginBottom: 5,
-  },
-  overlayPrice: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginBottom: 10,
-  },
-  overlayIconRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  iconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  overlayTextSmall: {
     fontSize: 16,
-    color: '#fff',
-    marginLeft: 5,
+    fontWeight: 'bold',
   },
-  detailsContainer: {
-    padding: 20,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    marginTop: -30,
+  contentContainer: {
+    padding: 15,
   },
   propertyTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   propertyPrice: {
     fontSize: 20,
@@ -220,43 +256,121 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     marginBottom: 15,
   },
-  propertyDescription: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 20,
-  },
   propertyDetailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 15,
   },
   propertyDetailsItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   propertyDetailsText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#333',
     marginLeft: 5,
+  },
+  propertyDescription: {
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+  },
+  mapContainer: {
+    marginBottom: 20,
+  },
+  mapImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+  },
+  locationText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#666',
+  },
+  amenitiesContainer: {
+    marginBottom: 20,
+  },
+  amenitiesList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  amenityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '50%',
+    marginBottom: 10,
+  },
+  amenityText: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: '#666',
+  },
+  promoContainer: {
+    marginBottom: 20,
+  },
+  promoBox: {
+    backgroundColor: '#FFF9C4',
+    padding: 15,
+    borderRadius: 10,
+  },
+  promoText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  relatedPropertiesContainer: {
+    marginBottom: 20,
+  },
+  relatedPropertyItem: {
+    width: 150,
+    marginRight: 15,
+  },
+  relatedPropertyImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 10,
+  },
+  relatedPropertyTitle: {
+    marginTop: 5,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  relatedPropertyPrice: {
+    fontSize: 12,
+    color: '#4CAF50',
   },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: '#fff',
-    paddingVertical: 15,
+    padding: 10,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: '#e0e0e0',
   },
   actionButton: {
     alignItems: 'center',
     backgroundColor: '#165F56',
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 8,
+    padding: 8,
+    minWidth: 70,
   },
   buttonLabel: {
-    marginTop: 5,
-    fontSize: 12,
+    marginTop: 3,
+    fontSize: 10,
     color: '#fff',
+  },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    zIndex: 1000,
   },
 });
 

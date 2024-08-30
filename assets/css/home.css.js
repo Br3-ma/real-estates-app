@@ -33,15 +33,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featuredSection: {
-    marginTop: 20,
-    marginBottom: 30,
+    marginTop: 14,
+    marginBottom: 10,
   },
   featuredSectionTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: 'bold',
     marginLeft: 15,
-    marginBottom: 10,
-    color: '#333',
+    marginBottom: 5,
+    color: '#8E2DE2',
   },
   bodyContent: {
     paddingHorizontal: 5,

@@ -125,19 +125,20 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
         <Button
           type="clear"
           style={styles.buttonCover}
-          icon={<MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={24} color={isFavorite ? "#E91E63" : "gray"} />}
+          icon={<MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={20} color={isFavorite ? "#E91E63" : "gray"} />}
           onPress={() => toggleFavorite(item)}
+          
         />
         <Button
           type="clear"
           style={styles.buttonCover}
-          icon={<MaterialIcons name="comment" size={24} color="gray" />}
+          icon={<MaterialIcons name="comment" size={20} color="gray" />}
           onPress={() => openCommentsModal(item.id)}
         />
         <Button
           type="clear"
           style={styles.buttonCover}
-          icon={<MaterialIcons name="share" size={24} color="gray" />}
+          icon={<MaterialIcons name="share" size={20} color="gray" />}
           onPress={openShareModal}
         />
       </View>
@@ -157,12 +158,12 @@ const styles = StyleSheet.create({
     margin: 0,
     marginBottom:17,
     padding: 0,
-    borderRadius: 10,
+    borderRadius: 5,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
+    // shadowColor: '#000',
+    // shadowOffset: { width: 0, height: 2 },
+    // shadowOpacity: 0.2,
+    // shadowRadius: 5,
     elevation: 5,
   },
   postTitle: {
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
   },
   iconRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     marginVertical: 5,
   },
   iconTextContainer: {
