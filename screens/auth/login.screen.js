@@ -8,7 +8,8 @@ import * as Google from 'expo-auth-session/providers/google';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
-import { Ionicons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -43,16 +44,23 @@ const SignInScreen = ({ navigation }) => {
     }).start();
   }, []);
 
-
   const handleSignIn = async () => {
     setLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/signin`, { email, password });
-      // console.log(response);
       await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
+      Toast.show({
+        type: 'success',
+        text1: 'Sign In Successful',
+        text2: 'Welcome back!',
+      });
       navigation.navigate('Main');
     } catch (error) {
-      console.error('Sign In Error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Sign In Error',
+        text2: 'Please check your credentials and try again.',
+      });
     } finally {
       setLoading(false);
     }
@@ -66,9 +74,18 @@ const SignInScreen = ({ navigation }) => {
       try {
         const response = await axios.post(`${API_BASE_URL}/google-signin`, { id_token });
         await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
+        Toast.show({
+          type: 'success',
+          text1: 'Google Sign-In Successful',
+          text2: 'Welcome back!',
+        });
         navigation.navigate('Main');
       } catch (error) {
-        console.error('Google Sign-In Error:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Google Sign-In Error',
+          text2: 'Unable to sign in with Google. Please try again later.',
+        });
       } finally {
         setLoading(false);
       }
@@ -83,11 +100,11 @@ const SignInScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Animated.View style={[styles.surface, { opacity: fadeAnim }]}>
           <Surface style={styles.logoContainer}>
-            <Ionicons name="home-outline" size={64} color={theme.colors.primary} />
+            <MaterialCommunityIcons name="home-outline" size={48} color={theme.colors.primary} />
           </Surface>
           <Title style={styles.title}>SQuare</Title>
           <Text style={styles.subtitle}>Houses for rent and sale</Text>
-          
+
           <TextInput
             label="Email"
             value={email}
@@ -95,7 +112,7 @@ const SignInScreen = ({ navigation }) => {
             mode="outlined"
             style={styles.input}
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon name="email" color={theme.colors.primary} />}
+            left={<TextInput.Icon icon="email" />}
           />
           <TextInput
             label="Password"
@@ -105,26 +122,49 @@ const SignInScreen = ({ navigation }) => {
             mode="outlined"
             style={styles.input}
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon name="lock" color={theme.colors.primary} />}
+            left={<TextInput.Icon icon="lock" />}
           />
-          
-          <Button mode="contained" onPress={handleSignIn} loading={loading} style={styles.button} contentStyle={styles.buttonContent} labelStyle={styles.buttonLabel}>
+
+          <Button
+            mode="contained"
+            onPress={handleSignIn}
+            loading={loading}
+            style={styles.button}
+            contentStyle={styles.buttonContent}
+            labelStyle={styles.buttonLabel}
+          >
             Sign In
           </Button>
-          
-          <Button mode="outlined" onPress={handleGoogleSignIn} disabled={!request || loading} style={styles.googleButton} contentStyle={styles.buttonContent} labelStyle={styles.googleButtonLabel}>
+
+          <Button
+            mode="outlined"
+            onPress={handleGoogleSignIn}
+            disabled={!request || loading}
+            style={styles.googleButton}
+            contentStyle={styles.buttonContent}
+            labelStyle={styles.googleButtonLabel}
+          >
             Sign In with Google
           </Button>
-          
-          <Button onPress={() => navigation.navigate('ForgotPasswordScreen')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
+
+          <Button
+            onPress={() => navigation.navigate('ForgotPasswordScreen')}
+            style={styles.textButton}
+            labelStyle={styles.textButtonLabel}
+          >
             Forgot Password?
           </Button>
-          
-          <Button onPress={() => navigation.navigate('RegisterByOTP')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
+
+          <Button
+            onPress={() => navigation.navigate('RegisterByOTP')}
+            style={styles.textButton}
+            labelStyle={styles.textButtonLabel}
+          >
             Don't have an account? Sign Up
           </Button>
         </Animated.View>
       </ScrollView>
+      <Toast />
     </LinearGradient>
   );
 };
@@ -137,71 +177,71 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
   surface: {
-    padding: 24,
-    width: '92%',
-    maxWidth: 400,
+    padding: 20,
+    width: '90%',
+    maxWidth: 380,
     alignItems: 'center',
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     elevation: 4,
   },
   logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     elevation: 2,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
     color: theme.colors.primary,
-    marginVertical: 4,
+    marginVertical: 2,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   input: {
     width: '100%',
-    marginBottom: 16,
+    marginBottom: 12,
     backgroundColor: 'white',
   },
   button: {
     width: '100%',
-    marginTop: 8,
+    marginTop: 6,
     borderRadius: 25,
   },
   googleButton: {
     width: '100%',
-    marginTop: 16,
+    marginTop: 12,
     backgroundColor: 'white',
     borderColor: theme.colors.primary,
     borderRadius: 25,
   },
   buttonContent: {
-    height: 48,
+    height: 44,
   },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
   },
   googleButtonLabel: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
     color: theme.colors.primary,
   },
   textButton: {
-    marginTop: 16,
+    marginTop: 12,
   },
   textButtonLabel: {
-    fontSize: 14,
+    fontSize: 13,
     color: theme.colors.primary,
   },
 });
@@ -209,6 +249,7 @@ const styles = StyleSheet.create({
 const Screen = ({ navigation }) => (
   <PaperProvider theme={theme}>
     <SignInScreen navigation={navigation} />
+    <Toast />
   </PaperProvider>
 );
 

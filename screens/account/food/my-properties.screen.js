@@ -16,10 +16,9 @@ import * as FileSystem from 'expo-file-system';
 import BidWizardModal from '../../../components/bidwiz-modal'; // Import BidWizardModal
 import Toast from 'react-native-toast-message';
 import MenuContainer from '../../../components/menu-action-list';
-
+import EditProfileModal from '../../../components/update-profile-modal';
 
 const { width, height } = Dimensions.get('window');
-
 const MyPropertyScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [properties, setProperties] = useState([]);
@@ -41,7 +40,7 @@ const MyPropertyScreen = ({ navigation }) => {
   const [isBidModalVisible, setBidModalVisible] = useState(false); // State for BidWizardModal visibility
   const [bidPropertyId, setBidPropertyId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   const fetchProperties = useCallback(async () => {
     setLoading(true);
@@ -95,6 +94,11 @@ const MyPropertyScreen = ({ navigation }) => {
     setCommentsModalVisible(false);
   }, []);
 
+  const handleEditProperty = (property) => {
+    setSelectedProperty(property);
+    setIsEditModalVisible(true);
+  };
+
   const handleDeleteProperty = useCallback(async (propertyId) => {
     Alert.alert(
       "Confirm Delete",
@@ -139,7 +143,6 @@ const MAX_VIDEO_SIZE = 25 * 1024 * 1024; // 25MB in bytes
 const uploadPost = useCallback(async () => {
   setUploading(true);
   try {
-    // Append property details
     const formData = new FormData();
     formData.append('title', propertyDetails.title);
     formData.append('description', propertyDetails.description);
@@ -238,7 +241,7 @@ const uploadPost = useCallback(async () => {
   const openSetBidModal = useCallback((itemId) => {
     setBidPropertyId(itemId);
     setBidModalVisible(true);
-  }, []);
+}, []);
   
 const renderPropertyItem = useCallback(({ item }) => {
   const openMenu = (id) => setMenuVisible(prevState => ({ ...prevState, [id]: true }));
@@ -252,7 +255,8 @@ const renderPropertyItem = useCallback(({ item }) => {
         itemId={item.id} 
         hideFromPosts={hideFromPosts} 
         openSetBidModal={openSetBidModal} 
-        editProperty={editProperty} 
+        // editProperty={editProperty} 
+        editProperty={handleEditProperty}
         handleDeleteProperty={handleDeleteProperty}
         item={item}
       />
@@ -309,8 +313,6 @@ const renderPropertyItem = useCallback(({ item }) => {
   );
 }, [deleting, showImageViewer, handleDeleteProperty, openCommentsModal, menuVisible]);
 
-
-
 return (
   <Provider>
     <SafeAreaView style={{ flex: 1 }}>
@@ -342,6 +344,14 @@ return (
         uploadPost={uploadPost}
         uploading={uploading}
       />
+      {selectedProperty && (
+        <EditProfileModal
+          isVisible={isEditModalVisible}
+          onClose={() => setIsEditModalVisible(false)}
+          property={selectedProperty}
+          // onUpdate={handleUpdateProperty}
+        />
+      )}
       <PostViewerModal
         visible={isPostViewerModalVisible}
         images={currentImages}

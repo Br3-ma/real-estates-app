@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { ActivityIndicator, View, Text, ScrollView, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
 import { Image, Icon, Avatar } from 'react-native-elements';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -28,14 +28,20 @@ const TopListings = ({ properties, loading, onPress }) => {
         onPress={() => onPress(item)}
       >
         <View style={styles.userInfoContainer}>
-          <Avatar
+        <Avatar
             rounded
-            source={{ uri: `${SERVER_BASE_URL}/storage/app/${item.user.picture}` }}
+            source={{
+              uri: `${SERVER_BASE_URL}/storage/app/${item.user.picture}`
+            }}
+            placeholderStyle={{ backgroundColor: '#e1e4e8' }}
+            PlaceholderContent={<ActivityIndicator />}
             size="small"
           />
           <View style={styles.userTextContainer}>
             <Text style={styles.userName}>{item.user.name}</Text>
-            <Text style={styles.userLocation}>{item.user.location}</Text>
+            {item.user.location !== 'Not set' && (
+              <Text style={styles.userLocation}>{item.user.location}</Text>
+            )}
           </View>
         </View>
 

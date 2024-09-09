@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ActivityIndicator, LogBox } from 'react-native'
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { API_BASE_URL } from './confg/config';
-import { SERVER_BASE_URL } from './confg/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
@@ -21,14 +20,15 @@ import MainScreen from './screens/main.screen';
 import CartScreen from './screens/cart/my-cart.screen';
 // import MapScreen from './screens/maps/find-property.screen';
 import SearchResultScreen from './screens/search/search-result.screen';
+import FlashMessage, { showMessage } from 'react-native-flash-message';  // Import FlashMessage
 
 const Stack = createStackNavigator();
 
 // Disable yellow box warnings
-console.disableYellowBox = true;
+// console.disableYellowBox = true;
 
 // Ignore all log notifications
-LogBox.ignoreAllLogs(true);
+// LogBox.ignoreAllLogs(true);
 
 const App = () => {
   const [showSplashScreen, setShowSplashScreen] = useState(true);
@@ -55,6 +55,8 @@ const App = () => {
         throw new Error('Phone number not found in user info');
       }
   
+      const url = `${API_BASE_URL}/connectx`;
+      console.log(url);
       // Make an API request to check if the user is authenticated
       const response = await axios.post(`${API_BASE_URL}/connectx`, {
         withCredentials: false, // Include credentials (cookies) in the request
@@ -65,11 +67,19 @@ const App = () => {
       setAuthenticated(response.data.status);
     } catch (error) {
       if (!error.response) {
-        // Network error or internet disconnection
-        console.error('Network error or internet disconnection:', error.message);
+        showMessage({
+          message: 'Network error or internet disconnection',
+          description: error.message,
+          type: 'danger',
+          icon: 'auto',
+        });
       } else {
-        // Other types of errors (e.g., server error, authentication error)
-        console.error('Authentication check failed:', error);
+        showMessage({
+          message: 'Authentication failed',
+          description: error.message,
+          type: 'danger',
+          icon: 'auto',
+        });
       }
     }
     setShowSplashScreen(false);

@@ -1,24 +1,21 @@
-import React, { useState } from 'react';
-import { ImageBackground, StyleSheet, View, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, ScrollView, Animated } from 'react-native';
 import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface, ProgressBar } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import { FontAwesome } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
 import Toast from 'react-native-toast-message';
-
-const backgroundImage = require('../../assets/img/grad.gif');
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const theme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#8E2DE2',
-    accent: '#FFF',
+    primary: '#6C63FF',
+    accent: '#FF6584',
     background: 'transparent',
-    text: '#FFF',
   },
 };
 
@@ -28,6 +25,42 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+
+    // Load saved values
+    loadSavedValues();
+  }, []);
+
+  const loadSavedValues = async () => {
+    try {
+      const savedName = await AsyncStorage.getItem('signupName');
+      const savedEmail = await AsyncStorage.getItem('signupEmail');
+      const savedPhone = await AsyncStorage.getItem('signupPhone');
+      
+      if (savedName) setName(savedName);
+      if (savedEmail) setEmail(savedEmail);
+      if (savedPhone) setPhone(savedPhone);
+    } catch (error) {
+      console.error('Error loading saved values:', error);
+    }
+  };
+
+  const saveValues = async () => {
+    try {
+      await AsyncStorage.setItem('signupName', name);
+      await AsyncStorage.setItem('signupEmail', email);
+      await AsyncStorage.setItem('signupPhone', phone);
+    } catch (error) {
+      console.error('Error saving values:', error);
+    }
+  };
 
   const handleSignup = async () => {
     setLoading(true);
@@ -38,30 +71,18 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
         phone,
         password,
       });
-      console.log(response);
       await AsyncStorage.removeItem('userInfo');
       await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
+      // Clear saved signup values after successful signup
+      await AsyncStorage.multiRemove(['signupName', 'signupEmail', 'signupPhone']);
       navigation.navigate('Main');
     } catch (error) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: `Error: ${error.message}`
+        text2: error.response?.data?.message || 'An error occurred during signup'
       });
-      console.error('Signup Error:', error.message);
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        console.error('Response data:', error.response.data);
-        console.error('Response status:', error.response.status);
-        console.error('Response headers:', error.response.headers);
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error('Request data:', error.request);
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error('Error message:', error.message);
-      }
+      console.error('Signup Error:', error);
     } finally {
       setLoading(false);
     }
@@ -71,6 +92,7 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
     const formattedPhone = inputText.replace(/\D/g, '');
     if (formattedPhone.length <= 10) {
       setPhone(formattedPhone);
+      saveValues();
     }
   };
 
@@ -96,105 +118,88 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
     return { progress, color };
   };
 
-  
   const passwordStrength = getPasswordStrength();
 
   return (
-    <PaperProvider theme={theme}>
-      <ImageBackground source={backgroundImage} style={styles.background}>
-        <StatusBar style="dark" />
-        <LinearGradient colors={['#fff', 'rgba(125, 115, 153, 0.8)']} style={styles.gradient}>
-          <ScrollView contentContainerStyle={styles.scrollView}>
-            <Surface style={styles.surface}>
-              <View style={styles.header}>
-                <FontAwesome name="user-circle" size={60} color={theme.colors.primary} />
-                <Title style={styles.title}>Create your account</Title>
-              </View>
+    <LinearGradient colors={['#4158D0', '#C850C0', '#FFCC70']} style={styles.gradient}>
+      <StatusBar style="light" />
+      <ScrollView contentContainerStyle={styles.scrollView}>
+        <Animated.View style={[styles.surface, { opacity: fadeAnim }]}>
+          <Title style={styles.title}>Create Account</Title>
+          <Text style={styles.subtitle}>Join our real estate community</Text>
+          
+          <TextInput
+            label="Full Name"
+            value={name}
+            onChangeText={(text) => { setName(text); saveValues(); }}
+            mode="outlined"
+            style={styles.input}
+            theme={{ colors: { primary: theme.colors.primary } }}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="account" size={24} color={theme.colors.primary} />} />}
+          />
 
-              <TextInput
-                label="Full Name"
-                value={name}
-                onChangeText={setName}
-                mode="outlined"
-                style={styles.input}
-                theme={{ colors: { primary: theme.colors.primary } }}
-                left={<TextInput.Icon icon="account" color={theme.colors.primary} size={20} />}
-                dense
-              />
+          <TextInput
+            label="Email"
+            value={email}
+            onChangeText={(text) => { setEmail(text); saveValues(); }}
+            mode="outlined"
+            style={styles.input}
+            keyboardType="email-address"
+            theme={{ colors: { primary: theme.colors.primary } }}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="email" size={24} color={theme.colors.primary} />} />}
+          />
 
-              <TextInput
-                label="Email"
-                value={email}
-                onChangeText={setEmail}
-                mode="outlined"
-                style={styles.input}
-                keyboardType="email-address"
-                theme={{ colors: { primary: theme.colors.primary } }}
-                left={<TextInput.Icon icon="email" color={theme.colors.primary} size={20} />}
-                dense
-              />
+          <TextInput
+            label="Phone"
+            value={phone}
+            onChangeText={handlePhoneChange}
+            mode="outlined"
+            style={styles.input}
+            keyboardType="phone-pad"
+            theme={{ colors: { primary: theme.colors.primary } }}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="phone" size={24} color={theme.colors.primary} />} />}
+          />
 
-              <TextInput
-                label="Phone"
-                value={phone}
-                onChangeText={handlePhoneChange}
-                mode="outlined"
-                style={styles.input}
-                keyboardType="phone-pad"
-                theme={{ colors: { primary: theme.colors.primary } }}
-                left={<TextInput.Icon icon="phone" color={theme.colors.primary} size={20} />}
-                dense
-              />
+          <TextInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            mode="outlined"
+            style={styles.input}
+            secureTextEntry
+            theme={{ colors: { primary: theme.colors.primary } }}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="lock" size={24} color={theme.colors.primary} />} />}
+          />
 
-              <TextInput
-                label="Password"
-                value={password}
-                onChangeText={setPassword}
-                mode="outlined"
-                style={styles.input}
-                secureTextEntry
-                theme={{ colors: { primary: theme.colors.primary } }}
-                left={<TextInput.Icon icon="lock" color={theme.colors.primary} size={20} />}
-                dense
-              />
-
-              <ProgressBar progress={passwordStrength.progress} color={passwordStrength.color} style={styles.progressBar} />
-
-              <Button 
-                mode="contained" 
-                onPress={handleSignup} 
-                loading={loading} 
-                disabled={loading}
-                style={styles.button}
-                contentStyle={styles.buttonContent}
-                labelStyle={styles.buttonLabel}
-              >
-                Sign Up
-              </Button>
-
-              <Button 
-                mode="text" 
-                onPress={() => navigation.navigate('SignIn')}
-                style={styles.loginLink}
-                labelStyle={styles.loginLinkText}
-              >
-                Already have an account? Log In
-              </Button>
-            </Surface>
-          </ScrollView>
-        </LinearGradient>
-      </ImageBackground>
-      
+          <ProgressBar progress={passwordStrength.progress} color={passwordStrength.color} style={styles.progressBar} />
+          
+          <Button 
+            mode="contained" 
+            onPress={handleSignup} 
+            loading={loading} 
+            disabled={loading}
+            style={styles.button}
+            contentStyle={styles.buttonContent}
+            labelStyle={styles.buttonLabel}
+          >
+            Sign Up
+          </Button>
+          
+          <Button 
+            onPress={() => navigation.navigate('SignIn')}
+            style={styles.textButton}
+            labelStyle={styles.textButtonLabel}
+          >
+            Already have an account? Log In
+          </Button>
+        </Animated.View>
+      </ScrollView>
       <Toast />
-    </PaperProvider>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
   gradient: {
     flex: 1,
   },
@@ -202,54 +207,65 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
   surface: {
-    padding: 16,
-    width: '95%',
-    maxWidth: 400,
+    padding: 20,
+    width: '90%',
+    maxWidth: 380,
     alignItems: 'center',
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    elevation: 4,
   },
-  header: {
+  logoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
+    elevation: 2,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#8E2DE2',
-    marginTop: 8,
+    color: theme.colors.primary,
+    marginVertical: 2,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
   },
   input: {
     width: '100%',
-    marginBottom: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    height: 50,
+    marginBottom: 12,
+    backgroundColor: 'white',
   },
   progressBar: {
     width: '100%',
-    height: 3,
-    marginBottom: 8,
+    height: 4,
+    marginBottom: 16,
   },
   button: {
     width: '100%',
-    marginTop: 8,
+    marginTop: 2,
+    borderRadius: 25,
   },
   buttonContent: {
-    height: 40,
+    height: 44,
   },
   buttonLabel: {
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: 'bold',
   },
-  loginLink: {
-    marginTop: 8,
+  textButton: {
+    marginTop: 12,
   },
-  loginLinkText: {
-    color: '#FFF',
-    fontSize: 14,
-    textDecorationLine: 'underline',
+  textButtonLabel: {
+    fontSize: 13,
+    color: theme.colors.primary,
   },
 });
 

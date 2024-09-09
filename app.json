@@ -2,7 +2,7 @@
   "expo": {
     "name": "realest",
     "slug": "realest",
-    "Scheme": "square",
+    "Scheme": "realest",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

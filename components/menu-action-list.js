@@ -31,7 +31,7 @@ const MenuContainer = ({ itemId, hideFromPosts, openSetBidModal, editProperty, h
           leadingIcon={item.on_bid ? 'check-circle-outline' : 'rocket-outline'}
         />
         <Menu.Item
-          onPress={() => { editProperty(itemId); setMenuVisible(false); }}
+          onPress={() => { editProperty(item); setMenuVisible(false); }}
           title="Edit"
           leadingIcon="pencil-outline"
         />
