@@ -96,7 +96,7 @@ const MyPropertyScreen = ({ navigation }) => {
 
   const handleEditProperty = (property) => {
     setSelectedProperty(property);
-    setIsEditModalVisible(true);
+    // setIsEditModalVisible(true);
   };
 
   const handleDeleteProperty = useCallback(async (propertyId) => {
@@ -344,18 +344,19 @@ return (
         uploadPost={uploadPost}
         uploading={uploading}
       />
-      {selectedProperty && (
+      {/* {selectedProperty && (
         <EditProfileModal
           isVisible={isEditModalVisible}
           onClose={() => setIsEditModalVisible(false)}
           property={selectedProperty}
           // onUpdate={handleUpdateProperty}
         />
-      )}
+      )} */}
       <PostViewerModal
         visible={isPostViewerModalVisible}
         images={currentImages}
         property={selectedProperty}
+        allProperties={properties}
         openCommentsModal={openCommentsModal}
         onClose={() => setPostViewerModalVisible(false)}
       />

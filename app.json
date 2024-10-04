@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "realest",
-    "slug": "realest",
-    "Scheme": "realest",
+    "name": "square",
+    "slug": "square",
+    "scheme": "square",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon/logo.png",
     "userInterfaceStyle": "light",
     "plugins": [
       "expo-image-picker"
@@ -20,33 +20,35 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.br3mah.realest"
+      "bundleIdentifier": "com.br3mah.square"
     },
     "android": {
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "INTERNET"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.INTERNET",
+        "android.permission.RECORD_AUDIO"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.br3mah.realest"
+      "package": "com.br3mah.square"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "a136b0be-69e2-42d4-87e8-7dce2b3c4ebd"
+        "projectId": "d47ba06e-cd1b-43d5-b085-4321e5072e23",
+        "appVersionSource": "playStore" 
       }
     },
     "updates": {
       "enabled": false,
       "checkAutomatically": "NEVER"
     },
-    "runtimeVersion": "1.0.0"
+    "runtimeVersion": "1.0.0",
+    "owner": "br3mah"
   }
 }

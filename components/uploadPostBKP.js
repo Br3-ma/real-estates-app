@@ -76,6 +76,37 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
     }
   }, []);
 
+  const removeMedia = (type, index) => {
+    if (type === 'image') {
+      setUploadImages(prevImages => prevImages.filter((_, i) => i !== index));
+    } else if (type === 'video') {
+      setUploadVideos(prevVideos => prevVideos.filter((_, i) => i !== index));
+    }
+  };
+
+  const renderMediaItem = (item, index, type) => (
+    <View key={index} style={styles.mediaItemContainer}>
+      {type === 'image' ? (
+        <Image source={{ uri: item.uri }} style={styles.uploadedMedia} />
+      ) : (
+        <Video
+          source={{ uri: item.uri }}
+          style={styles.uploadedMedia}
+          resizeMode="cover"
+          useNativeControls={false}
+          isLooping
+          shouldPlay={false}
+        />
+      )}
+      <TouchableOpacity
+        style={styles.removeMediaButton}
+        onPress={() => removeMedia(type, index)}
+      >
+        <AntDesign name="closecircle" size={24} color="red" />
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <Modal
       animationType="slide"
@@ -94,7 +125,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
             </View>
 
             <ScrollView contentContainerStyle={styles.modalScrollView}>
-              <TextInput
+            <TextInput
                 placeholder="Title"
                 style={styles.input}
                 onChangeText={(text) => setPropertyDetails({ ...propertyDetails, title: text })}
@@ -137,6 +168,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
               </View>
 
               <View style={styles.inputRow}>
+                {/* Add a link here (ping map location) that opens a new blank stack screen */}
                 <TextInput
                   placeholder="Longitute"
                   style={[styles.input, styles.inputRowItem]}
@@ -148,7 +180,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
                   onChangeText={(text) => setPropertyDetails({ ...propertyDetails, lat: text })}
                 />
               </View>
-
+              
               {/* Property Type selection */}
               <View style={styles.categoryContainer}>
                 <Text style={styles.categoryTitle}>What's the type of property?</Text>
@@ -165,7 +197,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
                         setSelectedPropertyType(type.id);
                       }}
                     >
-                      <Text>{type.name}</Text>
+                      <Text style={styles.categoryItemText}>{type.name}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -187,7 +219,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
                         setSelectedLocation(location.id);
                       }}
                     >
-                      <Text>{location.name}</Text>
+                      <Text style={styles.categoryItemText}>{location.name}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -209,48 +241,42 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
                         setSelectedCategory(category.id);
                       }}
                     >
-                      <Text>{category.name}</Text>
+                      <Text style={styles.categoryItemText}>{category.name}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
 
-              <TouchableOpacity onPress={pickImages} style={styles.uploadButton}>
-                <AntDesign name="camera" style={{ width: 30, height: 25 }} />
-                <Text style={styles.uploadButtonText}>
-                  {uploadingImages ? 'Opening...' : 'Upload Images'}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.uploadButtonsContainer}>
+                <TouchableOpacity onPress={pickImages} style={styles.uploadButton}>
+                  <AntDesign name="camera" size={24} color="#438ab5" />
+                  <Text style={styles.uploadButtonText}>
+                    {uploadingImages ? 'Opening...' : 'Upload Images'}
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity onPress={pickVideos} style={styles.uploadButton}>
-                <AntDesign name="videocamera" style={{ width: 30, height: 25 }} />
-                <Text style={styles.uploadButtonText}>
-                  {uploadingVideos ? 'Opening...' : 'Upload Videos'}
-                </Text>
-              </TouchableOpacity>
+                <TouchableOpacity onPress={pickVideos} style={styles.uploadButton}>
+                  <AntDesign name="videocamera" size={24} color="#438ab5" />
+                  <Text style={styles.uploadButtonText}>
+                    {uploadingVideos ? 'Opening...' : 'Upload Videos'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-
-              <View style={styles.uploadedImageContainer}>
-                {uploadImages.map((image, index) => (
-                  <Image key={index} source={{ uri: image.uri }} style={styles.uploadedImage} />
-                ))}
-                
-                {(uploadVideos ?? []).map((video, index) => (
-                  <Video
-                    key={index}
-                    source={{ uri: video.uri }}
-                    style={styles.uploadedVideo}
-                    resizeMode="cover"
-                    useNativeControls={false}
-                    isLooping
-                    shouldPlay={false}
-                  />
-                ))}
+              <View style={styles.uploadedMediaContainer}>
+                {uploadImages.map((image, index) => renderMediaItem(image, index, 'image'))}
+                {(uploadVideos ?? []).map((video, index) => renderMediaItem(video, index, 'video'))}
               </View>
             </ScrollView>
 
             <View style={styles.modalFooter}>
-              <RNButton style={styles.btnCreate} title="Create Post" onPress={uploadPost} disabled={uploading} />
+              <RNButton
+                title="Create Post"
+                onPress={uploadPost}
+                disabled={uploading}
+                buttonStyle={styles.btnCreate}
+                titleStyle={styles.btnCreateText}
+              />
             </View>
           </View>
         </View>
@@ -267,109 +293,131 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: 'white',
-    borderRadius: 10,
-    width: '100%', // Full width
-    height: '100%', // Full height
-    paddingHorizontal: 5,
-    paddingTop: 40, // Adjust top padding as needed
+    borderRadius: 2,
+    width: '100%',
+    height: '100%',
+    paddingTop: 10,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
+    paddingHorizontal: 10,
   },
   modalTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    color:'#438ab5',
+    color: '#438ab5',
   },
   modalScrollView: {
     flexGrow: 1,
-    marginBottom: 20,
   },
   input: {
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    marginBottom: 10,
+    marginBottom: 16,
     paddingVertical: 10,
-    paddingHorizontal: 5,
   },
   textarea: {
     borderWidth: 1,
     borderColor: '#ccc',
-    marginBottom: 10,
+    marginBottom: 16,
     padding: 10,
     textAlignVertical: 'top',
-    minHeight: 100, // Adjust as needed
+    minHeight: 100,
   },
   inputRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   inputRowItem: {
     flex: 1,
-    marginHorizontal: 5,
+    marginRight: 8,
   },
   categoryContainer: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   categoryTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 12,
+    paddingHorizontal: 16,
   },
   categoryScrollView: {
-    paddingHorizontal: 10,
+    paddingLeft: 16,
   },
   categoryItem: {
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: '#C1D5E1',
-    borderRadius: 5,
-    marginBottom: 10,
-    marginRight: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#E8F4FD',
+    borderRadius: 20,
+    marginRight: 8,
   },
   categoryItemSelected: {
-    backgroundColor: '#ddd', // Selected style
+    backgroundColor: '#438ab5',
+  },
+  categoryItemText: {
+    color: '#438ab5',
+    fontWeight: '600',
+  },
+  uploadButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 16,
   },
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    marginBottom: 10,
+    borderColor: '#438ab5',
+    borderRadius: 8,
+    flex: 1,
+    marginHorizontal: 8,
   },
   uploadButtonText: {
-    marginLeft: 10,
+    marginLeft: 8,
+    color: '#438ab5',
+    fontWeight: '600',
   },
-  uploadedImageContainer: {
+  uploadedMediaContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 16,
   },
-  uploadedImage: {
+  mediaItemContainer: {
+    position: 'relative',
+    margin: 4,
+  },
+  uploadedMedia: {
     width: 100,
     height: 100,
-    margin: 5,
-    borderRadius:10,
+    borderRadius: 8,
   },
-  uploadedVideo: {
-    width: 100,
-    height: 100,
-    marginRight: 5,
-    marginBottom: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#eee',
-  },
-  btnCreate:{
-    backgroundColor:'#438ab5',
+  removeMediaButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: 'white',
+    borderRadius: 12,
   },
   modalFooter: {
     marginTop: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  btnCreate: {
+    backgroundColor: '#438ab5',
+    borderRadius: 8,
+    height: 48,
+  },
+  btnCreateText: {
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
 

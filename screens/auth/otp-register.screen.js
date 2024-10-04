@@ -22,7 +22,7 @@ const theme = {
   },
 };
 
-const SignupRealEstateAgentScreen = ({ navigation }) => {
+const SignupsquareateAgentScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -194,4 +194,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SignupRealEstateAgentScreen;
+export default SignupsquareateAgentScreen;

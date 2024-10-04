@@ -60,7 +60,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
         <SafeAreaView style={styles.container}>
           <View style={styles.header}>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <MaterialIcons name="arrow-back" size={24} color="#000" />
+              <MaterialIcons name="arrow-back" size={24} color="#8E2DE2" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Property Details</Text>
           </View>
@@ -91,21 +91,21 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                 <View style={styles.propertyDetailsRow}>
                   <View style={styles.propertyDetailsItem}>
                     <MaterialIcons name="hotel" size={20} color="#165F56" />
-                    <Text style={styles.propertyDetailsText}>{property.bedrooms} Beds</Text>
+                    <Text style={styles.propertyDetailsText}>{property.bedrooms} Bedrooms</Text>
                   </View>
                   <View style={styles.propertyDetailsItem}>
                     <MaterialIcons name="bathtub" size={20} color="#165F56" />
-                    <Text style={styles.propertyDetailsText}>{property.bathrooms} Baths</Text>
+                    <Text style={styles.propertyDetailsText}>{property.bathrooms} Bathrooms</Text>
                   </View>
                   <View style={styles.propertyDetailsItem}>
                     <MaterialIcons name="aspect-ratio" size={20} color="#165F56" />
-                    <Text style={styles.propertyDetailsText}>{property.area} sqft</Text>
+                    <Text style={styles.propertyDetailsText}>{property.area} sqr. foot</Text>
                   </View>
                 </View>
 
                 <Text style={styles.propertyDescription}>{property.description}</Text>
 
-                <View style={styles.mapContainer}>
+                {/* <View style={styles.mapContainer}>
                   <Text style={styles.sectionTitle}>Map Locatior</Text>
                   <Image
                     source={
@@ -116,15 +116,15 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                     style={styles.mapImage}
                   />
                   <Text style={styles.locationText}>{property.location || 'Location not available'}</Text>
-                </View>
+                </View> */}
 
                 <View style={styles.amenitiesContainer}>
                   <Text style={styles.sectionTitle}>Amenities</Text>
                   <View style={styles.amenitiesList}>
-                    {['Parking', 'Swimming Pool', 'Gym', 'Security'].map((amenity, index) => (
+                    {property.amenities.map((amenity, index) => (
                       <View key={index} style={styles.amenityItem}>
                         <MaterialIcons name="check-circle" size={20} color="#4CAF50" />
-                        <Text style={styles.amenityText}>{amenity}</Text>
+                        <Text style={styles.amenityText}>{amenity.amenity_name}</Text>
                       </View>
                     ))}
                   </View>
@@ -147,7 +147,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                         onPress={() => handleShowDetails(item.images, item)} // Use handleShowDetails
                       >
                         <Image
-                          source={{ uri: `${SERVER_BASE_URL}/storage/app/` + item.images[0].path }}
+                          source={{ uri: item.images.length > 0 ? `${SERVER_BASE_URL}/storage/app/` + item.images[0].path : `${SERVER_BASE_URL}/storage/app/no-img.png` }}
                           style={styles.relatedPropertyImage}
                         />
                         <Text style={styles.relatedPropertyTitle}>
@@ -160,6 +160,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                     ))}
                   </ScrollView>
                 </View>
+
 
               </View>
             )}
@@ -361,16 +362,18 @@ const styles = StyleSheet.create({
     minWidth: 70,
   },
   buttonLabel: {
-    marginTop: 3,
-    fontSize: 10,
+    fontSize: 12,
     color: '#fff',
   },
   loadingContainer: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    zIndex: 1000,
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
 });
 

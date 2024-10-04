@@ -55,9 +55,9 @@ const FeaturedItems = () => {
   if (isLoading) {
     return (
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.container}>
-        {[1, 2, 3, 4].map((_, index) => (
+        {[1, 2, 3, 4].map((index) => (
           <ShimmerPlaceholder
-            key={index}
+            key={`shimmer-${index}`}
             LinearGradient={LinearGradient}
             style={styles.shimmerItem}
           />

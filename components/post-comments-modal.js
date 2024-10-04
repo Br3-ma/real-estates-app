@@ -123,7 +123,7 @@ const CommentsModal = ({ visible, postId, onClose }) => {
         <View style={styles.messageFooter}>
           <Text style={styles.messageTime}>{timeElapsed(message.created_at)}</Text>
           <TouchableOpacity onPress={() => console.log('Reply to:', message.user.name)}>
-            <Text style={styles.replyLink}>Reply</Text>
+            {/* <Text style={styles.replyLink}>Reply</Text> */}
           </TouchableOpacity>
         </View>
       </View>

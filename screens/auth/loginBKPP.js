@@ -1,17 +1,21 @@
+// Error Free Landing
+// No Text Input Left Icons
+
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, Animated } from 'react-native';
 import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-// import * as Google from 'expo-auth-session/providers/google';
-// import * as Facebook from 'expo-auth-session/providers/facebook'; // Import Facebook provider
+import * as Google from 'expo-auth-session/providers/google';
+import * as Facebook from 'expo-auth-session/providers/facebook'; // Import Facebook provider
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
-// import * as Random from 'expo-random'; // Import expo-random
+import * as Random from 'expo-random'; // Import expo-random
 
+// Define a custom theme for react-native-paper
 const theme = {
   ...DefaultTheme,
   colors: {
@@ -28,14 +32,16 @@ const SignInScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
 
-  // const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
-  //   clientId: '335360787471-f9vabut71lv9rcsp2qhcp8tmftohn2m6.apps.googleusercontent.com',
-  //   scopes: ['profile', 'email'],
-  // });
+  // Set up Google sign-in with expo-auth-session
+  const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
+    clientId: '335360787471-f9vabut71lv9rcsp2qhcp8tmftohn2m6.apps.googleusercontent.com',
+    scopes: ['profile', 'email'],
+  });
 
-  // const [facebookRequest, facebookResponse, promptFacebookAsync] = Facebook.useAuthRequest({
-  //   clientId: '547040544348844',
-  // });
+  // Set up Facebook sign-in with expo-auth-session
+  const [facebookRequest, facebookResponse, promptFacebookAsync] = Facebook.useAuthRequest({
+    clientId: '547040544348844',
+  });
 
   useEffect(() => {
     if (googleResponse?.type === 'success') {
@@ -48,15 +54,58 @@ const SignInScreen = ({ navigation }) => {
       handleFacebookSignIn(authentication.accessToken);
     }
   }, [googleResponse, facebookResponse]);
-  
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
 
+  // Handle Google sign-in using API
+  const handleGoogleSignIn = async (accessToken) => {
+    setLoading(true);
+    try {
+      const userData = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const response = await axios.post(`${API_BASE_URL}/google-signin`, userData.data);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
+      Toast.show({
+        type: 'success',
+        text1: 'Google Sign-In Successful',
+        text2: `Welcome ${userData.data.name}!`,
+      });
+      navigation.navigate('Main');
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Google Sign-In Error',
+        text2: 'Unable to sign in with Google. Please try again later.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Facebook sign-in using API
+  const handleFacebookSignIn = async (accessToken) => {
+    setLoading(true);
+    try {
+      const userData = await axios.get(`https://graph.facebook.com/me?access_token=${accessToken}&fields=id,name,email`);
+      const response = await axios.post(`${API_BASE_URL}/facebook-signin`, userData.data);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
+      Toast.show({
+        type: 'success',
+        text1: 'Facebook Sign-In Successful',
+        text2: `Welcome ${userData.data.name}!`,
+      });
+      navigation.navigate('Main');
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Not Sign-In with Facebook',
+        text2: 'Unable to sign in with Facebook. Please try again later.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Default Sign-in function
   const handleSignIn = async () => {
     setLoading(true);
     try {
@@ -69,6 +118,7 @@ const SignInScreen = ({ navigation }) => {
       });
       navigation.navigate('Main');
     } catch (error) {
+      console.log('Error details:', error);
       Toast.show({
         type: 'error',
         text1: 'Oops!',
@@ -79,55 +129,14 @@ const SignInScreen = ({ navigation }) => {
     }
   };
 
-
-  const handleGoogleSignIn = async (accessToken) => {
-    setLoading(true);
-    // try {
-    //   const userData = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-    //     headers: { Authorization: `Bearer ${accessToken}` },
-    //   });
-    //   const response = await axios.post(`${API_BASE_URL}/google-signin`, userData.data);
-    //   await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-    //   Toast.show({
-    //     type: 'success',
-    //     text1: 'Google Sign-In Successful',
-    //     text2: `Welcome ${userData.data.name}!`,
-    //   });
-    //   navigation.navigate('Main');
-    // } catch (error) {
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'Google Sign-In Error',
-    //     text2: 'Unable to sign in with Google. Please try again later.',
-    //   });
-    // } finally {
-    //   setLoading(false);
-    // }
-  };
-
-
-  const handleFacebookSignIn = async (accessToken) => {
-    // setLoading(true);
-    // try {
-    //   const userData = await axios.get(`https://graph.facebook.com/me?access_token=${accessToken}&fields=id,name,email`);
-    //   const response = await axios.post(`${API_BASE_URL}/facebook-signin`, userData.data);
-    //   await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-    //   Toast.show({
-    //     type: 'success',
-    //     text1: 'Facebook Sign-In Successful',
-    //     text2: `Welcome ${userData.data.name}!`,
-    //   });
-    //   navigation.navigate('Main');
-    // } catch (error) {
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'Not Sign-In with Facebook',
-    //     text2: 'Unable to sign in with Facebook. Please try again later.',
-    //   });
-    // } finally {
-    //   setLoading(false);
-    // }
-  };
+  // Animating surface opacity on component mount
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
 
   return (
     <LinearGradient colors={['#4158D0', '#C850C0', '#FFCC70']} style={styles.gradient}>
@@ -135,9 +144,9 @@ const SignInScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Animated.View style={[styles.surface, { opacity: fadeAnim }]}>
           <Surface style={styles.logoContainer}>
-            <MaterialCommunityIcons name="home-outline" size={28} color={theme.colors.primary} />
+            <MaterialCommunityIcons name="home-outline" size={48} color={theme.colors.primary} />
           </Surface>
-          <Title style={styles.title}>Square</Title>
+          <Title style={styles.title}>SQuare</Title>
           <Text style={styles.subtitle}>Houses for rent and sale</Text>
 
           {/* Email Input */}
@@ -148,7 +157,6 @@ const SignInScreen = ({ navigation }) => {
             mode="outlined"
             style={styles.input}
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="email" size={24} color={theme.colors.primary} />} />}
           />
 
           {/* Password Input */}
@@ -160,7 +168,6 @@ const SignInScreen = ({ navigation }) => {
             mode="outlined"
             style={styles.input}
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="lock" size={24} color={theme.colors.primary} />} />}
           />
 
           {/* Sign In Button */}
@@ -223,6 +230,7 @@ const SignInScreen = ({ navigation }) => {
   );
 };
 
+// Styles
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   scrollView: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 16 },
@@ -234,7 +242,7 @@ const styles = StyleSheet.create({
   button: { width: '100%', marginTop: 6, borderRadius: 25 },
   googleButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.primary, borderRadius: 25 },
   facebookButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.accent, borderRadius: 25 },
-  buttonContent: { height: 44 },
+  buttonContent: { height: 48 },
   buttonLabel: { fontWeight: 'bold', fontSize: 16, textTransform: 'uppercase', color: 'white' },
   googleButtonLabel: { color: theme.colors.primary },
   facebookButtonLabel: { color: theme.colors.accent },

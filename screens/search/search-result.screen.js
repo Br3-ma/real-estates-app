@@ -148,13 +148,25 @@ const SearchResultScreen = ({ route, navigation }) => {
   },[filterForm]);
 
   const showImageViewer = useCallback(async (images, property) => {
-    if (isPostViewerModalVisible) {
-      setPostViewerModalVisible(false);
+    try {
+      if (isPostViewerModalVisible) {
+        setPostViewerModalVisible(false);
+      }
+  
+      
+      // Proceed with setting the images and property
+      setCurrentImages(images);
+      setSelectedProperty(property);
+      setPostViewerModalVisible(true);
+      
+    } catch (error) {
+      console.error('Error in showImageViewer:', error);
+      // Optionally, you can show a message or alert to the user
+      // For example, you can use a toast notification or alert modal
+      // showToast('Error loading images');
     }
-    setCurrentImages(images);
-    setSelectedProperty(property);
-    setPostViewerModalVisible(true);
   }, [isPostViewerModalVisible]);
+  
   
   const handleBedroomsChange = useCallback((num, isChecked) => {
     setNumBeds(prev => {

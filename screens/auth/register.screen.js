@@ -19,7 +19,7 @@ const theme = {
   },
 };
 
-const SignupRealEstateAgentScreen = ({ navigation }) => {
+const SignupsquareateAgentScreen = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -77,11 +77,33 @@ const SignupRealEstateAgentScreen = ({ navigation }) => {
       await AsyncStorage.multiRemove(['signupName', 'signupEmail', 'signupPhone']);
       navigation.navigate('Main');
     } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: error.response?.data?.message || 'An error occurred during signup'
-      });
+        // Log the full error object
+        console.log('Error details:', error);
+
+        // Log useful parts of the error object for Axios
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.log('Response data:', error.response.data);
+          console.log('Response status:', error.response.status);
+          console.log('Response headers:', error.response.headers);
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.log('Request data:', error.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.log('Error message:', error.message);
+        }
+
+        // Additional details about the request configuration
+        console.log('Config:', error.config);
+
+        // Show user-friendly error message via Toast
+        Toast.show({
+          type: 'error',
+          text1: 'Sign Up Error',
+          text2: error.message ? error.message : 'Unknown error occurred. Please try again.',
+        });
       console.error('Signup Error:', error);
     } finally {
       setLoading(false);
@@ -269,4 +291,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SignupRealEstateAgentScreen;
+export default SignupsquareateAgentScreen;

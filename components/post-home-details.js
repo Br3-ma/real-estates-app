@@ -6,9 +6,9 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Button, Icon } from 'react-native-elements';
 import { SERVER_BASE_URL } from '../confg/config';
-import styles from '../assets/css/home-post-details.css';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
 const HomeImageViewerModal = ({
   isImageViewVisible,
   setImageViewVisible,
@@ -31,7 +31,7 @@ return (
       visible={isImageViewVisible}
       onRequestClose={() => {
         setImageViewVisible(false);
-        setSelectedProperty(null);
+        // setSelectedProperty(null);
         terminateFetchInterval();
       }}
     >
@@ -40,11 +40,11 @@ return (
           style={styles.closeButton}
           onPress={() => {
             setImageViewVisible(false);
-            setSelectedProperty(null);
+            // setSelectedProperty(null);
             terminateFetchInterval();
           }}
         >
-          <MaterialIcons name="arrow-back" size={24} color="#000" />
+          <MaterialIcons name="arrow-back" size={24} color="#8E2DE2" />
         </TouchableOpacity>
 
         <ScrollView contentContainerStyle={styles.modalContent}>
@@ -55,19 +55,7 @@ return (
                   source={{ uri: `${SERVER_BASE_URL}/storage/app/` + image.path }}
                   style={styles.imageBackground}
                 >
-                  {selectedProperty && (
-                    <View style={styles.overlayDetails}>
-                      <Text style={styles.overlayText}>{selectedProperty.title} - K{selectedProperty.price}</Text>
-                      <View style={styles.overlayIconRow}>
-                        <Icon name="bed" type="material" size={18} color="#fff" />
-                        <Text style={styles.overlayTextSmall}>{selectedProperty?.beds} Bedroom(s)</Text>
-                        <Icon name="bathtub" type="material" size={18} color="#fff" />
-                        <Text style={styles.overlayTextSmall}>{selectedProperty.baths} Bathroom(s)</Text>
-                        <Icon name="square-foot" type="material" size={18} color="#fff" />
-                        <Text style={styles.overlayTextSmall}>{selectedProperty.sqft} Square foot</Text>
-                      </View>
-                    </View>
-                  )}
+
                 </ImageBackground>
               </View>
             ))}
@@ -91,16 +79,16 @@ return (
                 <Text style={styles.propertyDescription}>{selectedProperty.location}</Text>
                 <View style={styles.propertyDetailsRow}>
                   <View style={styles.propertyDetailsItem}>
-                    <MaterialIcons name="hotel" size={20} color="#ffeded" />
+                    <MaterialIcons name="hotel" size={20} color="#8E2DE2" />
                     <Text style={styles.propertyDetailsText}>{selectedProperty.bedrooms} Bedrooms</Text>
                   </View>
                   <View style={styles.propertyDetailsItem}>
-                    <MaterialIcons name="bathtub" size={20} color="#ffeded" />
+                    <MaterialIcons name="bathtub" size={20} color="#8E2DE2" />
                     <Text style={styles.propertyDetailsText}>{selectedProperty.bathrooms} Bathroom</Text>
                   </View>
                   <View style={styles.propertyDetailsItem}>
-                    <MaterialIcons name="aspect-ratio" size={20} color="#ffeded" />
-                    <Text style={styles.propertyDetailsText}>{selectedProperty.area} Square foot</Text>
+                    <MaterialIcons name="aspect-ratio" size={20} color="#8E2DE2" />
+                    <Text style={styles.propertyDetailsText}>{selectedProperty.area} Sqr. foot</Text>
                   </View>
                 </View>
               </>
@@ -110,16 +98,16 @@ return (
           {/* Features & Amenities */}
           <View style={styles.featureAmenitiesContainer}>
             <Text style={styles.featureAmenitiesTitle}>Features & Amenities</Text>
-            {selectedProperty && selectedProperty.features ? (
-              selectedProperty.features.map((feature, index) => (
+            {selectedProperty && selectedProperty.amenities ? (
+              selectedProperty.amenities.map((feature, index) => (
                 <View key={index} style={styles.featureAmenitiesItem}>
                   <MaterialIcons name="check" size={20} color="#000" />
-                  <Text style={styles.featureAmenitiesText}>{feature.name}</Text>
-                  {feature.link && (
+                  <Text style={styles.featureAmenitiesText}>{feature.amenity_name}</Text>
+                  {/* {feature.link && (
                     <TouchableOpacity onPress={() => openFeatureLink(feature.link)}>
                       <Text style={styles.featureAmenitiesLink}>View More</Text>
                     </TouchableOpacity>
-                  )}
+                  )} */}
                 </View>
               ))
             ) : (
@@ -128,7 +116,7 @@ return (
           </View>
 
           {/* Map Finder */}
-          <View style={styles.mapFinderContainer}>
+          {/* <View style={styles.mapFinderContainer}>
             <Text style={styles.sectionTitle}>Map Finder</Text>
             <ImageBackground
               source={{ uri: 'https://cms-assets.tutsplus.com/cdn-cgi/image/width=850/uploads/users/346/posts/6709/final_image/informativemap_final.jpg' }}
@@ -136,19 +124,19 @@ return (
             >
               <Button title="Open Map" style={styles.openMapButton} onPress={() => openMap(selectedProperty.location)} />
             </ImageBackground>
-          </View>
+          </View> */}
         </ScrollView>
 
         {/* View Comments Button */}
         <View style={styles.toggleButton}>
           {/* SMS Button */}
-          <TouchableOpacity style={styles.commentButton} onPress={() => sendSMS(selectedProperty.phone)}>
+          <TouchableOpacity style={styles.smstButton} onPress={() => sendSMS(selectedProperty.phone)}>
             <MaterialIcons name="message" size={30} color="#165F56" />
             <Text style={styles.buttonLabel}>SMS</Text>
           </TouchableOpacity>
 
           {/* Call Button */}
-          <TouchableOpacity style={styles.commentButton} onPress={() => callNumber(selectedProperty.phone)}>
+          <TouchableOpacity style={styles.callButton} onPress={() => callNumber(selectedProperty.phone)}>
             <MaterialIcons name="call" size={30} color="#165F56" />
             <Text style={styles.buttonLabel}>Call</Text>
           </TouchableOpacity>
@@ -169,5 +157,158 @@ return (
     </Modal>
   );
 };
+
+const styles = {
+  modalContent: {
+    flexGrow: 1,
+    backgroundColor: '#0A0E21',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 40 : 20,
+    left: 15,
+    zIndex: 10,
+    padding: 8,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  topImageContainer: {
+    height: height * 0.55,
+    width: width,
+  },
+  imageContainer: {
+    width: width,
+    height: height * 0.55,
+  },
+  imageBackground: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  videoCover: {
+    width: width,
+    height: height * 0.55,
+  },
+  detailsContainer: {
+    backgroundColor: '#f1f2fe',
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
+    marginTop: -25,
+    padding: 20,
+    elevation: 5,
+  },
+  propertyTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#393b4f',
+    marginBottom: 10,
+  },
+  propertyPrice: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#8E2DE2',
+    marginBottom: 15,
+    textShadowColor: 'rgba(142, 45, 226, 0.5)',
+    textShadowOffset: {width: -1, height: 1},
+    textShadowRadius: 8,
+  },
+  propertyDescription: {
+    fontSize: 16,
+    color: '#B0B0B0',
+    marginBottom: 15,
+    lineHeight: 24,
+  },
+  propertyDetailsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    backgroundColor: 'rgba(240, 230, 255, 0.1)',
+    borderRadius: 12,
+    padding: 15,
+  },
+  propertyDetailsItem: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  propertyDetailsText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  featureAmenitiesContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 20,
+    marginTop: 15,
+    borderRadius: 12,
+    elevation: 3,
+  },
+  featureAmenitiesTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 15,
+  },
+  featureAmenitiesItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    backgroundColor: 'rgba(142, 45, 226, 0.1)',
+    borderRadius: 10,
+    padding: 12,
+  },
+  featureAmenitiesText: {
+    marginLeft: 12,
+    fontSize: 16,
+    color: '#E0E0E0',
+  },
+  featureAmenitiesLink: {
+    color: '#8E2DE2',
+    marginLeft: 10,
+    textDecorationLine: 'underline',
+    fontSize: 14,
+  },
+  toggleButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#1C2141',
+    paddingVertical: 15,
+    paddingHorizontal: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#2A3158',
+  },
+  commentButton: {
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: 'rgba(142, 45, 226, 0.3)',
+    borderRadius: 12,
+  },
+  smsButton: {
+    alignItems: 'center',
+    padding: 10,
+    paddingHorizontal:30,
+    backgroundColor: 'rgba(142, 45, 226, 0.3)',
+    borderRadius: 12,
+  },
+  callButton: {
+    alignItems: 'center',
+    padding: 10,
+    paddingHorizontal:30,
+    backgroundColor: 'rgba(142, 45, 226, 0.3)',
+    borderRadius: 12,
+  },
+  whatsappIcon: {
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: 'rgba(37, 211, 102, 0.3)',
+    borderRadius: 12,
+  },
+  buttonLabel: {
+    marginTop: 6,
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+};
+
 
 export default HomeImageViewerModal;

@@ -23,6 +23,7 @@ import TopListing from '../components/top-listing';
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [properties, setProperties] = useState([]);
+  const [hot_properties, setHotProperties] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -53,6 +54,9 @@ const HomeScreen = ({ navigation }) => {
         const response = await axios.get(`${API_BASE_URL}/property-posts`);
         setProperties(response.data);
 
+        const response1 = await axios.get(`${API_BASE_URL}/hot-property-posts`);
+        setHotProperties(response1.data);
+
         const response2 = await axios.get(`${API_BASE_URL}/categories`); // Replace with your API endpoint
         setButtons(response2.data.data);
       } catch (error) {
@@ -75,11 +79,15 @@ const HomeScreen = ({ navigation }) => {
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setProperties([]);
+    setHotProperties([]);
     // Fetch data again
     const fetchProperties = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/property-posts`);
         setProperties(response.data);
+
+        const response1 = await axios.get(`${API_BASE_URL}/hot-property-posts`);
+        setHotProperties(response1.data);
   
         const response2 = await axios.get(`${API_BASE_URL}/categories`); // Replace with your API endpoint
         setButtons(response2.data.data);
@@ -256,14 +264,14 @@ const HomeScreen = ({ navigation }) => {
             <FeaturedItems />
           </View>
           <TopListing 
-            properties={properties.slice(0, 10)} // Show only the first 10 properties
+            properties={hot_properties.slice(0, 10)} // Show only the first 10 properties
             loading={loading}
             onPress={handleTopListingPress}
           />
           {loading ? (
             <View style={styles.loader}>
               {[1, 2, 3].map((item) => (
-                <ShimmerPlaceholder key={item} style={styles.placeholder} />
+                <ShimmerPlaceholder key={`loader-${item}`} style={styles.placeholder} />
               ))}
             </View>
           ) : (

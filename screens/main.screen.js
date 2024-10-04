@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Image, Text, TouchableOpacity, Platform, SafeAreaView, StatusBar } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, Platform, SafeAreaView, StatusBar } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -29,16 +29,20 @@ const TabBarIcon = ({ name, size, color, focused }) => {
 const CustomHeader = () => {
   const navigation = useNavigation();
 
+  const goToHomeAndRefresh = () => {
+    // Navigate to HomeScreen with a unique key to force refresh
+    navigation.navigate('Home', { refresh: Date.now() });
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <View style={styles.headerTitleContainer}>
+        <TouchableOpacity onPress={goToHomeAndRefresh} style={styles.headerTitleContainer}>
           <Image
-            source={require('../assets/icon/logo.png')}
+            source={require('../assets/icon/ddd.png')}
             style={styles.headerImage}
           />
-          <Text style={styles.headerText}>SQuare</Text>
-        </View>
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.headerRightButton}>
           <MaterialCommunityIcons name="bell-outline" size={24} color="#FFFFFF" />
         </TouchableOpacity>
@@ -99,12 +103,7 @@ const styles = StyleSheet.create({
     height: 32,
     marginRight: 12,
     borderRadius: 16,
-  },
-  headerText: {
-    fontSize: 22,
-    color: '#c27fe3',
-    fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    backgroundColor: '#FFFFFF',
   },
   headerRightButton: {
     padding: 8,

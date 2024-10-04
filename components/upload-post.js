@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Modal, TextInput, ScrollView, View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import { Modal, TextInput, ScrollView, View, Text, TouchableOpacity, Image, StyleSheet, Alert, Dimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,6 +7,11 @@ import { Button as RNButton } from '@rneui/themed';
 import axios from 'axios';
 import { API_BASE_URL } from '../confg/config';
 import { Video } from 'expo-av';
+import PingMapModal from '../screens/maps/ping-location.screen';
+import AddAmenitiesModal from './add-amenities-modal';
+
+
+const { width, height } = Dimensions.get('window');
 
 const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPropertyDetails, uploadImages, uploadVideos, setUploadImages, setUploadVideos, uploadPost, uploading }) => {
   const [propertyTypes, setPropertyTypes] = useState([]);
@@ -17,6 +22,9 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [uploadingVideos, setUploadingVideos] = useState(false);
+  const [mapModalVisible, setMapModalVisible] = useState(false);
+  const [amenitiesModalVisible, setAmenitiesModalVisible] = useState(false);
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
 
   // Fetch mock data for property types, locations, and categories
   useEffect(() => {
@@ -106,8 +114,23 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
       </TouchableOpacity>
     </View>
   );
+  // Function to handle the selected coordinates from the map
+  const handleLocationSelect = (longitude, latitude) => {
+    setPropertyDetails({
+      ...propertyDetails,
+      long: longitude.toString(),
+      lat: latitude.toString(),
+    });
+    setMapModalVisible(false); // Close the map modal
+  };
+  // The handler for saving amenities
+  const handleSaveAmenities = (amenities) => {
+    setSelectedAmenities(amenities);
+    setPropertyDetails({ ...propertyDetails, amenities });
+  };
 
   return (
+    <>
     <Modal
       animationType="slide"
       transparent={true}
@@ -149,35 +172,47 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
               />
               <View style={styles.inputRow}>
                 <TextInput
-                  placeholder="No. of Beds"
+                  placeholder="Number of Bedrooms"
                   style={[styles.input, styles.inputRowItem]}
                   onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bedrooms: text })}
                 />
                 <TextInput
-                  placeholder="No. of Baths"
+                  placeholder="Number of Bathrooms"
                   style={[styles.input, styles.inputRowItem]}
                   onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bathrooms: text })}
                 />
               </View>
               <View style={styles.inputRow}>
                 <TextInput
-                  placeholder="Square Foot"
+                  placeholder="Square Foot (Optional)"
                   style={[styles.input, styles.inputRowItem]}
                   onChangeText={(text) => setPropertyDetails({ ...propertyDetails, area: text })}
                 />
               </View>
 
               <View style={styles.inputRow}>
-                <TextInput
-                  placeholder="Longitute"
-                  style={[styles.input, styles.inputRowItem]}
-                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, long: text })}
-                />
-                <TextInput
-                  placeholder="Latitude"
-                  style={[styles.input, styles.inputRowItem]}
-                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, lat: text })}
-                />
+                  <TouchableOpacity
+                      style={styles.amenitiesButton}
+                      onPress={() => setAmenitiesModalVisible(true)} // Open amenities modal
+                    >
+                    <Text style={styles.amenitiesButtonText}>Add Amenities</Text>
+                  </TouchableOpacity>
+                  {/* <TouchableOpacity
+                      style={styles.mapLinkButton}
+                      onPress={() => setMapModalVisible(true)}
+                    >
+                      <Text style={styles.mapLinkText}>Ping Location</Text>
+                  </TouchableOpacity>
+                  <TextInput
+                    placeholder="Longitute"
+                    style={[styles.input, styles.inputRowItem]}
+                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, long: text })}
+                  />
+                  <TextInput
+                    placeholder="Latitude"
+                    style={[styles.input, styles.inputRowItem]}
+                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, lat: text })}
+                  /> */}
               </View>
               
               {/* Property Type selection */}
@@ -280,91 +315,150 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
           </View>
         </View>
       </BlurView>
-    </Modal>
+    </Modal>      
+    <PingMapModal
+        visible={mapModalVisible}
+        onClose={() => setMapModalVisible(false)}
+        onSelectLocation={handleLocationSelect}
+      />
+
+    <AddAmenitiesModal
+      visible={amenitiesModalVisible}
+      onClose={() => setAmenitiesModalVisible(false)}
+      onSave={handleSaveAmenities}
+      selectedAmenities={selectedAmenities}
+      setSelectedAmenities={setSelectedAmenities}
+    />
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 2,
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     width: '100%',
-    height: '100%',
-    paddingTop: 10,
+    maxHeight: height * 0.9,
+    paddingTop: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 20,
+  },
+  dragIndicator: {
+    width: 40,
+    height: 5,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginBottom: 15,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    paddingHorizontal: 10,
+    marginBottom: 20,
+    paddingHorizontal: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    paddingBottom: 15,
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#438ab5',
+    color: '#333333',
+  },
+  closeButton: {
+    padding: 8,
   },
   modalScrollView: {
     flexGrow: 1,
+    paddingHorizontal: 24,
+  },
+  inputGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -8,
+  },
+  inputWrapper: {
+    width: '50%',
+    paddingHorizontal: 8,
+    marginBottom: 16,
   },
   input: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    marginBottom: 16,
-    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
   },
   textarea: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 16,
-    padding: 10,
+    borderColor: '#e0e0e0',
+    borderRadius: 12,
+    padding: 16,
     textAlignVertical: 'top',
-    minHeight: 100,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    minHeight: 120,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
     marginBottom: 16,
-  },
-  inputRowItem: {
-    flex: 1,
-    marginRight: 8,
   },
   categoryContainer: {
     marginBottom: 24,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 16,
+    padding: 20,
   },
   categoryTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 12,
-    paddingHorizontal: 16,
+    color: '#333333',
   },
   categoryScrollView: {
-    paddingLeft: 16,
+    paddingBottom: 8,
   },
   categoryItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#E8F4FD',
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    backgroundColor: '#ffffff',
     borderRadius: 20,
-    marginRight: 8,
+    marginRight: 12,
+    marginBottom: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   categoryItemSelected: {
-    backgroundColor: '#438ab5',
+    backgroundColor: '#007aff',
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14
   },
   categoryItemText: {
-    color: '#438ab5',
+    color: '#f5dc4d0',
     fontWeight: '600',
+    fontSize: 14,
+  },
+  categoryItemTextSelected: {
+    color: '#ffffff',
   },
   uploadButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    marginTop: 8,
   },
   uploadButton: {
     flexDirection: 'row',
@@ -372,51 +466,97 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 12,
     borderWidth: 1,
-    borderColor: '#438ab5',
-    borderRadius: 8,
+    borderColor: '#007aff',
+    borderRadius: 12,
     flex: 1,
-    marginHorizontal: 8,
+    marginHorizontal: 6,
+    backgroundColor: '#f0f8ff',
   },
   uploadButtonText: {
     marginLeft: 8,
-    color: '#438ab5',
+    color: '#007aff',
     fontWeight: '600',
+    fontSize: 14,
   },
   uploadedMediaContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    paddingHorizontal: 16,
+    marginHorizontal: -6,
+    marginBottom: 24,
   },
   mediaItemContainer: {
     position: 'relative',
-    margin: 4,
+    margin: 6,
   },
   uploadedMedia: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
+    width: (width - 72) / 3,
+    height: (width - 72) / 3,
+    borderRadius: 12,
   },
   removeMediaButton: {
     position: 'absolute',
     top: -8,
     right: -8,
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 15,
+    padding: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
   modalFooter: {
-    marginTop: 20,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 24,
+    paddingBottom: 30,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
   },
   btnCreate: {
-    backgroundColor: '#438ab5',
-    borderRadius: 8,
-    height: 48,
+    backgroundColor: '#007aff',
+    borderRadius: 16,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   btnCreateText: {
     fontSize: 18,
     fontWeight: '600',
+    color: '#ffffff',
+  },
+  mapLinkButton: {
+    backgroundColor: '#34c759',
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  mapLinkText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  amenitiesButton: {
+    padding: 14,
+    backgroundColor: '#5856d6',
+    borderRadius: 16,
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  amenitiesButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 

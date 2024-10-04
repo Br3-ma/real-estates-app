@@ -519,8 +519,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 20,
-    marginHorizontal: 5,
-    marginTop: -40
+    marginHorizontal: 2,
+    marginTop: -30
   },
   statItem: {
     alignItems: 'center',

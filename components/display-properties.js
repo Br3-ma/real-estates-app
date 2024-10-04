@@ -76,7 +76,11 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
         {item.images.map((img, index) => (
           <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.videos, item)}>
             <Image
-              source={{ uri: `${SERVER_BASE_URL}/storage/app/` + img.path }}
+              source={{
+                uri: img?.path
+                  ? `${SERVER_BASE_URL}/storage/app/` + img.path
+                  : `${SERVER_BASE_URL}/storage/app/images/no-img.png`, 
+              }}
               style={getImageStyle(item.images.length)}
             />
           </TouchableOpacity>

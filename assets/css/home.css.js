@@ -133,54 +133,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f9f9f9',
   },
-  featureAmenitiesTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-  },
-  featureAmenitiesItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  featureAmenitiesText: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: '#555',
-  },
-  featureAmenitiesLink: {
-    color: '#60279C',
-    marginLeft: 10,
-    textDecorationLine: 'underline',
-  },
-  mapFinderContainer: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-  },
-  mapImage: {
-    width: '100%',
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  openMapButton: {
-    backgroundColor: '#60279C',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 5,
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
+
   messageContent: {
     flex: 1,
   },
@@ -221,12 +174,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  messageContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  },
   messageContent: {
     flex: 1,
     backgroundColor: '#fff',
