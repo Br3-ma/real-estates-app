@@ -4,7 +4,6 @@ import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook'; // Import Facebook provider
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
@@ -34,23 +33,13 @@ const SignInScreen = ({ navigation }) => {
     scopes: ['profile', 'email'],
   });
 
-  // Facebook Sign-In setup
-  const [facebookRequest, facebookResponse, promptFacebookAsync] = Facebook.useAuthRequest({
-    clientId: '547040544348844',
-  });
-
   // Handle authentication responses
   useEffect(() => {
     if (googleResponse?.type === 'success') {
       const { authentication } = googleResponse;
       handleGoogleSignIn(authentication.accessToken);
     }
-
-    if (facebookResponse?.type === 'success') {
-      const { authentication } = facebookResponse;
-      handleFacebookSignIn(authentication.accessToken);
-    }
-  }, [googleResponse, facebookResponse]);
+  }, [googleResponse]);
 
   const handleGoogleSignIn = async (accessToken) => {
     setLoading(true);
@@ -71,29 +60,6 @@ const SignInScreen = ({ navigation }) => {
         type: 'error',
         text1: 'Google Sign-In Error',
         text2: 'Unable to sign in with Google. Please try again later.',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFacebookSignIn = async (accessToken) => {
-    setLoading(true);
-    try {
-      const userData = await axios.get(`https://graph.facebook.com/me?access_token=${accessToken}&fields=id,name,email`);
-      const response = await axios.post(`${API_BASE_URL}/facebook-signin`, userData.data);
-      await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-      Toast.show({
-        type: 'success',
-        text1: 'Facebook Sign-In Successful',
-        text2: `Welcome ${userData.data.name}!`,
-      });
-      navigation.navigate('Main');
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Facebook Sign-In Error',
-        text2: 'Unable to sign in with Facebook. Please try again later.',
       });
     } finally {
       setLoading(false);
@@ -176,29 +142,22 @@ const SignInScreen = ({ navigation }) => {
             Sign In
           </Button>
 
-          {/* Google Sign-In Button */}
-          <Button
-            mode="outlined"
-            onPress={() => promptGoogleAsync()}
-            disabled={loading || !googleRequest}
-            style={styles.googleButton}
-            contentStyle={styles.buttonContent}
-            labelStyle={styles.googleButtonLabel}
-          >
-            Sign In with Google
-          </Button>
+{/* Google Sign-In Button */}
+<Button
+  mode="contained"
+  onPress={() => promptGoogleAsync()}
+  disabled={loading || !googleRequest}
+  style={styles.googleButton}
+  contentStyle={styles.googleButtonContent}
+  labelStyle={styles.googleButtonLabel}
+  icon={() => (
+    <MaterialCommunityIcons name="google" size={24} color="#FFFFFF" />
+  )}
+>
+  Sign in with Google
+</Button>
 
-          {/* Facebook Sign-In Button */}
-          <Button
-            mode="outlined"
-            onPress={() => promptFacebookAsync()}
-            disabled={loading || !facebookRequest}
-            style={styles.facebookButton}
-            contentStyle={styles.buttonContent}
-            labelStyle={styles.facebookButtonLabel}
-          >
-            Sign In with Facebook
-          </Button>
+
 
           {/* Forgot Password Button */}
           <Button
@@ -233,14 +192,30 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: '#666', marginBottom: 20 },
   input: { width: '100%', marginBottom: 12, backgroundColor: 'white' },
   button: { width: '100%', marginTop: 6, borderRadius: 4 },
-  googleButton: { width: '100%', marginTop: 6, borderRadius: 4 },
-  facebookButton: { width: '100%', marginTop: 6, borderRadius: 4 },
   buttonContent: { paddingVertical: 6 },
   buttonLabel: { fontSize: 16 },
-  googleButtonLabel: { fontSize: 16, color: theme.colors.primary },
-  facebookButtonLabel: { fontSize: 16, color: theme.colors.accent },
   textButton: { marginTop: 12 },
   textButtonLabel: { fontSize: 14, color: theme.colors.primary },
+  googleButton: {
+    width: '100%',
+    marginTop: 12,
+    borderRadius: 4,
+    backgroundColor: '#4285F4', // Google blue background
+    borderWidth: 1,
+    borderColor: '#4285F4', // Matching blue border
+  },
+  googleButtonContent: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 10, // Increased padding for comfortable clicking
+  },
+  googleButtonLabel: {
+    fontSize: 16,
+    color: '#FFFFFF', // White text to match official Google button theme
+    marginLeft: 20, // Space between Google logo and text
+    fontWeight: 'bold', // Bold text for better visibility
+  },
 });
 
 export default SignInScreen;
