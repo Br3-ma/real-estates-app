@@ -1,6 +1,3 @@
-// Error Free Landing
-// No Text Input Left Icons
-
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, Animated } from 'react-native';
 import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface } from 'react-native-paper';
@@ -15,7 +12,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import * as Random from 'expo-random'; // Import expo-random
 
-// Define a custom theme for react-native-paper
 const theme = {
   ...DefaultTheme,
   colors: {
@@ -32,17 +28,18 @@ const SignInScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
 
-  // Set up Google sign-in with expo-auth-session
+  // Google Sign-In setup
   const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
     clientId: '335360787471-f9vabut71lv9rcsp2qhcp8tmftohn2m6.apps.googleusercontent.com',
     scopes: ['profile', 'email'],
   });
 
-  // Set up Facebook sign-in with expo-auth-session
+  // Facebook Sign-In setup
   const [facebookRequest, facebookResponse, promptFacebookAsync] = Facebook.useAuthRequest({
     clientId: '547040544348844',
   });
 
+  // Handle authentication responses
   useEffect(() => {
     if (googleResponse?.type === 'success') {
       const { authentication } = googleResponse;
@@ -55,7 +52,6 @@ const SignInScreen = ({ navigation }) => {
     }
   }, [googleResponse, facebookResponse]);
 
-  // Handle Google sign-in using API
   const handleGoogleSignIn = async (accessToken) => {
     setLoading(true);
     try {
@@ -81,7 +77,6 @@ const SignInScreen = ({ navigation }) => {
     }
   };
 
-  // Handle Facebook sign-in using API
   const handleFacebookSignIn = async (accessToken) => {
     setLoading(true);
     try {
@@ -97,7 +92,7 @@ const SignInScreen = ({ navigation }) => {
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: 'Not Sign-In with Facebook',
+        text1: 'Facebook Sign-In Error',
         text2: 'Unable to sign in with Facebook. Please try again later.',
       });
     } finally {
@@ -105,7 +100,6 @@ const SignInScreen = ({ navigation }) => {
     }
   };
 
-  // Default Sign-in function
   const handleSignIn = async () => {
     setLoading(true);
     try {
@@ -118,7 +112,6 @@ const SignInScreen = ({ navigation }) => {
       });
       navigation.navigate('Main');
     } catch (error) {
-      console.log('Error details:', error);
       Toast.show({
         type: 'error',
         text1: 'Oops!',
@@ -129,7 +122,6 @@ const SignInScreen = ({ navigation }) => {
     }
   };
 
-  // Animating surface opacity on component mount
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -144,9 +136,9 @@ const SignInScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Animated.View style={[styles.surface, { opacity: fadeAnim }]}>
           <Surface style={styles.logoContainer}>
-            <MaterialCommunityIcons name="home-outline" size={48} color={theme.colors.primary} />
+            <MaterialCommunityIcons name="home-outline" size={28} color={theme.colors.primary} />
           </Surface>
-          <Title style={styles.title}>SQuare</Title>
+          <Title style={styles.title}>Square</Title>
           <Text style={styles.subtitle}>Houses for rent and sale</Text>
 
           {/* Email Input */}
@@ -157,6 +149,7 @@ const SignInScreen = ({ navigation }) => {
             mode="outlined"
             style={styles.input}
             theme={{ colors: { primary: theme.colors.primary } }}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="email" size={24} color={theme.colors.primary} />} />}
           />
 
           {/* Password Input */}
@@ -168,6 +161,7 @@ const SignInScreen = ({ navigation }) => {
             mode="outlined"
             style={styles.input}
             theme={{ colors: { primary: theme.colors.primary } }}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="lock" size={24} color={theme.colors.primary} />} />}
           />
 
           {/* Sign In Button */}
@@ -230,7 +224,6 @@ const SignInScreen = ({ navigation }) => {
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   scrollView: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 16 },
@@ -239,15 +232,15 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: 'bold', color: theme.colors.primary, marginVertical: 2 },
   subtitle: { fontSize: 14, color: '#666', marginBottom: 20 },
   input: { width: '100%', marginBottom: 12, backgroundColor: 'white' },
-  button: { width: '100%', marginTop: 6, borderRadius: 25 },
-  googleButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.primary, borderRadius: 25 },
-  facebookButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.accent, borderRadius: 25 },
-  buttonContent: { height: 48 },
-  buttonLabel: { fontWeight: 'bold', fontSize: 16, textTransform: 'uppercase', color: 'white' },
-  googleButtonLabel: { color: theme.colors.primary },
-  facebookButtonLabel: { color: theme.colors.accent },
+  button: { width: '100%', marginTop: 6, borderRadius: 4 },
+  googleButton: { width: '100%', marginTop: 6, borderRadius: 4 },
+  facebookButton: { width: '100%', marginTop: 6, borderRadius: 4 },
+  buttonContent: { paddingVertical: 6 },
+  buttonLabel: { fontSize: 16 },
+  googleButtonLabel: { fontSize: 16, color: theme.colors.primary },
+  facebookButtonLabel: { fontSize: 16, color: theme.colors.accent },
   textButton: { marginTop: 12 },
-  textButtonLabel: { fontWeight: 'bold', fontSize: 14, color: theme.colors.primary },
+  textButtonLabel: { fontSize: 14, color: theme.colors.primary },
 });
 
 export default SignInScreen;

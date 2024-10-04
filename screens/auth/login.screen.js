@@ -3,14 +3,14 @@ import { StyleSheet, ScrollView, Animated } from 'react-native';
 import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-// import * as Google from 'expo-auth-session/providers/google';
-// import * as Facebook from 'expo-auth-session/providers/facebook'; // Import Facebook provider
+import * as Google from 'expo-auth-session/providers/google';
+import * as Facebook from 'expo-auth-session/providers/facebook'; // Import Facebook provider
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
-// import * as Random from 'expo-random'; // Import expo-random
+import * as Random from 'expo-random'; // Import expo-random
 
 const theme = {
   ...DefaultTheme,
@@ -28,15 +28,18 @@ const SignInScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
 
-  // const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
-  //   clientId: '335360787471-f9vabut71lv9rcsp2qhcp8tmftohn2m6.apps.googleusercontent.com',
-  //   scopes: ['profile', 'email'],
-  // });
+  // Google Sign-In setup
+  const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
+    clientId: '335360787471-f9vabut71lv9rcsp2qhcp8tmftohn2m6.apps.googleusercontent.com',
+    scopes: ['profile', 'email'],
+  });
 
-  // const [facebookRequest, facebookResponse, promptFacebookAsync] = Facebook.useAuthRequest({
-  //   clientId: '547040544348844',
-  // });
+  // Facebook Sign-In setup
+  const [facebookRequest, facebookResponse, promptFacebookAsync] = Facebook.useAuthRequest({
+    clientId: '547040544348844',
+  });
 
+  // Handle authentication responses
   useEffect(() => {
     if (googleResponse?.type === 'success') {
       const { authentication } = googleResponse;
@@ -48,14 +51,54 @@ const SignInScreen = ({ navigation }) => {
       handleFacebookSignIn(authentication.accessToken);
     }
   }, [googleResponse, facebookResponse]);
-  
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-      useNativeDriver: true,
-    }).start();
-  }, [fadeAnim]);
+
+  const handleGoogleSignIn = async (accessToken) => {
+    setLoading(true);
+    try {
+      const userData = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const response = await axios.post(`${API_BASE_URL}/google-signin`, userData.data);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
+      Toast.show({
+        type: 'success',
+        text1: 'Google Sign-In Successful',
+        text2: `Welcome ${userData.data.name}!`,
+      });
+      navigation.navigate('Main');
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Google Sign-In Error',
+        text2: 'Unable to sign in with Google. Please try again later.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFacebookSignIn = async (accessToken) => {
+    setLoading(true);
+    try {
+      const userData = await axios.get(`https://graph.facebook.com/me?access_token=${accessToken}&fields=id,name,email`);
+      const response = await axios.post(`${API_BASE_URL}/facebook-signin`, userData.data);
+      await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
+      Toast.show({
+        type: 'success',
+        text1: 'Facebook Sign-In Successful',
+        text2: `Welcome ${userData.data.name}!`,
+      });
+      navigation.navigate('Main');
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Facebook Sign-In Error',
+        text2: 'Unable to sign in with Facebook. Please try again later.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSignIn = async () => {
     setLoading(true);
@@ -79,55 +122,13 @@ const SignInScreen = ({ navigation }) => {
     }
   };
 
-
-  const handleGoogleSignIn = async (accessToken) => {
-    setLoading(true);
-    // try {
-    //   const userData = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-    //     headers: { Authorization: `Bearer ${accessToken}` },
-    //   });
-    //   const response = await axios.post(`${API_BASE_URL}/google-signin`, userData.data);
-    //   await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-    //   Toast.show({
-    //     type: 'success',
-    //     text1: 'Google Sign-In Successful',
-    //     text2: `Welcome ${userData.data.name}!`,
-    //   });
-    //   navigation.navigate('Main');
-    // } catch (error) {
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'Google Sign-In Error',
-    //     text2: 'Unable to sign in with Google. Please try again later.',
-    //   });
-    // } finally {
-    //   setLoading(false);
-    // }
-  };
-
-
-  const handleFacebookSignIn = async (accessToken) => {
-    // setLoading(true);
-    // try {
-    //   const userData = await axios.get(`https://graph.facebook.com/me?access_token=${accessToken}&fields=id,name,email`);
-    //   const response = await axios.post(`${API_BASE_URL}/facebook-signin`, userData.data);
-    //   await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-    //   Toast.show({
-    //     type: 'success',
-    //     text1: 'Facebook Sign-In Successful',
-    //     text2: `Welcome ${userData.data.name}!`,
-    //   });
-    //   navigation.navigate('Main');
-    // } catch (error) {
-    //   Toast.show({
-    //     type: 'error',
-    //     text1: 'Not Sign-In with Facebook',
-    //     text2: 'Unable to sign in with Facebook. Please try again later.',
-    //   });
-    // } finally {
-    //   setLoading(false);
-    // }
-  };
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, [fadeAnim]);
 
   return (
     <LinearGradient colors={['#4158D0', '#C850C0', '#FFCC70']} style={styles.gradient}>
@@ -231,15 +232,15 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: 'bold', color: theme.colors.primary, marginVertical: 2 },
   subtitle: { fontSize: 14, color: '#666', marginBottom: 20 },
   input: { width: '100%', marginBottom: 12, backgroundColor: 'white' },
-  button: { width: '100%', marginTop: 6, borderRadius: 25 },
-  googleButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.primary, borderRadius: 25 },
-  facebookButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.accent, borderRadius: 25 },
-  buttonContent: { height: 44 },
-  buttonLabel: { fontWeight: 'bold', fontSize: 16, textTransform: 'uppercase', color: 'white' },
-  googleButtonLabel: { color: theme.colors.primary },
-  facebookButtonLabel: { color: theme.colors.accent },
+  button: { width: '100%', marginTop: 6, borderRadius: 4 },
+  googleButton: { width: '100%', marginTop: 6, borderRadius: 4 },
+  facebookButton: { width: '100%', marginTop: 6, borderRadius: 4 },
+  buttonContent: { paddingVertical: 6 },
+  buttonLabel: { fontSize: 16 },
+  googleButtonLabel: { fontSize: 16, color: theme.colors.primary },
+  facebookButtonLabel: { fontSize: 16, color: theme.colors.accent },
   textButton: { marginTop: 12 },
-  textButtonLabel: { fontWeight: 'bold', fontSize: 14, color: theme.colors.primary },
+  textButtonLabel: { fontSize: 14, color: theme.colors.primary },
 });
 
 export default SignInScreen;

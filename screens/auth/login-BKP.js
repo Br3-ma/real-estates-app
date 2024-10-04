@@ -4,7 +4,6 @@ import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook'; // Import Facebook provider
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
@@ -12,7 +11,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import * as Random from 'expo-random'; // Import expo-random
 
-// Define a custom theme for react-native-paper
 const theme = {
   ...DefaultTheme,
   colors: {
@@ -29,30 +27,20 @@ const SignInScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
 
-  // Set up Google sign-in with expo-auth-session
   const [googleRequest, googleResponse, promptGoogleAsync] = Google.useAuthRequest({
     clientId: '335360787471-f9vabut71lv9rcsp2qhcp8tmftohn2m6.apps.googleusercontent.com',
     scopes: ['profile', 'email'],
   });
 
-  // Set up Facebook sign-in with expo-auth-session
-  const [facebookRequest, facebookResponse, promptFacebookAsync] = Facebook.useAuthRequest({
-    clientId: '547040544348844',
-  });
-
   useEffect(() => {
+  
     if (googleResponse?.type === 'success') {
       const { authentication } = googleResponse;
       handleGoogleSignIn(authentication.accessToken);
     }
+  }, [googleResponse]);
+  
 
-    if (facebookResponse?.type === 'success') {
-      const { authentication } = facebookResponse;
-      handleFacebookSignIn(authentication.accessToken);
-    }
-  }, [googleResponse, facebookResponse]);
-
-  // Handle Google sign-in using API
   const handleGoogleSignIn = async (accessToken) => {
     setLoading(true);
     try {
@@ -77,32 +65,8 @@ const SignInScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
+  
 
-  // Handle Facebook sign-in using API
-  const handleFacebookSignIn = async (accessToken) => {
-    setLoading(true);
-    try {
-      const userData = await axios.get(`https://graph.facebook.com/me?access_token=${accessToken}&fields=id,name,email`);
-      const response = await axios.post(`${API_BASE_URL}/facebook-signin`, userData.data);
-      await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-      Toast.show({
-        type: 'success',
-        text1: 'Facebook Sign-In Successful',
-        text2: `Welcome ${userData.data.name}!`,
-      });
-      navigation.navigate('Main');
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Not Sign-In with Facebook',
-        text2: 'Unable to sign in with Facebook. Please try again later.',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Default Sign-in function
   const handleSignIn = async () => {
     setLoading(true);
     try {
@@ -115,19 +79,16 @@ const SignInScreen = ({ navigation }) => {
       });
       navigation.navigate('Main');
     } catch (error) {
-      console.log('Error details:', error);
       Toast.show({
         type: 'error',
         text1: 'Oops!',
         text2: 'Your Password or Username is wrong',
-        // +error.message, // Show error message to help debugging
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // Animating surface opacity on component mount
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
@@ -142,9 +103,9 @@ const SignInScreen = ({ navigation }) => {
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Animated.View style={[styles.surface, { opacity: fadeAnim }]}>
           <Surface style={styles.logoContainer}>
-            <MaterialCommunityIcons name="home-outline" size={48} color={theme.colors.primary} />
+            <MaterialCommunityIcons name="home-outline" size={28} color={theme.colors.primary} />
           </Surface>
-          <Title style={styles.title}>SQuare</Title>
+          <Title style={styles.title}>Square</Title>
           <Text style={styles.subtitle}>Houses for rent and sale</Text>
 
           {/* Email Input */}
@@ -155,7 +116,7 @@ const SignInScreen = ({ navigation }) => {
             mode="outlined"
             style={styles.input}
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon icon="email" />}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="email" size={24} color={theme.colors.primary} />} />}
           />
 
           {/* Password Input */}
@@ -167,7 +128,7 @@ const SignInScreen = ({ navigation }) => {
             mode="outlined"
             style={styles.input}
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon icon="lock" />}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="lock" size={24} color={theme.colors.primary} />} />}
           />
 
           {/* Sign In Button */}
@@ -193,18 +154,7 @@ const SignInScreen = ({ navigation }) => {
           >
             Sign In with Google
           </Button>
-
-          {/* Facebook Sign-In Button */}
-          <Button
-            mode="outlined"
-            onPress={() => promptFacebookAsync()}
-            disabled={loading || !facebookRequest}
-            style={styles.facebookButton}
-            contentStyle={styles.buttonContent}
-            labelStyle={styles.facebookButtonLabel}
-          >
-            Sign In with Facebook
-          </Button>
+          
 
           {/* Forgot Password Button */}
           <Button
@@ -230,7 +180,6 @@ const SignInScreen = ({ navigation }) => {
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   scrollView: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 16 },
@@ -242,12 +191,12 @@ const styles = StyleSheet.create({
   button: { width: '100%', marginTop: 6, borderRadius: 25 },
   googleButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.primary, borderRadius: 25 },
   facebookButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.accent, borderRadius: 25 },
-  buttonContent: { height: 44 },
-  buttonLabel: { fontSize: 15, fontWeight: 'bold' },
-  googleButtonLabel: { fontSize: 15, fontWeight: 'bold', color: theme.colors.primary },
-  facebookButtonLabel: { fontSize: 15, fontWeight: 'bold', color: theme.colors.accent },
-  textButton: { marginTop: 10 },
-  textButtonLabel: { fontSize: 13, color: '#666' },
+  buttonContent: { paddingVertical: 6 },
+  buttonLabel: { fontSize: 16 },
+  googleButtonLabel: { fontSize: 16, color: theme.colors.primary },
+  facebookButtonLabel: { fontSize: 16, color: theme.colors.accent },
+  textButton: { marginTop: 12 },
+  textButtonLabel: { fontSize: 14, color: theme.colors.primary },
 });
 
 export default SignInScreen;
