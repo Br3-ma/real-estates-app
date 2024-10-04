@@ -190,11 +190,9 @@ const styles = StyleSheet.create({
   input: { width: '100%', marginBottom: 12, backgroundColor: 'white' },
   button: { width: '100%', marginTop: 6, borderRadius: 25 },
   googleButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.primary, borderRadius: 25 },
-  facebookButton: { width: '100%', marginTop: 12, backgroundColor: 'white', borderColor: theme.colors.accent, borderRadius: 25 },
   buttonContent: { paddingVertical: 6 },
   buttonLabel: { fontSize: 16 },
   googleButtonLabel: { fontSize: 16, color: theme.colors.primary },
-  facebookButtonLabel: { fontSize: 16, color: theme.colors.accent },
   textButton: { marginTop: 12 },
   textButtonLabel: { fontSize: 14, color: theme.colors.primary },
 });
