@@ -1,40 +1,41 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet, ScrollView } from 'react-native';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, errorMessage: '' };
+    this.state = { hasError: false, errorMessage: '', errorInfo: '' };
   }
 
   static getDerivedStateFromError(error) {
-    // Update state so the next render will show the fallback UI
     return { hasError: true, errorMessage: error.message };
   }
 
   componentDidCatch(error, info) {
-    // You can log the error to an error reporting service
     console.log("ErrorBoundary caught an error", error, info);
+    this.setState({ errorInfo: info.componentStack });
   }
 
   handleRetry = () => {
-    // Reset the error state to attempt a re-render of the component tree
-    this.setState({ hasError: false, errorMessage: '' });
+    this.setState({ hasError: false, errorMessage: '', errorInfo: '' });
   };
-
+\
   render() {
     if (this.state.hasError) {
-      // Fallback UI
       return (
         <View style={styles.centered}>
           <Text style={styles.errorText}>Something went wrong!</Text>
           <Text style={styles.errorMessage}>{this.state.errorMessage}</Text>
+          <ScrollView style={styles.errorDetails}>
+            <Text style={styles.errorInfo}>
+              {this.state.errorInfo.trim() ? this.state.errorInfo : 'No additional information available'}
+            </Text>
+          </ScrollView>
+          
           <Button title="Try Again" onPress={this.handleRetry} />
         </View>
       );
     }
-
-    // Render children if no error
     return this.props.children;
   }
 }
@@ -53,6 +54,20 @@ const styles = StyleSheet.create({
   },
   errorMessage: {
     marginVertical: 10,
+    textAlign: 'center',
+  },
+  errorDetails: {
+    marginVertical: 10,
+    maxHeight: 150,
+    width: '100%',
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+  },
+  errorInfo: {
+    fontSize: 14,
+    color: 'gray',
     textAlign: 'center',
   },
 });

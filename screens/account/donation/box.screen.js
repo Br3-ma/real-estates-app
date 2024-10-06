@@ -43,10 +43,6 @@ const NotificationScreen = () => {
     setRefreshing(false);
   }, [fetchNotifications]);
 
-  // const clearAllNotifications = useCallback(() => {
-  //   setNotifications([]);
-  // }, []);
-
   const openNotificationPreview = useCallback((notification) => {
     setSelectedNotification(notification);
   }, []);

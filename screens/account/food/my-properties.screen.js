@@ -10,10 +10,10 @@ import UploadPost from '../../../components/upload-post';
 import mime from "mime";
 import CommentsModal from '../../../components/post-comments-modal';
 import PostViewerModal from '../../../components/post-details';
-import { Menu, Provider } from 'react-native-paper';  // Import Menu from react-native-paper
+import { Menu, Provider } from 'react-native-paper'; 
 import { usePropertyActions } from '../../../tools/api/PropertyActions';
 import * as FileSystem from 'expo-file-system';
-import BidWizardModal from '../../../components/bidwiz-modal'; // Import BidWizardModal
+import BidWizardModal from '../../../components/bidwiz-modal'; 
 import Toast from 'react-native-toast-message';
 import MenuContainer from '../../../components/menu-action-list';
 import EditProfileModal from '../../../components/update-profile-modal';
@@ -36,8 +36,8 @@ const MyPropertyScreen = ({ navigation }) => {
   const [uploadVideos, setUploadVideos] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [menuVisible, setMenuVisible] = useState({}); // Use a state to manage menu visibility for each item
-  const [isBidModalVisible, setBidModalVisible] = useState(false); // State for BidWizardModal visibility
+  const [menuVisible, setMenuVisible] = useState({}); 
+  const [isBidModalVisible, setBidModalVisible] = useState(false); 
   const [bidPropertyId, setBidPropertyId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -96,7 +96,7 @@ const MyPropertyScreen = ({ navigation }) => {
 
   const handleEditProperty = (property) => {
     setSelectedProperty(property);
-    // setIsEditModalVisible(true);
+    {/*setIsEditModalVisible(true);*/}
   };
 
   const handleDeleteProperty = useCallback(async (propertyId) => {
@@ -119,7 +119,7 @@ const MyPropertyScreen = ({ navigation }) => {
                 text1: 'Posted Deleted',
                 text2: 'Property deleted successfully!'
               });
-              fetchProperties();  // Reload the properties after successful deletion
+              fetchProperties(); 
             } catch (error) {
               console.error('Failed to delete property:', error);
               Toast.show({
@@ -139,7 +139,7 @@ const MyPropertyScreen = ({ navigation }) => {
 }, [fetchProperties]);
 
 
-const MAX_VIDEO_SIZE = 25 * 1024 * 1024; // 25MB in bytes
+const MAX_VIDEO_SIZE = 25 * 1024 * 1024; 
 const uploadPost = useCallback(async () => {
   setUploading(true);
   try {
@@ -161,7 +161,6 @@ const uploadPost = useCallback(async () => {
     formData.append('category_id', propertyDetails.category_id);
     formData.append('status_id', 1);
 
-    // Append images to formData to be compatible with Android
     for (let index = 0; index < uploadImages.length; index++) {
       const image = uploadImages[index];
       const newImageUri = Platform.OS === 'android' ? image.uri : image.uri.replace('file://', '');
@@ -173,7 +172,6 @@ const uploadPost = useCallback(async () => {
       });
     }
 
-    // Upload Post details first
     const response = await axios.post(`${API_BASE_URL}/post`, formData, {
       headers: {
         'Accept': 'application/json',
@@ -182,7 +180,6 @@ const uploadPost = useCallback(async () => {
       },
     });
 
-    // Now handle multiple video uploads
     if (uploadVideos.length > 0) {
       for (let index = 0; index < uploadVideos.length; index++) {
         const video = uploadVideos[index];
@@ -222,7 +219,7 @@ const uploadPost = useCallback(async () => {
     });
     setModalVisible(false);
     setUploadImages([]);
-    setUploadVideos([]);  // Clear uploaded videos as well
+    setUploadVideos([]);  
 
   } catch (error) {
     Toast.show({
@@ -255,7 +252,6 @@ const renderPropertyItem = useCallback(({ item }) => {
         itemId={item.id} 
         hideFromPosts={hideFromPosts} 
         openSetBidModal={openSetBidModal} 
-        // editProperty={editProperty} 
         editProperty={handleEditProperty}
         handleDeleteProperty={handleDeleteProperty}
         item={item}
@@ -368,7 +364,7 @@ return (
       <BidWizardModal 
         visible={isBidModalVisible} 
         onDismiss={() => setBidModalVisible(false)} 
-        property={bidPropertyId}  // Pass the propertyId here
+        property={bidPropertyId}  
       />
     </SafeAreaView>
   </Provider>

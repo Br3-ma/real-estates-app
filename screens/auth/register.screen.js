@@ -204,7 +204,7 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
             contentStyle={styles.buttonContent}
             labelStyle={styles.buttonLabel}
           >
-            Sign Up
+            <Text>Sign Up</Text>
           </Button>
           
           <Button 
@@ -212,7 +212,7 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
             style={styles.textButton}
             labelStyle={styles.textButtonLabel}
           >
-            Already have an account? Log In
+            <Text>Already have an account? Log In</Text>
           </Button>
         </Animated.View>
       </ScrollView>

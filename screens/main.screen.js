@@ -30,8 +30,10 @@ const CustomHeader = () => {
   const navigation = useNavigation();
 
   const goToHomeAndRefresh = () => {
-    // Navigate to HomeScreen with a unique key to force refresh
-    navigation.navigate('Home', { refresh: Date.now() });
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Home', params: { refresh: Date.now() } }],
+    });
   };
 
   return (

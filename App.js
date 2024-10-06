@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, ActivityIndicator, LogBox  } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { API_BASE_URL } from './confg/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import SplashScreen from './screens/splash.screen';
@@ -18,6 +19,8 @@ import MainScreen from './screens/main.screen';
 import ErrorBoundary from './tools/errors/ErrorBoundary';
 
 const Stack = createStackNavigator();
+console.disableYellowBox = true;
+LogBox.ignoreAllLogs(true);
 
 const App = () => {
   const [showSplashScreen, setShowSplashScreen] = useState(true);
@@ -60,7 +63,7 @@ const App = () => {
   }
 
   return (
-    <ErrorBoundary> {/* Wrap the entire app in the ErrorBoundary */}
+    <ErrorBoundary> 
       <NavigationContainer theme={MyTheme}>
         {authenticated ? (
           <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
@@ -72,10 +75,10 @@ const App = () => {
             <Stack.Screen name="RegisterByOTP" component={SignupsquareateAgentScreen} />
             <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} />
             <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
-            <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
-            <Stack.Screen name="Overview" component={OverviewScreen} />
-            <Stack.Screen name="ContactsPermissions" component={ContactsPermissions} />
-            <Stack.Screen name="Main" component={MainScreen} />
+            {/* <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} /> */}
+            {/* <Stack.Screen name="Overview" component={OverviewScreen} /> */}
+            {/* <Stack.Screen name="ContactsPermissions" component={ContactsPermissions} /> */}
+           <Stack.Screen name="Main" component={MainScreen} />
           </Stack.Navigator>
         )}
       </NavigationContainer>

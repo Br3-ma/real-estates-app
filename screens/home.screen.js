@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View,Linking, ActivityIndicator, Text, ScrollView, SafeAreaView, Platform, StatusBar, Keyboard, RefreshControl } from 'react-native';
 import { Icon, SearchBar } from 'react-native-elements';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import FeaturedItems from './../components/featured-categories'; // Import the new component
+import FeaturedItems from './../components/featured-categories'; 
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import axios from 'axios';
@@ -57,7 +57,7 @@ const HomeScreen = ({ navigation }) => {
         const response1 = await axios.get(`${API_BASE_URL}/hot-property-posts`);
         setHotProperties(response1.data);
 
-        const response2 = await axios.get(`${API_BASE_URL}/categories`); // Replace with your API endpoint
+        const response2 = await axios.get(`${API_BASE_URL}/categories`); 
         setButtons(response2.data.data);
       } catch (error) {
         console.error('Failed to fetch properties:', error);
@@ -80,7 +80,6 @@ const HomeScreen = ({ navigation }) => {
     setRefreshing(true);
     setProperties([]);
     setHotProperties([]);
-    // Fetch data again
     const fetchProperties = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/property-posts`);
@@ -89,7 +88,7 @@ const HomeScreen = ({ navigation }) => {
         const response1 = await axios.get(`${API_BASE_URL}/hot-property-posts`);
         setHotProperties(response1.data);
   
-        const response2 = await axios.get(`${API_BASE_URL}/categories`); // Replace with your API endpoint
+        const response2 = await axios.get(`${API_BASE_URL}/categories`); 
         setButtons(response2.data.data);
       } catch (error) {
         console.error('Failed to fetch properties:', error);
@@ -264,7 +263,7 @@ const HomeScreen = ({ navigation }) => {
             <FeaturedItems />
           </View>
           <TopListing 
-            properties={hot_properties.slice(0, 10)} // Show only the first 10 properties
+            properties={hot_properties.slice(0, 10)} 
             loading={loading}
             onPress={handleTopListingPress}
           />

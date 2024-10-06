@@ -1,19 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, Image, Dimensions, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Image, Dimensions, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator, Platform, RefreshControl  } from 'react-native';
+import axios from 'axios';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { fetchUserInfo } from '../../../controllers/auth/userController';
-import axios from 'axios';
 import { API_BASE_URL, SERVER_BASE_URL } from '../../../confg/config';
 import { Card, Button } from '@rneui/themed';
 import styles from '../../../assets/css/my-properties.css';
 import UploadPost from '../../../components/upload-post';
 import mime from "mime";
-import Constants from 'expo-constants';
 import CommentsModal from '../../../components/post-comments-modal';
 import PostViewerModal from '../../../components/post-details';
+import { Menu, Provider } from 'react-native-paper'; 
+import { usePropertyActions } from '../../../tools/api/PropertyActions';
+import * as FileSystem from 'expo-file-system';
+import BidWizardModal from '../../../components/bidwiz-modal'; 
+import Toast from 'react-native-toast-message';
+import MenuContainer from '../../../components/menu-action-list';
+import EditProfileModal from '../../../components/update-profile-modal';
 
-const { width } = Dimensions.get('window');
-
+const { width, height } = Dimensions.get('window');
 const MyPropertyScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [properties, setProperties] = useState([]);
@@ -25,12 +30,17 @@ const MyPropertyScreen = ({ navigation }) => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isPostViewerModalVisible, setPostViewerModalVisible] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState({
-    title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '', property_type_id: '', category_id: '', location_id: '',
-    status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [],
+    title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '', property_type_id: '', category_id: '', location_id: '', status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [],
   });
   const [uploadImages, setUploadImages] = useState([]);
+  const [uploadVideos, setUploadVideos] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [menuVisible, setMenuVisible] = useState({}); 
+  const [isBidModalVisible, setBidModalVisible] = useState(false); 
+  const [bidPropertyId, setBidPropertyId] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   const fetchProperties = useCallback(async () => {
     setLoading(true);
@@ -59,6 +69,12 @@ const MyPropertyScreen = ({ navigation }) => {
     fetchData();
   }, [fetchProperties]);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchProperties();
+    setRefreshing(false);
+  }, [fetchProperties]);
+
   const showImageViewer = useCallback(async (images, itemId, property) => {
     setCurrentImages(images);
     setSelectedProperty(property);
@@ -78,6 +94,11 @@ const MyPropertyScreen = ({ navigation }) => {
     setCommentsModalVisible(false);
   }, []);
 
+  const handleEditProperty = (property) => {
+    setSelectedProperty(property);
+    {/*setIsEditModalVisible(true);*/}
+  };
+
   const handleDeleteProperty = useCallback(async (propertyId) => {
     Alert.alert(
       "Confirm Delete",
@@ -93,11 +114,19 @@ const MyPropertyScreen = ({ navigation }) => {
             setDeleting(true);
             try {
               await axios.delete(`${API_BASE_URL}/delete-post/${propertyId}`);
-              Alert.alert("Property deleted successfully");
-              fetchProperties();  // Reload the properties after successful deletion
+              Toast.show({
+                type: 'success',
+                text1: 'Posted Deleted',
+                text2: 'Property deleted successfully!'
+              });
+              fetchProperties(); 
             } catch (error) {
               console.error('Failed to delete property:', error);
-              Alert.alert("Failed to delete property");
+              Toast.show({
+                type: 'error',
+                text1: 'Failed Deleting',
+                text2: 'Failed to delete property!'
+              });
             } finally {
               setDeleting(false);
             }
@@ -107,82 +136,138 @@ const MyPropertyScreen = ({ navigation }) => {
       ],
       { cancelable: true }
     );
-  }, [fetchProperties]);
+}, [fetchProperties]);
 
-  const uploadPost = useCallback(async () => {
-    setUploading(true);
-    try {
-      const formData = new FormData();
-      // Append property details
-      formData.append('title', propertyDetails.title);
-      formData.append('description', propertyDetails.description);
-      formData.append('price', propertyDetails.price);
-      formData.append('location', propertyDetails.location);
-      formData.append('long', propertyDetails.long);
-      formData.append('lat', propertyDetails.lat);
-      formData.append('user_id', userInfo.user.id);
-      formData.append('status_id', propertyDetails.status_id);
-      formData.append('bedrooms', propertyDetails.bedrooms);
-      formData.append('bathrooms', propertyDetails.bathrooms);
-      formData.append('area', propertyDetails.area);
-      formData.append('amenities', propertyDetails.amenities);
-      formData.append('property_type_id', propertyDetails.property_type_id);
-      formData.append('location_id', propertyDetails.location_id);
-      formData.append('category_id', propertyDetails.category_id);
-      formData.append('status_id', 1);
 
-      // Convert image URIs to Blobs and append them to formData
-      for (let index = 0; index < uploadImages.length; index++) {
-        const image = uploadImages[index];
-        const newImageUri = Constants.platform.android
-          ? image.uri
-          : image.uri.replace('file://', '');
-        const fileType = mime.getType(newImageUri) || 'image/jpeg';
-        formData.append(`images[${index}]`, {
-          name: `photo_${index}.jpg`,
+const MAX_VIDEO_SIZE = 25 * 1024 * 1024; 
+const uploadPost = useCallback(async () => {
+  setUploading(true);
+  try {
+    const formData = new FormData();
+    formData.append('title', propertyDetails.title);
+    formData.append('description', propertyDetails.description);
+    formData.append('price', propertyDetails.price);
+    formData.append('location', propertyDetails.location);
+    formData.append('long', propertyDetails.long);
+    formData.append('lat', propertyDetails.lat);
+    formData.append('user_id', userInfo.user.id);
+    formData.append('status_id', propertyDetails.status_id);
+    formData.append('bedrooms', propertyDetails.bedrooms);
+    formData.append('bathrooms', propertyDetails.bathrooms);
+    formData.append('area', propertyDetails.area);
+    formData.append('amenities', propertyDetails.amenities);
+    formData.append('property_type_id', propertyDetails.property_type_id);
+    formData.append('location_id', propertyDetails.location_id);
+    formData.append('category_id', propertyDetails.category_id);
+    formData.append('status_id', 1);
+
+    for (let index = 0; index < uploadImages.length; index++) {
+      const image = uploadImages[index];
+      const newImageUri = Platform.OS === 'android' ? image.uri : image.uri.replace('file://', '');
+      const fileType = mime.getType(newImageUri) || 'image/jpeg';
+      formData.append(`images[${index}]`, {
+        name: `photo_${index}.jpg`,
+        type: fileType,
+        uri: newImageUri,
+      });
+    }
+
+    const response = await axios.post(`${API_BASE_URL}/post`, formData, {
+      headers: {
+        'Accept': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (uploadVideos.length > 0) {
+      for (let index = 0; index < uploadVideos.length; index++) {
+        const video = uploadVideos[index];
+        const videoInfo = await FileSystem.getInfoAsync(video.uri);
+        const videoSize = videoInfo.size;
+        console.log(`Video ${index + 1} size:`, videoSize);
+
+        if (videoSize > MAX_VIDEO_SIZE) {
+          Alert.alert('Error', `Video ${index + 1} file size exceeds 25MB limit.`);
+          throw new Error(`Video ${index + 1} file size exceeds 25MB limit.`);
+        }
+
+        const formData2 = new FormData();
+        formData2.append('post_id', response.data.property.id);
+
+        const videoUri = Platform.OS === 'android' ? video.uri : video.uri.replace('file://', '');
+        const fileType = mime.getType(videoUri) || 'video/mp4';
+        formData2.append('video', {
+          name: `video_${index}.mp4`,
           type: fileType,
-          uri: newImageUri,
+          uri: videoUri,
+        });
+
+        await axios.post(`${API_BASE_URL}/upload-video`, formData2, {
+          headers: {
+            'Accept': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Content-Type': 'multipart/form-data',
+          },
         });
       }
-
-      const response = await fetch(`${API_BASE_URL}/post`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'multipart/form-data',
-        },
-        body: formData,
-      });
-
-      if (response.status === 201) {
-        Alert.alert('Success', 'Post created successfully');
-        setModalVisible(false);
-        setUploadImages([]);
-      } else {
-        const errorResponse = await response.json();
-        Alert.alert('Error', `Failed to create property post: ${errorResponse.message}`);
-      }
-    } catch (error) {
-      Alert.alert('Error', `Failed to create property post: ${error.message}`);
-    } finally {
-      setUploading(false);
     }
-  }, [propertyDetails, uploadImages, userInfo]);
+    Toast.show({
+      type: 'success',
+      text1: 'Posted',
+      text2: 'Post uploaded successfully!'
+    });
+    setModalVisible(false);
+    setUploadImages([]);
+    setUploadVideos([]);  
 
-  const renderPropertyItem = useCallback(({ item }) => (
+  } catch (error) {
+    Toast.show({
+      type: 'error',
+      text1: 'Post Failed',
+      text2: `Failed to create property post: ${error.message}`
+    });
+  } finally {
+    setUploading(false);
+  }
+}, [propertyDetails, uploadImages, uploadVideos, userInfo]);
+
+  
+  const { hideFromPosts, bidForTopPosts, editProperty } = usePropertyActions(fetchProperties);
+
+  const openSetBidModal = useCallback((itemId) => {
+    setBidPropertyId(itemId);
+    setBidModalVisible(true);
+}, []);
+  
+const renderPropertyItem = useCallback(({ item }) => {
+  const openMenu = (id) => setMenuVisible(prevState => ({ ...prevState, [id]: true }));
+  const closeMenu = (id) => setMenuVisible(prevState => ({ ...prevState, [id]: false }));
+
+  return (
     <Card>
       <Card.Title>{item.name}</Card.Title>
+      <View style={styles.menuContainer}>
+      <MenuContainer 
+        itemId={item.id} 
+        hideFromPosts={hideFromPosts} 
+        openSetBidModal={openSetBidModal} 
+        {/* editProperty={editProperty} */}
+        editProperty={handleEditProperty}
+        handleDeleteProperty={handleDeleteProperty}
+        item={item}
+      />
+      </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         {item.images.length > 0 ? (
           item.images.map((img, index) => (
-            <TouchableOpacity key={index} onPress={() => showImageViewer(item.images)}>
-              <Image source={{ uri: `${SERVER_BASE_URL}/storage/app/`+img.path }} style={styles.cardImage} />
+            <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>
+              <Image source={{ uri: `${SERVER_BASE_URL}/storage/app/` + img.path }} style={styles.cardImage} />
             </TouchableOpacity>
           ))
         ) : (
           <Image
-            source={{ uri: 'https://static.vecteezy.com/system/resources/previews/021/433/526/non_2x/empty-box-concept-illustration-flat-design-eps10-modern-graphic-element-for-landing-page-empty-state-ui-infographic-vector.jpg' }}
+            source={{ uri: 'https://bearhomes.com/wp-content/uploads/2019/01/default-featured.png' }}
             style={styles.illustrativeImage}
           />
         )}
@@ -208,14 +293,13 @@ const MyPropertyScreen = ({ navigation }) => {
           </View>
           <View style={styles.iconTextContainer}>
             <MaterialIcons name="aspect-ratio" size={20} color="#000" />
-            <Text style={styles.iconText}>{item.area} sqft</Text>
+            <Text style={styles.iconText}>{item.area} Sqm</Text>
           </View>
         </View>
       </View>
+      {/* <Text>{item.description}</Text> */}
       <View style={styles.buttonRow}>
-        {/* <Button type="clear" icon={() => <MaterialIcons name="favorite-border" size={24} color="black" />} /> */}
-        <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="black" />} onPress={() => openCommentsModal(item.id)} />
-        {/* <Button type="clear" icon={() => <MaterialIcons name="share" size={24} color="black" />} /> */}
+        <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="blue" />} onPress={() => openCommentsModal(item.id)} />
         <Button
           type="clear"
           icon={() => deleting ? <ActivityIndicator size="small" color="red" /> : <MaterialIcons name="delete" size={24} color="red" />}
@@ -223,16 +307,15 @@ const MyPropertyScreen = ({ navigation }) => {
         />
       </View>
     </Card>
-  ), [deleting, showImageViewer, handleDeleteProperty, openCommentsModal]);
+  );
+}, [deleting, showImageViewer, handleDeleteProperty, openCommentsModal, menuVisible]);
 
-  return (
+return (
+  <Provider>
     <SafeAreaView style={{ flex: 1 }}>
-      <Button
-        title="Create New Post"
-        onPress={() => setModalVisible(true)}
-        style={styles.createPostButton}
-      />
-      <ScrollView>
+      <ScrollView refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#3D6DCC']}  />
+        }>
         {properties.map((property, index) => (
           <View key={index}>
             {renderPropertyItem({ item: property })}
@@ -252,14 +335,25 @@ const MyPropertyScreen = ({ navigation }) => {
         propertyDetails={propertyDetails}
         setPropertyDetails={setPropertyDetails}
         uploadImages={uploadImages}
+        uploadVideos={uploadVideos}
         setUploadImages={setUploadImages}
+        setUploadVideos={setUploadVideos}
         uploadPost={uploadPost}
         uploading={uploading}
       />
+      {/* {selectedProperty && (
+        <EditProfileModal
+          isVisible={isEditModalVisible}
+          onClose={() => setIsEditModalVisible(false)}
+          property={selectedProperty}
+          // onUpdate={handleUpdateProperty}
+        />
+      )} */}
       <PostViewerModal
         visible={isPostViewerModalVisible}
         images={currentImages}
         property={selectedProperty}
+        allProperties={properties}
         openCommentsModal={openCommentsModal}
         onClose={() => setPostViewerModalVisible(false)}
       />
@@ -268,8 +362,14 @@ const MyPropertyScreen = ({ navigation }) => {
         postId={selectedItemId}
         onClose={closeCommentsModal}
       />
+      <BidWizardModal 
+        visible={isBidModalVisible} 
+        onDismiss={() => setBidModalVisible(false)} 
+        property={bidPropertyId}  
+      />
     </SafeAreaView>
-  );
+  </Provider>
+);
 };
 
 export default MyPropertyScreen;

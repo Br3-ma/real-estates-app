@@ -139,25 +139,23 @@ const SignInScreen = ({ navigation }) => {
             contentStyle={styles.buttonContent}
             labelStyle={styles.buttonLabel}
           >
-            Sign In
+            <Text>Sign In</Text>
           </Button>
 
-{/* Google Sign-In Button */}
-<Button
-  mode="contained"
-  onPress={() => promptGoogleAsync()}
-  disabled={loading || !googleRequest}
-  style={styles.googleButton}
-  contentStyle={styles.googleButtonContent}
-  labelStyle={styles.googleButtonLabel}
-  icon={() => (
-    <MaterialCommunityIcons name="google" size={24} color="#FFFFFF" />
-  )}
->
-  Sign in with Google
-</Button>
-
-
+          {/* Google Sign-In Button */}
+          <Button
+            mode="contained"
+            onPress={() => promptGoogleAsync()}
+            disabled={loading || !googleRequest}
+            style={styles.googleButton}
+            contentStyle={styles.googleButtonContent}
+            labelStyle={styles.googleButtonLabel}
+            icon={() => (
+              <MaterialCommunityIcons name="google" size={24} color="#FFFFFF" />
+            )}
+          >
+            <Text>Sign in with Google</Text>
+          </Button>
 
           {/* Forgot Password Button */}
           <Button
@@ -165,7 +163,7 @@ const SignInScreen = ({ navigation }) => {
             style={styles.textButton}
             labelStyle={styles.textButtonLabel}
           >
-            Forgot Password?
+            <Text>Forgot Password?</Text>
           </Button>
 
           {/* Register Button */}
@@ -174,7 +172,7 @@ const SignInScreen = ({ navigation }) => {
             style={styles.textButton}
             labelStyle={styles.textButtonLabel}
           >
-            Don't have an account? Sign Up
+            <Text>Don't have an account? Sign Up</Text>
           </Button>
         </Animated.View>
       </ScrollView>
