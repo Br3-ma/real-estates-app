@@ -17,7 +17,6 @@ const RecommendedProperties = ({ recommendedPropertiesData, showImageViewer }) =
               onPress={() => showImageViewer(item.images, item.id, item)}
             >
               <ImageBackground
-                // Set the default URI if the image path is empty
                 source={{ uri: item.images[0]?.path ? `${SERVER_BASE_URL}/storage/app/${item.images[0].path}` : 'https://bearhomes.com/wp-content/uploads/2019/01/default-featured.png' }}
                 style={styles.recommendedPropertyImage}
               >

@@ -3,33 +3,13 @@ import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet, Ale
 import Modal from 'react-native-modal';
 import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-// import * as Permissions from 'expo-permissions'; // Import Permissions from Expo
-
-//   // Function to request necessary permissions
-// const requestPermissions = async () => {
-//     try {
-//         const { status: cameraStatus } = await Permissions.askAsync(Permissions.CAMERA);
-//         const { status: readStorageStatus } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY_READ_ONLY);
-//         const { status: writeStorageStatus } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY);
-
-//         if (cameraStatus !== 'granted' || readStorageStatus !== 'granted' || writeStorageStatus !== 'granted') {
-//         Alert.alert('Permissions required', 'This app requires camera and storage permissions to function correctly.');
-//         }
-//     } catch (error) {
-//         console.error('Error requesting permissions:', error);
-//     }
-// };
 
 const UploadCoverPictureModal = ({ isVisible, onClose, uploadImages, setUploadImages, handleSavePicture, saving }) => {
   const [uploadingImages, setUploadingImages] = useState(false);
-
-
-  // Request permissions on component mount
-  useEffect(() => {
-    // requestPermissions();
-  }, []);
-
-  // Function to pick images from gallery
+ 
+  useEffect(() => { 
+  }, []); 
+  
   const pickImages = async () => {
     try {
       setUploadingImages(true);

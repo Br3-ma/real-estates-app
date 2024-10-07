@@ -31,7 +31,6 @@ return (
       visible={isImageViewVisible}
       onRequestClose={() => {
         setImageViewVisible(false);
-        // setSelectedProperty(null);
         terminateFetchInterval();
       }}
     >
@@ -40,7 +39,6 @@ return (
           style={styles.closeButton}
           onPress={() => {
             setImageViewVisible(false);
-            // setSelectedProperty(null);
             terminateFetchInterval();
           }}
         >

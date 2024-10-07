@@ -15,7 +15,6 @@ const AddAmenitiesModal = ({ visible, onClose, onSave, selectedAmenities, setSel
     { name: 'Laundry', icon: 'washing-machine' },
     { name: 'Air Conditioning', icon: 'air-conditioner' },
     { name: 'Pet Friendly', icon: 'paw' },
-    // Add more amenities as needed
   ];
 
   const toggleAmenity = (amenity) => {

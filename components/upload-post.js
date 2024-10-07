@@ -26,7 +26,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
   const [amenitiesModalVisible, setAmenitiesModalVisible] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
 
-  // Fetch mock data for property types, locations, and categories
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -42,10 +42,10 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
         console.error('Failed to fetch data:', error);
       }
     };
-    // requestPermissions();
+    
     fetchData();
   }, []);
-  // Function to pick images from gallery
+  
   const pickImages = useCallback(async () => {
     try {
       setUploadingImages(true);
@@ -65,7 +65,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
     }
   }, []);
 
-  // Function to pick videos from gallery
+  
   const pickVideos = useCallback(async () => {
     try {
       setUploadingVideos(true);
@@ -114,16 +114,16 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
       </TouchableOpacity>
     </View>
   );
-  // Function to handle the selected coordinates from the map
+  
+  
   const handleLocationSelect = (longitude, latitude) => {
     setPropertyDetails({
       ...propertyDetails,
       long: longitude.toString(),
       lat: latitude.toString(),
     });
-    setMapModalVisible(false); // Close the map modal
+    setMapModalVisible(false); 
   };
-  // The handler for saving amenities
   const handleSaveAmenities = (amenities) => {
     setSelectedAmenities(amenities);
     setPropertyDetails({ ...propertyDetails, amenities });

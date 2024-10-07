@@ -11,8 +11,8 @@ const { width, height } = Dimensions.get('window');
 
 const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal, allProperties, openPostDetails }) => {
   const navigation = useNavigation();
-  const scrollViewRef = useRef(null); // Ref for ScrollView
-  const [loading, setLoading] = useState(false); // State for loading indicator
+  const scrollViewRef = useRef(null); 
+  const [loading, setLoading] = useState(false); 
 
   const sendSMS = (phoneNumber) => {
     Communications.text(phoneNumber, 'Hello, I\'m interested in your property listing.');
@@ -35,18 +35,17 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
       alert('Please insert mobile no');
     }
   };
-
-  // Function to handle the showDetails and scroll to top
+  
   const handleShowDetails = useCallback(async (images, property) => {
-    setLoading(true); // Show loading indicator
+    setLoading(true);
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({ y: 0, animated: true });
     }
-    // Simulate a delay for loading effect (e.g., data fetching)
+    
     setTimeout(() => {
       openPostDetails(images, property);
-      setLoading(false); // Hide loading indicator
-    }, 500); // Adjust delay as needed
+      setLoading(false); 
+    }, 500); 
   }, [openPostDetails]);
 
   const renderImageViewerModal = () => {
@@ -67,7 +66,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
 
           <ScrollView
             contentContainerStyle={styles.modalContent}
-            ref={scrollViewRef} // Set the ref for ScrollView
+            ref={scrollViewRef} 
           >
             <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.imageSlider}>
               {images.map((image, index) => (
@@ -144,7 +143,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                       <TouchableOpacity
                         key={item.id}
                         style={styles.relatedPropertyItem}
-                        onPress={() => handleShowDetails(item.images, item)} // Use handleShowDetails
+                        onPress={() => handleShowDetails(item.images, item)} 
                       >
                         <Image
                           source={{ uri: item.images.length > 0 ? `${SERVER_BASE_URL}/storage/app/` + item.images[0].path : `${SERVER_BASE_URL}/storage/app/no-img.png` }}

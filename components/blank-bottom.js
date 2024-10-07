@@ -9,7 +9,7 @@ const BlankView = () => {
 
 const styles = StyleSheet.create({
   blankView: {
-    height: 50, // Adjust height as per your requirement
+    height: 50, 
     backgroundColor: '#f1f1f1',
     marginBottom: 10,
   },

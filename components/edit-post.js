@@ -1,4 +1,4 @@
-// EditPropertyModal.js
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, TextInput, ScrollView, View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -112,8 +112,6 @@ const EditPropertyModal = ({ isVisible, onClose, property, onUpdate }) => {
   const handleUpdate = async () => {
     setUpdating(true);
     try {
-      // Here you would typically send the updated data to your API
-      // For this example, we'll just simulate an API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       onUpdate(propertyDetails, uploadImages, uploadVideos);
       Alert.alert('Success', 'Property updated successfully');

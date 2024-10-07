@@ -55,7 +55,7 @@ const CustomHeader = () => {
 
 const MainScreen = () => {
   return (
-    <>
+    <React.Fragment>
       <StatusBar barStyle="light-content" backgroundColor="#8E2DE2" />
       <CustomHeader />
       <Tab.Navigator
@@ -80,9 +80,10 @@ const MainScreen = () => {
         <Tab.Screen name="Notifications" component={NotificationScreen} />
         <Tab.Screen name="Profile" component={MeScreen} />
       </Tab.Navigator>
-    </>
+    </React.Fragment>
   );
 };
+
 
 const styles = StyleSheet.create({
   safeArea: {

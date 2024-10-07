@@ -345,7 +345,7 @@ return (
           isVisible={isEditModalVisible}
           onClose={() => setIsEditModalVisible(false)}
           property={selectedProperty}
-          // onUpdate={handleUpdateProperty}
+           onUpdate={handleUpdateProperty}
         />
       )} */}
       <PostViewerModal

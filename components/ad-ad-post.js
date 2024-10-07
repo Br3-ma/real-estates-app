@@ -5,7 +5,7 @@ const AdAdPost = () => {
   return (
     <View style={styles.yellowCard}>
       <ImageBackground
-        source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjPUkntSCOuziYZb32nFs9mJif-9-ko2YizQ&s' }} // Replace with your image URL
+        source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjPUkntSCOuziYZb32nFs9mJif-9-ko2YizQ&s' }} 
         style={styles.imageBackground}
         imageStyle={styles.imageStyle}
       >

@@ -23,7 +23,7 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setFormData({ propertyId: property }); // Ensure propertyId is set when property changes
+    setFormData({ propertyId: property }); 
   }, [property]);
 
   const steps = [
@@ -42,14 +42,12 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
     } else {
         setLoading(true);
         try {
-            // Make sure to post the property id and chosen package to the formData
             const response = await axios.post(`${API_BASE_URL}/pay-w-broadpay`, formData, {
                 headers: {
                 'Accept': 'application/json',
                 'Access-Control-Allow-Origin': '*'
                 },
             });
-            //Open url in default device browser
             console.log(response);
             if(response.url === null){
                 Toast.show({
@@ -66,12 +64,12 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
                 text2: 'Your bid has been submitted successfully!'
             });
             onDismiss();
-            setStep(0); // Reset the wizard steps
-            setFormData({ propertyId: property }); // Reset form data with property id
-            setSelectedPackage(null); // Reset selected package
+            setStep(0); 
+            setFormData({ propertyId: property }); 
+            setSelectedPackage(null); 
         } catch (error) {
-            // console.log('Full error:', error);
-            // console.log('Error response:', error.response);
+            console.log('Full error:', error);
+            console.log('Error response:', error.response);
             Toast.show({
                 type: 'error',
                 text1: 'Error',
@@ -95,7 +93,6 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
         return (
           <View style={styles.stepContainer}>
             <Text style={styles.contentText}>Welcome to the Bid Wizard! Here you can place a bid on the property you're interested in.</Text>
-    
           </View>
         );
       case 1:

@@ -16,7 +16,6 @@ import SignupsquareateAgentScreen from './screens/auth/register.screen';
 import OverviewScreen from './screens/onboarding/overview.screen';
 import ContactsPermissions from './screens/onboarding/permissions.screen';
 import MainScreen from './screens/main.screen';
-import ErrorBoundary from './tools/errors/ErrorBoundary';
 
 const Stack = createStackNavigator();
 console.disableYellowBox = true;
@@ -63,7 +62,6 @@ const App = () => {
   }
 
   return (
-    <ErrorBoundary> 
       <NavigationContainer theme={MyTheme}>
         {authenticated ? (
           <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
@@ -75,14 +73,10 @@ const App = () => {
             <Stack.Screen name="RegisterByOTP" component={SignupsquareateAgentScreen} />
             <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} />
             <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
-            {/* <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} /> */}
-            {/* <Stack.Screen name="Overview" component={OverviewScreen} /> */}
-            {/* <Stack.Screen name="ContactsPermissions" component={ContactsPermissions} /> */}
            <Stack.Screen name="Main" component={MainScreen} />
           </Stack.Navigator>
         )}
       </NavigationContainer>
-    </ErrorBoundary>
   );
 };
 

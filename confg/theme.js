@@ -5,22 +5,19 @@ import { ThemeProvider, Button, Input } from '@reactsax/reactsax';
 const Theme = ({ children }) => {
   const theme = {
     colors: {
-      primary: '#007bff', // Example primary color
-      background: '#ffffff', // Example background color
-      text: '#333333', // Example text color
+      primary: '#007bff',  
+      background: '#ffffff',  
+      text: '#333333',  
     },
     fonts: {
       regular: 'Roboto-Regular',
-      bold: 'Roboto-Bold',
-      // Define your font families here
+      bold: 'Roboto-Bold', 
     },
-    components: {
-      // Define your custom components here
-      Button, // Include Button component from React Sax
-      Input,  // Include Input component from React Sax
+    components: { 
+      Button,  
+      Input,   
     },
-    styles: StyleSheet.create({
-      // Define your global styles here
+    styles: StyleSheet.create({ 
       container: {
         flex: 1,
         backgroundColor: '#ffffff',

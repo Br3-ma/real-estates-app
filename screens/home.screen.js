@@ -47,31 +47,34 @@ const HomeScreen = ({ navigation }) => {
   const [numBaths, setNumBaths] = useState(0);
   const [btnOptions, setButtons] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     const fetchProperties = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/property-posts`);
-        setProperties(response.data);
+        const response = await axios.get(`${API_BASE_URL}/property-posts`); 
+        if (isMountedRef.current) setProperties(response.data);
 
         const response1 = await axios.get(`${API_BASE_URL}/hot-property-posts`);
-        setHotProperties(response1.data);
+        if (isMountedRef.current) setHotProperties(response1.data);
 
         const response2 = await axios.get(`${API_BASE_URL}/categories`); 
-        setButtons(response2.data.data);
+        if (isMountedRef.current) setButtons(response2.data.data);
+
       } catch (error) {
         console.error('Failed to fetch properties:', error);
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) setLoading(false);
       }
     };
     const fetchUser = async () => {
       const user = await fetchUserInfo();
-      setUserInfo(user);
+      if (isMountedRef.current) setUserInfo(user);
     };
     fetchUser();
     fetchProperties();
     return () => {
+      isMountedRef.current = false; 
       terminateFetchInterval();
     };
   }, []);
@@ -83,18 +86,20 @@ const HomeScreen = ({ navigation }) => {
     const fetchProperties = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/property-posts`);
-        setProperties(response.data);
+        if (isMountedRef.current) setProperties(response.data);
 
         const response1 = await axios.get(`${API_BASE_URL}/hot-property-posts`);
-        setHotProperties(response1.data);
+        if (isMountedRef.current) setHotProperties(response1.data);
   
         const response2 = await axios.get(`${API_BASE_URL}/categories`); 
-        setButtons(response2.data.data);
+        if (isMountedRef.current) setButtons(response2.data.data);
       } catch (error) {
         console.error('Failed to fetch properties:', error);
       } finally {
-        setRefreshing(false);
-        setLoading(false);
+        if (isMountedRef.current) {
+          setRefreshing(false);
+          setLoading(false);
+        }
       }
     };
     fetchProperties();
@@ -140,10 +145,13 @@ const HomeScreen = ({ navigation }) => {
     setCurrentImages([]);
     setCurrentVideos([]);
     setSelectedProperty(null);
-    setCurrentImages(images);
-    setCurrentVideos(videos);
-    setSelectedProperty(property);
-    setImageViewVisible(true);
+
+    if (isMountedRef.current) {
+      setCurrentImages(images);
+      setCurrentVideos(videos);
+      setSelectedProperty(property);
+      setImageViewVisible(true);
+    }
   };
 
   const sendSMS = (phoneNumber) => {

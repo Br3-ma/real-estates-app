@@ -63,10 +63,10 @@ const SearchModal = ({
       category,
       numBeds,
       numBaths,
-      filterForm, // Assuming filterForm is an object with additional filters
+      filterForm,  
     };
     handleSearch(searchData);
-    closeModal(); // Close the modal when the search button is pressed
+    closeModal(); 
   };
 
   if (error) {

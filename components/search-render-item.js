@@ -26,7 +26,7 @@ const RenderItem = ({
       <IconButton
         icon="dots-vertical"
         size={24}
-        onPress={() => {/* Add more options menu */}}
+        onPress={() => {}}
       />
     </View>
 

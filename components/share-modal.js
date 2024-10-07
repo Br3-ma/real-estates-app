@@ -11,7 +11,7 @@ const ShareModal = ({ isVisible, onClose, item, serverBaseUrl }) => {
     try {
       const shareOptions = {
         message: `Check out this property: ${item.title}\nPrice: K${item.price}\nLocation: ${item.location}\nMore details: ${serverBaseUrl}/property/${item.id}`,
-        url: `${serverBaseUrl}/storage/app/${item.images[0]?.path || 'placeholder.jpg'}` // optional placeholder if empty
+        url: `${serverBaseUrl}/storage/app/${item.images[0]?.path || 'placeholder.jpg'}` 
       };
 
       let url = '';
