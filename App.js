@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator, LogBox  } from 'react-native';
+import React, { useEffect, useState, createContext, useContext } from 'react';
+import { View, StyleSheet, Text, ActivityIndicator, LogBox } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { API_BASE_URL } from './confg/config';
@@ -7,23 +7,40 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import SplashScreen from './screens/splash.screen';
 
-// Screens
 import SignInScreen from './screens/auth/login.screen';
 import ForgotPasswordScreen from './screens/auth/forgot.screen';
-import ChangePasswordScreen from './screens/auth/reset.screen';
 import OTPVerificationScreen from './screens/auth/otp-verification.screen';
 import SignupsquareateAgentScreen from './screens/auth/register.screen';
-import OverviewScreen from './screens/onboarding/overview.screen';
-import ContactsPermissions from './screens/onboarding/permissions.screen';
 import MainScreen from './screens/main.screen';
 
 const Stack = createStackNavigator();
-console.disableYellowBox = true;
-LogBox.ignoreAllLogs(true);
+// console.disableYellowBox = true;
+// LogBox.ignoreAllLogs(true);
+
+const LoadingContext = createContext();
+export const useLoading = () => useContext(LoadingContext);
+
+const withLoading = (WrappedComponent) => {
+  return (props) => {
+    const { setIsLoading } = useLoading();
+
+    const wrappedOnPress = async (callback) => {
+      setIsLoading(true);
+      try {
+        await callback();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    return <WrappedComponent {...props} wrappedOnPress={wrappedOnPress} />;
+  };
+};
 
 const App = () => {
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     checkAuthentication();
@@ -62,21 +79,28 @@ const App = () => {
   }
 
   return (
+    <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
       <NavigationContainer theme={MyTheme}>
         {authenticated ? (
           <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Main" component={MainScreen} />
+            <Stack.Screen name="Main" component={withLoading(MainScreen)} />
           </Stack.Navigator>
         ) : (
           <Stack.Navigator initialRouteName="SignIn" screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="SignIn" component={SignInScreen} />
-            <Stack.Screen name="RegisterByOTP" component={SignupsquareateAgentScreen} />
-            <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} />
-            <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
-           <Stack.Screen name="Main" component={MainScreen} />
+            <Stack.Screen name="SignIn" component={withLoading(SignInScreen)} />
+            <Stack.Screen name="RegisterByOTP" component={withLoading(SignupsquareateAgentScreen)} />
+            <Stack.Screen name="ForgotPasswordScreen" component={withLoading(ForgotPasswordScreen)} />
+            <Stack.Screen name="OTPVerification" component={withLoading(OTPVerificationScreen)} />
+            <Stack.Screen name="Main" component={withLoading(MainScreen)} />
           </Stack.Navigator>
         )}
+        {isLoading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#415D77" />
+          </View>
+        )}
       </NavigationContainer>
+    </LoadingContext.Provider>
   );
 };
 
@@ -93,6 +117,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
   },
 });
 

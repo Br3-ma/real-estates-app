@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, View, Text, ScrollView, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { ActivityIndicator, View, Text, ScrollView, StyleSheet, TouchableOpacity, ImageBackground,SafeAreaView } from 'react-native';
 import { Image, Icon, Avatar } from 'react-native-elements';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,7 +23,7 @@ const TopListings = ({ properties, loading, onPress }) => {
 
     return (
       <TouchableOpacity
-        key={index}
+        key={item.id}
         style={styles.itemContainer}
         onPress={() => onPress(item)}
       >
@@ -131,11 +131,13 @@ const TopListings = ({ properties, loading, onPress }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Top Listings</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {loading
-          ? renderPlaceholders()
-          : properties.slice(0, 10).map((item, index) => renderItem({ item, index }))}
-      </ScrollView>
+      <SafeAreaView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {loading
+            ? renderPlaceholders()
+            : properties.slice(0, 10).map((item, index) => renderItem({ item, index }))}
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 };

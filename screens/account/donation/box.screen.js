@@ -6,8 +6,10 @@ import {
 import { Icon } from 'react-native-elements';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { fetchUserInfo } from '../../../controllers/auth/userController';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { API_BASE_URL } from '../../../confg/config';
+import NotificationPreviewModal from '../../../components/notification-preview-modal';
 
 const NotificationScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -19,8 +21,8 @@ const NotificationScreen = () => {
 
   const fetchNotifications = useCallback(async () => {
     try {
-      const userId = 1;
-      const response = await fetch(`${API_BASE_URL}/notify/${userId}`);
+      const user = await fetchUserInfo();
+      const response = await fetch(`${API_BASE_URL}/notify/${user.user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch notifications');
       }
@@ -169,7 +171,7 @@ const NotificationScreen = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <Animated.View style={[styles.header, { opacity: headerOpacity }]}>
-        <LinearGradient colors={['#4a90e2', '#63a4ff']} style={styles.headerGradient}>
+        <LinearGradient colors={['#8E2DE2', '#8E2DE2']} style={styles.headerGradient}>
           <Text style={styles.headerTitle}>Notifications</Text>
           <TouchableOpacity onPress={clearAllNotifications} style={styles.clearButton}>
             <Icon name="delete-sweep" type="material" color="#fff" size={24} />
@@ -200,21 +202,13 @@ const NotificationScreen = () => {
             )}
           />
         )}
-        {selectedNotification && (
-          <Modal visible={true} transparent={true} animationType="fade">
-            <BlurView intensity={80} style={styles.modalContainer}>
-              <View style={styles.previewContainer}>
-                <Image source={{ uri: selectedNotification.data['image'] }} style={styles.fullScreenImage} />
-                <Text style={styles.previewTitle}>{selectedNotification.data['title']}</Text>
-                <Text style={styles.previewDate}>{getHumanReadableDate(selectedNotification.created_at)}</Text>
-                <Text style={styles.previewMessage}>{selectedNotification.data['message']}</Text>
-                <TouchableOpacity onPress={closeNotificationPreview} style={styles.closeButton}>
-                  <Icon name="close" type="material-community" color="#fff" size={24} />
-                </TouchableOpacity>
-              </View>
-            </BlurView>
-          </Modal>
-        )}
+
+        <NotificationPreviewModal
+          visible={!!selectedNotification}
+          notification={selectedNotification}
+          onClose={closeNotificationPreview}
+          getHumanReadableDate={getHumanReadableDate}
+        />
       </View>
       
       <WarningPopup />

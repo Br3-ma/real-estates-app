@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, Image, Dimensions, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator, Platform, RefreshControl  } from 'react-native';
 import axios from 'axios';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -41,6 +41,7 @@ const MyPropertyScreen = ({ navigation }) => {
   const [bidPropertyId, setBidPropertyId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const isMountedRef = useRef(true);
 
   const fetchProperties = useCallback(async () => {
     setLoading(true);
@@ -220,7 +221,7 @@ const uploadPost = useCallback(async () => {
     setModalVisible(false);
     setUploadImages([]);
     setUploadVideos([]);  
-
+    onRefresh();
   } catch (error) {
     Toast.show({
       type: 'error',
@@ -274,13 +275,12 @@ const renderPropertyItem = useCallback(({ item }) => {
       <View>
         <View style={styles.priceLocationRow}>
           <Text style={styles.priceText}>K{item.price}</Text>
-          <TouchableOpacity>
-            <Text>
-              <MaterialIcons name="place" size={20} color="#000" />
-              {item.location}
-            </Text>
+          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <MaterialIcons name="place" size={20} color="#000" />
+            <Text style={{ marginLeft: 5 }}>{item.location}</Text>
           </TouchableOpacity>
         </View>
+
         <View style={styles.iconRow}>
           <View style={styles.iconTextContainer}>
             <MaterialIcons name="hotel" size={20} color="#000" />

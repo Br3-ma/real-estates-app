@@ -4,7 +4,6 @@ import Modal from 'react-native-modal';
 import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
-
 const UploadProfilePictureModal = ({ isVisible, onClose, uploadImages, setUploadImages, handleSavePicture, saving }) => {
   const [uploadingImages, setUploadingImages] = useState(false);
 
@@ -16,17 +15,19 @@ const UploadProfilePictureModal = ({ isVisible, onClose, uploadImages, setUpload
       setUploadingImages(true);
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsMultipleSelection: true,
+        allowsMultipleSelection: false,
         aspect: [4, 3],
         quality: 1,
       });
 
       if (!result.cancelled) {
-        if (Array.isArray(result.assets)) {
+        if (result.assets && Array.isArray(result.assets)) {
           setUploadImages(prevImages => [...prevImages, ...result.assets]);
-        } else {
-          setUploadImages(prevImages => [...prevImages, result.assets]);
+        } else if (result.uri) {
+          setUploadImages(prevImages => [...prevImages, result]);
         }
+      } else {
+        console.log('Image picking was cancelled');
       }
     } catch (error) {
       console.log('Error picking images:', error);
@@ -52,12 +53,16 @@ const UploadProfilePictureModal = ({ isVisible, onClose, uploadImages, setUpload
           </Text>
         </TouchableOpacity>
         <View style={styles.uploadedImageContainer}>
-          {uploadImages.map((image, index) => (
-            <Image key={index} source={{ uri: image.uri }} style={styles.uploadedImage} />
-          ))}
+          {uploadImages && uploadImages.length > 0 ? (
+            uploadImages.map((image, index) => (
+              <Image key={index} source={{ uri: image.uri }} style={styles.uploadedImage} />
+            ))
+          ) : (
+            <Text style={styles.noImageText}>No images uploaded</Text>
+          )}
         </View>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={handleSavePicture}>
+          <TouchableOpacity style={styles.button} onPress={handleSavePicture} disabled={saving || uploadingImages}>
             <Text style={styles.buttonText}>
               {saving || uploadingImages ? <ActivityIndicator size="small" color="#fff" /> : 'Save Changes'}
             </Text>
@@ -101,6 +106,10 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     margin: 5,
+  },
+  noImageText: {
+    textAlign: 'center',
+    color: '#888',
   },
   buttonContainer: {
     marginTop: 20,

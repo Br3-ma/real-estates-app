@@ -1,8 +1,11 @@
-import React from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, Platform, SafeAreaView, StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Image, TouchableOpacity, Platform, SafeAreaView, StatusBar, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { API_BASE_URL } from '../confg/config';
+import { fetchUserInfo } from '../controllers/auth/userController';
+
 import HomeScreen from './home.screen';
 import MyPropertyScreen from './account/food/my-properties.screen';
 import NotificationScreen from './account/donation/box.screen';
@@ -10,6 +13,7 @@ import MeScreen from './account/profile/me.screen';
 import SearchResultScreen from './search/search-result.screen';
 
 const Tab = createBottomTabNavigator();
+
 
 const TabBarIcon = ({ name, size, color, focused }) => {
   const iconMap = {
@@ -26,8 +30,31 @@ const TabBarIcon = ({ name, size, color, focused }) => {
   return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
 };
 
+
 const CustomHeader = () => {
   const navigation = useNavigation();
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  
+  const fetchNotificationCount = async () => {
+    try {
+      const userData = await fetchUserInfo();
+      const response = await fetch(`${API_BASE_URL}/notify-count/${userData.user.id}`);
+      const count = await response.json(); 
+      setNotificationCount(count); 
+    } catch (error) {
+      console.error('Error fetching notification count:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotificationCount();
+    const intervalId = setInterval(() => {
+      fetchNotificationCount();
+    }, 60000); 
+    
+    return () => clearInterval(intervalId);
+  }, []);
 
   const goToHomeAndRefresh = () => {
     navigation.reset({
@@ -40,13 +67,15 @@ const CustomHeader = () => {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <TouchableOpacity onPress={goToHomeAndRefresh} style={styles.headerTitleContainer}>
-          <Image
-            source={require('../assets/icon/ddd.png')}
-            style={styles.headerImage}
-          />
+          <Image source={require('../assets/icon/ddd.png')} style={styles.headerImage} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.headerRightButton}>
           <MaterialCommunityIcons name="bell-outline" size={24} color="#FFFFFF" />
+          {notificationCount > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationCount}>{notificationCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -84,7 +113,6 @@ const MainScreen = () => {
   );
 };
 
-
 const styles = StyleSheet.create({
   safeArea: {
     backgroundColor: '#8E2DE2',
@@ -109,7 +137,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   headerRightButton: {
+    position: 'relative',
     padding: 8,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: 'red',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationCount: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   tabBarStyle: {
     backgroundColor: '#FFFFFF',

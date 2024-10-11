@@ -15,6 +15,7 @@ import renderModalContent from '../../components/search-modal-filter';
 import RenderItem from '../../components/search-render-item';
 import RenderLocationCarousel from '../../components/carousel-locations';
 import RenderCategoryCarousel from '../../components/carousel-categories';
+import EmptyStateView from '../../components/empty-state';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const { width, height } = Dimensions.get('window');
@@ -251,13 +252,7 @@ const SearchResultScreen = ({ route, navigation }) => {
 
   // Placeholder view when data is empty
   const renderEmptyView = () => (
-    <View style={styles.emptyContainer}>
-      <Image source={require('../../assets/icon/empty.webp')} style={styles.placeholderImage} />
-      <Text style={styles.emptyText}>Didnt find anything?</Text>
-      <Button mode="contained" onPress={() => getAllProperties()}>
-        Look for properties here
-      </Button>
-    </View>
+    data.length === 0 && !loading && <EmptyStateView onRefresh={getAllProperties} />
   );
 
   return (
@@ -282,12 +277,11 @@ const SearchResultScreen = ({ route, navigation }) => {
           renderItem={renderItem}
           keyExtractor={(item, index) => `${item.id}-${index}`}
           onEndReachedThreshold={0.5}
-          // onEndReached={loadMore}
           ListFooterComponent={loading ? <ActivityIndicator animating size="large" /> : null}
           contentContainerStyle={styles.listContainer}
           showsHorizontalScrollIndicator={false}
-          refreshing={refreshing} 
-          onRefresh={onRefresh} 
+          refreshing={refreshing}
+          onRefresh={onRefresh}
         />
       )}
       <PostViewerModal
@@ -328,14 +322,14 @@ const SearchResultScreen = ({ route, navigation }) => {
               showsVerticalScrollIndicator={false}
               scrollEventThrottle={16}
             >
-              {renderModalContent({ 
-                selectedFilter, 
-                filterForm, 
-                handleFilterChange, 
-                handleBedroomsChange, 
-                handleBathroomsChange, 
-                renderCategoryCarousel, 
-                renderLocationCarousel 
+              {renderModalContent({
+                selectedFilter,
+                filterForm,
+                handleFilterChange,
+                handleBedroomsChange,
+                handleBathroomsChange,
+                renderCategoryCarousel,
+                renderLocationCarousel
               })}
             </AnimatedScrollView>
           </ScrollView>
@@ -395,7 +389,7 @@ const styles = StyleSheet.create({
     padding: 10,
     paddingTop: 16,
     width: '100%',
-    maxHeight: '100%', // Increased to 90% for more content visibility
+    maxHeight: '100%',
   },
   filterContent: {
     marginBottom: 15,
@@ -412,6 +406,7 @@ const styles = StyleSheet.create({
     color: '#1A202C',
     letterSpacing: 0.5,
   },
+
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -432,6 +427,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 28,
   },
+
   listContainer: {
     paddingBottom: 140,
   },

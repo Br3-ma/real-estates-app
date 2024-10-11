@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet, View, Dimensions } from 'react-native';
 import { Icon } from 'react-native-elements';
 import axios from 'axios';
@@ -15,42 +15,63 @@ const FeaturedItems = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigation = useNavigation();
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/property-types`);
         if (Array.isArray(response.data.data)) {
-          setCategories(response.data.data);
+          if (isMountedRef.current) { // Check if the component is still mounted
+            setCategories(response.data.data);
+          }
         } else {
           console.error('Expected array but received:', response.data.message);
-          setError('Unexpected response format');
+          if (isMountedRef.current) {
+            setError('Unexpected response format');
+          }
         }
-        setIsLoading(false);
       } catch (err) {
         console.error('Error fetching categories:', err);
-        setError('Error fetching categories');
-        setIsLoading(false);
+        if (isMountedRef.current) {
+          setError('Error fetching categories');
+        }
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false); // Ensure loading state is updated
+        }
       }
     };
 
     fetchCategories();
+
+    return () => {
+      isMountedRef.current = false; // Cleanup: set ref to false when component unmounts
+    };
   }, []);
 
   const handlePress = useCallback(async (categoryId) => {
     const searchData = new FormData();
     searchData.append('property_type_id', categoryId);
 
-    const response = await fetch(`${API_BASE_URL}/search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(searchData),
-    });
-    const data = await response.json();
-    navigation.navigate('SearchResultScreen', { results: data, searchKeyword: 'Search Results' });
-  }, []);
+    try {
+      const response = await fetch(`${API_BASE_URL}/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(Object.fromEntries(searchData)), // Convert FormData to JSON
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      navigation.navigate('SearchResultScreen', { results: data, searchKeyword: 'Search Results' });
+    } catch (err) {
+      console.error('Error during search:', err);
+      // Handle any additional error state or user feedback here
+    }
+  }, [navigation]);
 
   if (isLoading) {
     return (

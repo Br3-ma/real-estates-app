@@ -29,7 +29,6 @@ const MeScreen = () => {
   });
   const [refreshing, setRefreshing] = useState(false);
 
-  // Define fetchUser to fetch user info
   const fetchUser = useCallback(async () => {
     
     try {
@@ -63,7 +62,6 @@ const MeScreen = () => {
     }
   }, []);
 
-  // Fetch user info on component mount
   useEffect(() => {
     fetchUser();
     fetchLikesCount();
@@ -165,7 +163,7 @@ const MeScreen = () => {
       formPicData.append('segment', 'picture');
       formPicData.append('user_id', userInfo.user.id);
 
-      // Convert image URIs to Blobs and append them to formPicData
+      
       for (let index = 0; index < uploadImages.length; index++) {
         const image = uploadImages[index];
         const newImageUri = Constants.platform.android
@@ -190,10 +188,10 @@ const MeScreen = () => {
       });
       const responseData = await response.json();
 
-      // Save the updated user info back to AsyncStorage
+      
       await AsyncStorage.setItem('userInfo', JSON.stringify(responseData));
 
-      // Update state with new user info
+      
       setUserInfo(null);
       setUserInfo(responseData.user);
       setSaving(false); 
@@ -225,7 +223,7 @@ const MeScreen = () => {
       formPicData.append('segment', 'cover');
       formPicData.append('user_id', userInfo.user.id);
 
-      // Convert image URIs to Blobs and append them to formPicData
+      
       for (let index = 0; index < uploadImages.length; index++) {
         const image = uploadImages[index];
         const newImageUri = Constants.platform.android
@@ -250,10 +248,10 @@ const MeScreen = () => {
       });
       const responseData = await response.json();
 
-      // Save the updated user info back to AsyncStorage
+      
       await AsyncStorage.setItem('userInfo', JSON.stringify(responseData));
 
-      // Update state with new user info
+      
       setUserInfo(null);
       setUserInfo(responseData.user);
       setSaving(false); 
@@ -334,7 +332,7 @@ const MeScreen = () => {
           <Text style={styles.statText}>Likes</Text>
         </View>
         <View style={styles.statItem}>
-          {/* shorten estimate_profit amont */}
+          {/* shorten estimate_profit amount */}
           <Text style={styles.statNumber}>{formatEstimateProfit(userInfo.user?.estimate_profit)}</Text>
           <Text style={styles.statText}>Estimate Profits</Text>
         </View>
@@ -401,9 +399,14 @@ const MeScreen = () => {
       </View>
       {/* Change password link action button section */}
       <TouchableOpacity onPress={openChangePasswordModal} style={styles.actionButton}>
-        <Text style={styles.actionButtonText}>Change your password</Text>
-        <MaterialCommunityIcons name="lock" size={24} color="#60279C" />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.actionButtonText}> {/* Ensure this is text */}
+                Change your password
+            </Text>
+            <MaterialCommunityIcons name="lock" size={24} color="#60279C" />
+        </View>
       </TouchableOpacity>
+
     </View>
   
 

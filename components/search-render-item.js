@@ -18,16 +18,23 @@ const RenderItem = ({
 }) => (
   <Card style={styles.card} key={`${item.id}-${index}`}>
     <View style={styles.header}>
-      <Avatar.Image size={40} source={{ uri: `${SERVER_BASE_URL}/storage/app/users/${item.user.avatar}` }} />
+      <Avatar.Image
+        size={40}
+        source={
+          item.user.avatar
+            ? { uri: `${SERVER_BASE_URL}/storage/app/users/${item.user.avatar}` }
+            : require('../assets/img/user.png') // local placeholder image
+        }
+      />
       <View style={styles.headerText}>
         <Text style={styles.username}>{item.user.name}</Text>
         <Text style={styles.location}>📍 {item.location}</Text>
       </View>
-      <IconButton
+      {/* <IconButton
         icon="dots-vertical"
         size={24}
         onPress={() => {}}
-      />
+      /> */}
     </View>
 
     <TouchableOpacity onPress={() => showImageViewer(item.images, item)}>
@@ -50,16 +57,16 @@ const RenderItem = ({
           </View>
           <View style={styles.infoContainer}>
             <View style={styles.infoItem}>
-              <MaterialCommunityIcons name="bed" size={20} color="#FFFFFF" />
+              <MaterialCommunityIcons name="bed" size={28} color="#463a52" />
               <Text style={styles.infoText}>{item.bedrooms}</Text>
             </View>
             <View style={styles.infoItem}>
-              <MaterialCommunityIcons name="bathtub" size={20} color="#FFFFFF" />
+              <MaterialCommunityIcons name="bathtub" size={28} color="#463a52" />
               <Text style={styles.infoText}>{item.bathrooms}</Text>
             </View>
             <View style={styles.infoItem}>
-              <MaterialCommunityIcons name="vector-square" size={20} color="#FFFFFF" />
-              <Text style={styles.infoText}>{item.squareFootage} sqft</Text>
+              <MaterialCommunityIcons name="vector-square" size={26} color="#463a52" />
+              <Text style={styles.infoText}>{item.squareFootage || 0 } Area</Text>
             </View>
           </View>
           {(item.images?.length > 1 || item.videos?.length > 0) && (
@@ -99,30 +106,34 @@ const RenderItem = ({
 
 const styles = StyleSheet.create({
   card: {
-    marginVertical: 8,
-    borderRadius: 0,
-    elevation: 0,
+    marginBottom: 10,
+    backgroundColor: '#FFFFFF',
+    elevation: 2,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
   },
   headerText: {
     marginLeft: 12,
     flex: 1,
   },
   username: {
-    fontWeight: 'bold',
+    fontWeight: '600',
     fontSize: 16,
+    color: '#333',
   },
   location: {
     fontSize: 14,
-    color: '#7f8c8d',
+    color: '#666',
+    marginTop: 2,
   },
   mediaContainer: {
     position: 'relative',
-    height: width,
+    height: width * 0.75, // 3:4 aspect ratio
   },
   media: {
     width: '100%',
@@ -135,10 +146,9 @@ const styles = StyleSheet.create({
   },
   priceTag: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(39, 174, 96, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingVertical: 8,
   },
   priceText: {
     color: '#FFFFFF',
@@ -148,18 +158,19 @@ const styles = StyleSheet.create({
   infoContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 20,
-    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
+    padding: 12,
   },
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   infoText: {
-    color: '#FFFFFF',
-    marginLeft: 4,
+    color: '#333',
+    marginLeft: 6,
     fontSize: 14,
+    fontWeight: '500',
   },
   mediaCount: {
     position: 'absolute',
@@ -167,47 +178,71 @@ const styles = StyleSheet.create({
     right: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   mediaCountText: {
     color: '#FFFFFF',
     marginLeft: 4,
-    fontSize: 14,
+    fontSize: 12,
+    fontWeight: '600',
   },
   content: {
-    padding: 12,
+    padding: 16,
   },
   actionIcons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   leftIcons: {
     flexDirection: 'row',
   },
+  iconButton: {
+    marginRight: 20,
+  },
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 4,
+    marginBottom: 8,
+    color: '#333',
   },
   description: {
     fontSize: 14,
-    color: '#34495e',
+    color: '#666',
+    lineHeight: 20,
   },
   cardActions: {
-    justifyContent: 'space-between',
-    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    padding: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
   },
   actionButton: {
-    borderRadius: 20,
     flex: 1,
-    marginHorizontal: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  primaryButton: {
+    backgroundColor: '#000',
+  },
+  secondaryButton: {
+    backgroundColor: '#f0f0f0',
   },
   actionButtonLabel: {
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  primaryButtonLabel: {
+    color: '#FFFFFF',
+  },
+  secondaryButtonLabel: {
+    color: '#333',
   },
 });
 

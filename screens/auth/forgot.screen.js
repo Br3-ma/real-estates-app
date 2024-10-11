@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, ImageBackground, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Feather } from '@expo/vector-icons';
 import axios from 'axios';
 import { ToastProvider, useToast } from 'react-native-toast-notifications';
 import { API_BASE_URL } from '../../confg/config';
 
-const backgroundImage = require('../../assets/img/otp.jpeg');
+const { width, height } = Dimensions.get('window');
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -12,33 +14,33 @@ const ForgotPasswordScreen = ({ navigation }) => {
   const toast = useToast();
 
   const handleForgotPassword = async () => {
+    if (!email) {
+      toast.show('Please enter your email address', {
+        type: 'warning',
+        placement: 'top',
+        duration: 3000,
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/signup/request-otp`, { email });
-      console.log(response);
-        if (response.status === 200) {
-            toast.show('OTP sent to your email. Please check your inbox.', {
-                type: 'success',
-                placement: 'top',
-                duration: 4000,
-                animationType: 'slide-in',
-              });
-              // Navigate to OTP verification screen if needed
-              navigation.navigate('OTPVerification', { email });
-        } else {
-          toast.show('Failed to send to email, Check and try again', {
-              type: 'danger',
-              placement: 'top',
-              duration: 4000,
-              animationType: 'slide-in',
-            });
-        }
+      if (response.status === 200) {
+        toast.show('OTP sent to your email. Please check your inbox.', {
+          type: 'success',
+          placement: 'top',
+          duration: 4000,
+        });
+        navigation.navigate('OTPVerification', { email });
+      } else {
+        throw new Error('Failed to send OTP');
+      }
     } catch (error) {
       toast.show('Failed to send OTP. Please try again.', {
         type: 'danger',
         placement: 'top',
         duration: 4000,
-        animationType: 'slide-in',
       });
       console.error('Forgot Password Error:', error);
     } finally {
@@ -47,89 +49,141 @@ const ForgotPasswordScreen = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground source={backgroundImage} style={styles.background}>
-      <View style={styles.overlay}>
+    <LinearGradient
+      colors={['#fef8d4', '#a810ff']}
+      style={styles.container}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.content}
+      >
         <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <Feather name="lock" size={40} color="#FFF" />
+          </View>
           <Text style={styles.title}>Forgot Password</Text>
+          <Text style={styles.subtitle}>Enter your email to reset your password</Text>
         </View>
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#cccccc"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-        />
-        <TouchableOpacity style={styles.button} onPress={handleForgotPassword} disabled={loading}>
+        <View style={styles.inputContainer}>
+          <Feather name="mail" size={24} color="#A388EE" style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#A388EE"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleForgotPassword}
+          disabled={loading}
+        >
           {loading ? (
             <ActivityIndicator size="small" color="#FFF" />
           ) : (
-            <Text style={styles.buttonText}>Send OTP</Text>
+            <Text style={styles.buttonText}>Send Reset Link</Text>
           )}
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
-          <Text style={styles.loginText}>Back to Login</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.navigate('SignIn')}
+        >
+          <Feather name="arrow-left" size={20} color="#FFF" />
+          <Text style={styles.backButtonText}>Back to Login</Text>
         </TouchableOpacity>
-      </View>
-    </ImageBackground>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
-  background: {
+  container: {
     flex: 1,
-    resizeMode: 'cover',
   },
-  overlay: {
+  content: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: 40,
+  },
+  iconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 50,
+    padding: 20,
+    marginBottom: 20,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#FFF',
-    marginTop: 10,
+    marginBottom: 10,
+    fontFamily: Platform.OS === 'ios' ? 'Avenir-Heavy' : 'sans-serif-condensed',
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#E0D1FF',
+    textAlign: 'center',
+    opacity: 0.8,
+    fontFamily: Platform.OS === 'ios' ? 'Avenir' : 'sans-serif',
+    maxWidth: 280,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 12,
+    marginBottom: 25,
+    width: width * 0.85,
+    maxWidth: 400,
+    paddingHorizontal: 15,
+  },
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
-    width: '100%',
-    borderWidth: 0,
-    borderBottomWidth: 2,
-    borderBottomColor: '#FFF',
-    paddingHorizontal: 10,
-    paddingVertical: 12,
-    marginBottom: 20,
+    flex: 1,
+    paddingVertical: 15,
     fontSize: 16,
     color: '#FFF',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    fontFamily: Platform.OS === 'ios' ? 'Avenir' : 'sans-serif',
   },
   button: {
-    backgroundColor: '#7D7399',
+    backgroundColor: '#A388EE',
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 30,
+    width: width * 0.85,
+    maxWidth: 400,
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 2,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 8,
   },
   buttonText: {
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
+    fontFamily: Platform.OS === 'ios' ? 'Avenir-Heavy' : 'sans-serif-medium',
   },
-  loginText: {
-    color: '#FFF',
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  backButtonText: {
+    color: '#E0D1FF',
     fontSize: 16,
-    marginTop: 20,
-    textDecorationLine: 'underline',
+    marginLeft: 5,
+    fontFamily: Platform.OS === 'ios' ? 'Avenir' : 'sans-serif',
   },
 });
 
@@ -140,4 +194,3 @@ const Screen = ({ navigation }) => (
 );
 
 export default Screen;
-

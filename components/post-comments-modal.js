@@ -44,7 +44,9 @@ const CommentsModal = ({ visible, postId, onClose }) => {
     const fetchUserData = async () => {
       try {
         const user = await fetchUserInfo();
+        console.log("My User Details");
         setUserInfo(user);
+        console.log(user.user);
       } catch (error) {
         console.error('Failed to fetch user info:', error);
       }
