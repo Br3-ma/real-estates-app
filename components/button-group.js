@@ -4,7 +4,6 @@ import axios from 'axios';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { LinearGradient } from 'expo-linear-gradient';
 import { API_BASE_URL } from '../confg/config';
-import { Ionicons } from '@expo/vector-icons';
 
 const CategoryButtonGroup = ({ onButtonPress }) => {
   const [buttons, setButtons] = useState([]);

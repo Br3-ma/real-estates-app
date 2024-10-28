@@ -6,6 +6,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import moment from 'moment';
 import { SERVER_BASE_URL } from '../confg/config';
 import Communications from 'react-native-communications';
+import LongRectangleAd from './ads-long';
 
 const { width, height } = Dimensions.get('window');
 
@@ -129,12 +130,14 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                   </View>
                 </View>
 
-                <View style={styles.promoContainer}>
+                {/* replace this and put an  */}
+                <LongRectangleAd/>
+                {/* <View style={styles.promoContainer}>
                   <Text style={styles.sectionTitle}>Special Offer</Text>
                   <View style={styles.promoBox}>
                     <Text style={styles.promoText}>Get 5% off if you book within the next 24 hours!</Text>
                   </View>
-                </View>
+                </View> */}
 
                 <View style={styles.relatedPropertiesContainer}>
                   <Text style={styles.sectionTitle}>You might also like this</Text>

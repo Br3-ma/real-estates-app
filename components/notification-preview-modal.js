@@ -8,15 +8,15 @@ const NotificationPreviewModal = ({ visible, notification, onClose, getHumanRead
   const getNotificationStyle = (type) => {
     switch (type) {
       case 'welcome':
-        return { gradientColors: ['#4158D0', '#C850C0'], icon: 'hand-wave', illustratorImage: 'https://example.com/welcome.svg' };
+        return { gradientColors: ['#4158D0', '#C850C0'], icon: 'hand-wave', illustratorImage: '' };
       case 'comment':
-        return { gradientColors: ['#FF512F', '#DD2476'], icon: 'tag', illustratorImage: 'https://example.com/promotion.svg' };
+        return { gradientColors: ['#fff', '#fff'], icon: 'tag', illustratorImage: 'https://img.freepik.com/premium-photo/man-is-sitting-chair-is-holding-tablet-his-hand_1308175-167987.jpg' };
       case 'post':
-        return { gradientColors: ['#11998e', '#38ef7d'], icon: 'bell', illustratorImage: 'https://example.com/reminder.svg' };
+        return { gradientColors: ['#fff', '#fff'], icon: 'bell', illustratorImage: '../assets/img/post.webp' };
       case 'onboarding':
-        return { gradientColors: ['#FF512F', '#FF512F'], icon: 'alert-circle', illustratorImage: 'https://media.istockphoto.com/id/1425222394/vector/search-for-houses-online.jpg?s=612x612&w=0&k=20&c=z4aJ0iE6PEJhT3K_sREHP-tmV2sxBHdzqHkHjoVMB2k=' };
+        return { gradientColors: ['#fff', '#fff'], icon: 'alert-circle', illustratorImage: 'https://img.freepik.com/premium-vector/elderly-woman-is-sitting-sofa-grandma-is-sitting-with-phone_530883-45.jpg' };
       default:
-        return { gradientColors: ['#8E2DE2', '#4A00E0'], icon: 'information', illustratorImage: 'https://example.com/default.svg' };
+        return { gradientColors: ['#8E2DE2', '#4A00E0'], icon: 'information', illustratorImage: '' };
     }
   };
 
@@ -28,11 +28,10 @@ const NotificationPreviewModal = ({ visible, notification, onClose, getHumanRead
         <LinearGradient colors={gradientColors} style={styles.previewContainer}>
           <ScrollView contentContainerStyle={styles.scrollContent}>
             <Icon name={icon} type="material-community" color="#fff" size={40} containerStyle={styles.typeIcon} />
-            
             {notification?.data?.type && (
-              <Image 
-                source={{ uri: illustratorImage }} 
-                style={styles.notificationImage} 
+              <Image
+                source={{ uri: illustratorImage }}
+                style={styles.notificationImage}
                 onPress={onImagePress}
               />
             )}
@@ -48,6 +47,12 @@ const NotificationPreviewModal = ({ visible, notification, onClose, getHumanRead
                 <Text style={styles.promoExpiry}>Expires: {notification?.data?.expiry_date}</Text>
               </View>
             )}
+            {notification?.data?.type === 'promotion' && (
+              <View style={styles.promoContainer}>
+                <Text style={styles.promoCode}>Use code: {notification?.data?.promo_code}</Text>
+                <Text style={styles.promoExpiry}>Expires: {notification?.data?.expiry_date}</Text>
+              </View>
+            )}
 
             {notification?.data?.type === 'reminder' && (
               <View style={styles.reminderContainer}>
@@ -56,12 +61,12 @@ const NotificationPreviewModal = ({ visible, notification, onClose, getHumanRead
               </View>
             )}
 
-            {notification?.data?.type && notification?.data?.action && (
-              <TouchableOpacity 
+            {notification?.data?.type === 'comment' &&  (
+              <TouchableOpacity
                 style={[styles.actionButton, getActionButtonStyle(notification?.data?.type)]} 
-                onPress={() => onActionPress(notification?.data?.action)}
+                onPress={() => onActionPress(notification?.data?.post)}
               >
-                <Text style={styles.actionButtonText}>{notification?.data?.action?.title || 'Take Action'}</Text>
+                <Text style={styles.actionButtonText}>Read comment</Text>
               </TouchableOpacity>
             )}
           </ScrollView>
@@ -121,18 +126,18 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#fff',
+    color: '#000',
     textAlign: 'center',
   },
   previewDate: {
     fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: '#000',
     marginBottom: 16,
     textAlign: 'center',
   },
   previewMessage: {
     fontSize: 16,
-    color: '#fff',
+    color: '#000',
     marginBottom: 16,
     lineHeight: 24,
   },
@@ -174,7 +179,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   actionButtonText: {
-    color: '#fff',
+    color: '#000',
     fontSize: 16,
     fontWeight: 'bold',
   },

@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Modal, TextInput, ScrollView, View, Text, TouchableOpacity, Image, StyleSheet, Alert, Dimensions } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef  } from 'react';
+import { Modal, TextInput, ScrollView, Platform, View, Keyboard, KeyboardAvoidingView, Text, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -25,8 +25,19 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
   const [mapModalVisible, setMapModalVisible] = useState(false);
   const [amenitiesModalVisible, setAmenitiesModalVisible] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
+  const titleRef = useRef(null);
+  const descriptionRef = useRef(null);
+  const addressRef = useRef(null);
 
-  
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', handleKeyboardHide);
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -114,8 +125,25 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
       </TouchableOpacity>
     </View>
   );
+
   
-  
+
+  const handleKeyboardShow = () => {
+    if (Keyboard.isVisible()) {
+      if (titleRef.current) {
+        titleRef.current.focus();
+      } else if (descriptionRef.current) {
+        descriptionRef.current.focus();
+      } else if (addressRef.current) {
+        addressRef.current.focus();
+      }
+    }
+  };
+
+  const handleKeyboardHide = () => {
+    Keyboard.dismiss();
+  };
+
   const handleLocationSelect = (longitude, latitude) => {
     setPropertyDetails({
       ...propertyDetails,
@@ -147,161 +175,168 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.modalScrollView}>
-            <TextInput
-                placeholder="Title"
-                style={styles.input}
-                onChangeText={(text) => setPropertyDetails({ ...propertyDetails, title: text })}
-              />
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+            <ScrollView 
+              style={styles.modalScrollView} 
+              contentContainerStyle={styles.modalScrollViewContent}
+            >
               <TextInput
-                multiline
-                numberOfLines={5}
-                placeholder="Property description"
-                style={styles.textarea}
-                onChangeText={(text) => setPropertyDetails({ ...propertyDetails, description: text })}
-              />
-              <TextInput
-                placeholder="Address"
-                style={styles.input}
-                onChangeText={(text) => setPropertyDetails({ ...propertyDetails, location: text })}
-              />
-              <TextInput
-                placeholder="Price"
-                style={styles.input}
-                onChangeText={(text) => setPropertyDetails({ ...propertyDetails, price: text })}
-              />
-              <View style={styles.inputRow}>
-                <TextInput
-                  placeholder="Number of Bedrooms"
-                  style={[styles.input, styles.inputRowItem]}
-                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bedrooms: text })}
+                  placeholder="Title"
+                  style={styles.input}
+                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, title: text })}
                 />
                 <TextInput
-                  placeholder="Number of Bathrooms"
-                  style={[styles.input, styles.inputRowItem]}
-                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bathrooms: text })}
+                  multiline
+                  numberOfLines={5}
+                  placeholder="Property description"
+                  style={styles.textarea}
+                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, description: text })}
                 />
-              </View>
-              <View style={styles.inputRow}>
                 <TextInput
-                  placeholder="Square Foot (Optional)"
-                  style={[styles.input, styles.inputRowItem]}
-                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, area: text })}
+                  placeholder="Address"
+                  style={styles.input}
+                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, location: text })}
                 />
-              </View>
-
-              <View style={styles.inputRow}>
-                  <TouchableOpacity
-                      style={styles.amenitiesButton}
-                      onPress={() => setAmenitiesModalVisible(true)} // Open amenities modal
-                    >
-                    <Text style={styles.amenitiesButtonText}>Add Amenities</Text>
-                  </TouchableOpacity>
-                  {/* <TouchableOpacity
-                      style={styles.mapLinkButton}
-                      onPress={() => setMapModalVisible(true)}
-                    >
-                      <Text style={styles.mapLinkText}>Ping Location</Text>
-                  </TouchableOpacity>
+                <TextInput
+                  placeholder="Price"
+                  style={styles.input}
+                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, price: text })}
+                />
+                <View style={styles.inputRow}>
                   <TextInput
-                    placeholder="Longitute"
+                    placeholder="Number of Bedrooms"
                     style={[styles.input, styles.inputRowItem]}
-                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, long: text })}
+                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bedrooms: text })}
                   />
                   <TextInput
-                    placeholder="Latitude"
+                    placeholder="Number of Bathrooms"
                     style={[styles.input, styles.inputRowItem]}
-                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, lat: text })}
-                  /> */}
-              </View>
-              
-              {/* Property Type selection */}
-              <View style={styles.categoryContainer}>
-                <Text style={styles.categoryTitle}>What's the type of property?</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
-                  {propertyTypes.map((type) => (
+                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bathrooms: text })}
+                  />
+                </View>
+                <View style={styles.inputRow}>
+                  <TextInput
+                    placeholder="Square Foot (Optional)"
+                    style={[styles.input, styles.inputRowItem]}
+                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, area: text })}
+                  />
+                </View>
+
+                <View style={styles.inputRow}>
                     <TouchableOpacity
-                      key={type.id}
-                      style={[
-                        styles.categoryItem,
-                        selectedPropertyType === type.id && styles.categoryItemSelected
-                      ]}
-                      onPress={() => {
-                        setPropertyDetails({ ...propertyDetails, property_type_id: type.id });
-                        setSelectedPropertyType(type.id);
-                      }}
-                    >
-                      <Text style={styles.categoryItemText}>{type.name}</Text>
+                        style={styles.amenitiesButton}
+                        onPress={() => setAmenitiesModalVisible(true)} // Open amenities modal
+                      >
+                      <Text style={styles.amenitiesButtonText}>Add Amenities</Text>
                     </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-
-              {/* Location selection */}
-              <View style={styles.categoryContainer}>
-                <Text style={styles.categoryTitle}>Where is the property located?</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
-                  {locations.map((location) => (
-                    <TouchableOpacity
-                      key={location.id}
-                      style={[
-                        styles.categoryItem,
-                        selectedLocation === location.id && styles.categoryItemSelected
-                      ]}
-                      onPress={() => {
-                        setPropertyDetails({ ...propertyDetails, location_id: location.id });
-                        setSelectedLocation(location.id);
-                      }}
-                    >
-                      <Text style={styles.categoryItemText}>{location.name}</Text>
+                    {/* <TouchableOpacity
+                        style={styles.mapLinkButton}
+                        onPress={() => setMapModalVisible(true)}
+                      >
+                        <Text style={styles.mapLinkText}>Ping Location</Text>
                     </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
+                    <TextInput
+                      placeholder="Longitute"
+                      style={[styles.input, styles.inputRowItem]}
+                      onChangeText={(text) => setPropertyDetails({ ...propertyDetails, long: text })}
+                    />
+                    <TextInput
+                      placeholder="Latitude"
+                      style={[styles.input, styles.inputRowItem]}
+                      onChangeText={(text) => setPropertyDetails({ ...propertyDetails, lat: text })}
+                    /> */}
+                </View>
 
-              {/* Category selection */}
-              <View style={styles.categoryContainer}>
-                <Text style={styles.categoryTitle}>Select a category</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
-                  {categories.map((category) => (
-                    <TouchableOpacity
-                      key={category.id}
-                      style={[
-                        styles.categoryItem,
-                        selectedCategory === category.id && styles.categoryItemSelected
-                      ]}
-                      onPress={() => {
-                        setPropertyDetails({ ...propertyDetails, category_id: category.id });
-                        setSelectedCategory(category.id);
-                      }}
-                    >
-                      <Text style={styles.categoryItemText}>{category.name}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
+                {/* Property Type selection */}
+                <View style={styles.categoryContainer}>
+                  <Text style={styles.categoryTitle}>What's the type of property?</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
+                    {propertyTypes.map((type) => (
+                      <TouchableOpacity
+                        key={type.id}
+                        style={[
+                          styles.categoryItem,
+                          selectedPropertyType === type.id && styles.categoryItemSelected
+                        ]}
+                        onPress={() => {
+                          setPropertyDetails({ ...propertyDetails, property_type_id: type.id });
+                          setSelectedPropertyType(type.id);
+                        }}
+                      >
+                        <Text style={styles.categoryItemText}>{type.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
 
-              <View style={styles.uploadButtonsContainer}>
-                <TouchableOpacity onPress={pickImages} style={styles.uploadButton}>
-                  <AntDesign name="camera" size={24} color="#438ab5" />
-                  <Text style={styles.uploadButtonText}>
-                    {uploadingImages ? 'Opening...' : 'Upload Images'}
-                  </Text>
-                </TouchableOpacity>
+                {/* Location selection */}
+                <View style={styles.categoryContainer}>
+                  <Text style={styles.categoryTitle}>Where is the property located?</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
+                    {locations.map((location) => (
+                      <TouchableOpacity
+                        key={location.id}
+                        style={[
+                          styles.categoryItem,
+                          selectedLocation === location.id && styles.categoryItemSelected
+                        ]}
+                        onPress={() => {
+                          setPropertyDetails({ ...propertyDetails, location_id: location.id });
+                          setSelectedLocation(location.id);
+                        }}
+                      >
+                        <Text style={styles.categoryItemText}>{location.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
 
-                <TouchableOpacity onPress={pickVideos} style={styles.uploadButton}>
-                  <AntDesign name="videocamera" size={24} color="#438ab5" />
-                  <Text style={styles.uploadButtonText}>
-                    {uploadingVideos ? 'Opening...' : 'Upload Videos'}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                {/* Category selection */}
+                <View style={styles.categoryContainer}>
+                  <Text style={styles.categoryTitle}>Select a category</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
+                    {categories.map((category) => (
+                      <TouchableOpacity
+                        key={category.id}
+                        style={[
+                          styles.categoryItem,
+                          selectedCategory === category.id && styles.categoryItemSelected
+                        ]}
+                        onPress={() => {
+                          setPropertyDetails({ ...propertyDetails, category_id: category.id });
+                          setSelectedCategory(category.id);
+                        }}
+                      >
+                        <Text style={styles.categoryItemText}>{category.name}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
 
-              <View style={styles.uploadedMediaContainer}>
-                {uploadImages.map((image, index) => renderMediaItem(image, index, 'image'))}
-                {(uploadVideos ?? []).map((video, index) => renderMediaItem(video, index, 'video'))}
-              </View>
+                <View style={styles.uploadButtonsContainer}>
+                  <TouchableOpacity onPress={pickImages} style={styles.uploadButton}>
+                    <AntDesign name="camera" size={24} color="#438ab5" />
+                    <Text style={styles.uploadButtonText}>
+                      {uploadingImages ? 'Opening...' : 'Upload Images'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={pickVideos} style={styles.uploadButton}>
+                    <AntDesign name="videocamera" size={24} color="#438ab5" />
+                    <Text style={styles.uploadButtonText}>
+                      {uploadingVideos ? 'Opening...' : 'Upload Videos'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.uploadedMediaContainer}>
+                  {uploadImages.map((image, index) => renderMediaItem(image, index, 'image'))}
+                  {(uploadVideos ?? []).map((video, index) => renderMediaItem(video, index, 'video'))}
+                </View>
             </ScrollView>
+            </KeyboardAvoidingView>
 
             <View style={styles.modalFooter}>
               <RNButton
@@ -332,7 +367,6 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
     </>
   );
 };
-
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
@@ -380,7 +414,8 @@ const styles = StyleSheet.create({
   },
   modalScrollView: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    paddingVertical: 50,
   },
   inputGrid: {
     flexDirection: 'row',
@@ -559,5 +594,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
 export default UploadPost;

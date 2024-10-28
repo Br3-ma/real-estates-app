@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert, TextInput, RefreshControl } from 'react-native';
-import { fetchUserInfo } from '../../../controllers/auth/userController';
+import { fetchUserInfo, updateUserInfo } from '../../../controllers/auth/userController';
 import { ToastProvider, useToast } from 'react-native-toast-notifications';
-import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
+import { MaterialCommunityIcons, AntDesign, Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL, SERVER_BASE_URL } from '../../../confg/config';
@@ -13,6 +13,9 @@ import EditProfileModal from '../../../components/update-profile-modal';
 import UploadProfilePictureModal from '../../../components/update-picture-modal';
 import Preloader from '../../../components/preloader-full';
 import UploadCoverPictureModal from '../../../components/update-cover-picture';
+import SubscriptionPlan from '../../../components/subscription-plans';
+import * as Updates from 'expo-updates';
+
 
 const MeScreen = () => {
   const [changePasswordModalVisible, setChangePasswordModalVisible] = useState(false);
@@ -25,24 +28,24 @@ const MeScreen = () => {
   const [uploadImages, setUploadImages] = useState([]);
   const toast = useToast();
   const [formData, setFormData] = useState({
-    name: '', email: '', bio: '', location: '', website: '', password: '', newPassword: '', confirmNewPassword: '', picture: '',
+    name: '', phone: '', email: '', bio: '', location: '', website: '', password: '', newPassword: '', confirmNewPassword: '', picture: '',
   });
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchUser = useCallback(async () => {
-    
     try {
       const user = await fetchUserInfo();
       console.log(user);
-      if (user && user.user) {
+      if (user) {
         setUserInfo(user);
         setFormData({
-          name: user.user.name,
-          email: user.user.email,
-          bio: user.user.bio,
-          location: user.user.location,
-          website: user.user.website,
-          picture: user.user.picture,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          bio: user.bio,
+          location: user.location,
+          website: user.website,
+          picture: user.picture,
         });
       } else {
         alert('Incorrect Structure');
@@ -50,7 +53,7 @@ const MeScreen = () => {
     } catch (error) {
       console.error('Error fetching user:', error);
     }
-  }, []); 
+  }, []);
 
   const fetchLikesCount = useCallback(async () => {
     try {
@@ -68,7 +71,6 @@ const MeScreen = () => {
   }, [fetchUser, fetchLikesCount]);
 
   const onRefresh = useCallback(async () => {
-    setUserInfo(null); 
     setRefreshing(true);
     await fetchUser();
     await fetchLikesCount();
@@ -84,7 +86,8 @@ const MeScreen = () => {
   const closeEditProfileModal = () => setEditProfileModalVisible(false);
   const closeUploadProfileModal = () => setUploadProfileModalVisible(false);
   const closeUploadCoverProfileModal = () => setUploadCoverProfileModalVisible(false);
-  
+  const placeholderProfileImage = 'https://www.shutterstock.com/image-vector/blank-avatar-photo-icon-design-600nw-1682415103.jpg';
+
   const formatEstimateProfit = (amount) => {
     if (!amount) {
       return '0';
@@ -96,7 +99,7 @@ const MeScreen = () => {
     }
     return amount.toString();
   };
-  
+
   const handleInputChange = (name, value) => {
     setFormData({
       ...formData,
@@ -107,12 +110,13 @@ const MeScreen = () => {
   const saveChanges = async (updatedData) => {
     setSaving(true);
     try {
-      const responseData = await axios.post(`${API_BASE_URL}/update-profile`, updatedData);
-      console.log('Server: '+JSON.stringify(responseData.data));
-      await AsyncStorage.setItem('userInfo', JSON.stringify(responseData.data));
-      setUserInfo(null);
-      setUserInfo(responseData.data.user);
-      onRefresh();
+      const response = await axios.post(`${API_BASE_URL}/update-profile`, updatedData);
+      const updatedUserData = response.data;
+      console.log((updatedUserData.user));
+      // Update AsyncStorage with the new user info
+      await updateUserInfo(updatedUserData.user);
+      setUserInfo(updatedUserData.user);
+  
       toast.show('Profile updated successfully', {
         type: 'success',
         placement: 'top',
@@ -120,7 +124,7 @@ const MeScreen = () => {
         animationType: 'slide-in',
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.show('Failed to update your profile', {
         type: 'danger',
         placement: 'top',
@@ -142,7 +146,7 @@ const MeScreen = () => {
 
   const handleSaveProfile = () => {
     const segment = 'profile';
-    const user_id = userInfo.user.id;
+    const user_id = userInfo.id;
     const { name, email, bio, location, website } = formData;
     saveChanges({ name, email, bio, location, website, segment, user_id });
     closeEditProfileModal();
@@ -150,7 +154,7 @@ const MeScreen = () => {
 
   const handleSavePassword = () => {
     const segment = 'password';
-    const user_id = userInfo.user.id;
+    const user_id = userInfo.id;
     const { password, newPassword, confirmNewPassword } = formData;
     saveChanges({ password, newPassword, confirmNewPassword, segment, user_id });
     closeChangePasswordModal();
@@ -161,9 +165,9 @@ const MeScreen = () => {
       setSaving(true);
       const formPicData = new FormData();
       formPicData.append('segment', 'picture');
-      formPicData.append('user_id', userInfo.user.id);
+      formPicData.append('user_id', userInfo.id);
 
-      
+      console.log(formPicData);
       for (let index = 0; index < uploadImages.length; index++) {
         const image = uploadImages[index];
         const newImageUri = Constants.platform.android
@@ -188,21 +192,29 @@ const MeScreen = () => {
       });
       const responseData = await response.json();
 
-      
       await AsyncStorage.setItem('userInfo', JSON.stringify(responseData));
+      console.log(responseData.message);
 
-      
-      setUserInfo(null);
-      setUserInfo(responseData.user);
-      setSaving(false); 
-      closeUploadProfileModal();
-      onRefresh();
-      toast.show("Profile Picture Updated Successfully", {
-        type: 'success',
-        placement: 'top',
-        duration: 4000,
-        animationType: 'slide-in',
-      });
+      if(responseData.user){
+        await updateUserInfo(responseData.user);
+        setUserInfo(responseData.user);
+        setSaving(false);
+        closeUploadProfileModal();
+        // onRefresh();
+        toast.show("Profile Picture Updated Successfully", {
+          type: 'success',
+          placement: 'top',
+          duration: 4000,
+          animationType: 'slide-in',
+        });
+      }else{
+        toast.show("Check your image and try again", {
+          type: 'danger',
+          placement: 'top',
+          duration: 4000,
+          animationType: 'slide-in',
+        });
+      }
     } catch (error) {
       console.error();
       toast.show("Check your image and try again", {
@@ -215,15 +227,13 @@ const MeScreen = () => {
       setSaving(false);
     }
   };
-  
+
   const handleSaveCoverPicture = async () => {
     try {
       setSaving(true);
       const formPicData = new FormData();
       formPicData.append('segment', 'cover');
-      formPicData.append('user_id', userInfo.user.id);
-
-      
+      formPicData.append('user_id', userInfo.id);
       for (let index = 0; index < uploadImages.length; index++) {
         const image = uploadImages[index];
         const newImageUri = Constants.platform.android
@@ -236,7 +246,6 @@ const MeScreen = () => {
           uri: newImageUri,
         });
       }
-
       const response = await fetch(`${API_BASE_URL}/update-profile`, {
         method: 'POST',
         headers: {
@@ -247,14 +256,11 @@ const MeScreen = () => {
         body: formPicData,
       });
       const responseData = await response.json();
+      // await AsyncStorage.setItem('userInfo', JSON.stringify(responseData));
 
-      
-      await AsyncStorage.setItem('userInfo', JSON.stringify(responseData));
-
-      
-      setUserInfo(null);
+      await updateUserInfo(responseData.user);
       setUserInfo(responseData.user);
-      setSaving(false); 
+      setSaving(false);
       closeUploadCoverProfileModal();
       onRefresh();
       toast.show("Profile Picture Updated Successfully", {
@@ -275,8 +281,17 @@ const MeScreen = () => {
       setSaving(false);
     }
   };
-
-  const placeholderProfileImage = 'https://www.shutterstock.com/image-vector/blank-avatar-photo-icon-design-600nw-1682415103.jpg';
+  const handleLogout = async () => {
+    try {
+      // Remove user info from AsyncStorage
+      await AsyncStorage.removeItem('userInfo');
+      
+      // Restart the app (Reload the app)
+      await Updates.reloadAsync();
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}
@@ -284,14 +299,12 @@ const MeScreen = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }>
       {saving && <Preloader />}
-
-
       {/* Profile Header with editable cover image */}
       <View style={styles.profileHeader}>
         <Image
           source={{
-            uri: userInfo?.user?.cover
-              ? `${SERVER_BASE_URL}/storage/app/${userInfo.user.cover}`
+            uri: userInfo?.cover
+              ? `${SERVER_BASE_URL}/storage/app/${userInfo.cover}`
               : `${SERVER_BASE_URL}/storage/app/profile/no-cover.jpg`,
           }}
           style={styles.coverImage}
@@ -304,7 +317,7 @@ const MeScreen = () => {
         <View style={styles.profileInfo}>
           <View style={styles.profilePictureContainer}>
             <Image
-              source={{ uri: `${SERVER_BASE_URL}/storage/app/` + userInfo?.user?.picture || placeholderProfileImage }}
+              source={{ uri: `${SERVER_BASE_URL}/storage/app/` + userInfo?.picture || placeholderProfileImage }}
               style={styles.profilePicture}
             />
             <TouchableOpacity onPress={openUploadProfileModal} style={[styles.linkButton, styles.pictureButton]}>
@@ -312,7 +325,7 @@ const MeScreen = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.profileText}>
-            <Text style={styles.profileName}>{userInfo?.user?.name}</Text>            
+            <Text style={styles.profileName}>{userInfo?.name}</Text>            
           </View>
         </View>
       </View>
@@ -320,11 +333,11 @@ const MeScreen = () => {
       {/* Profile Stats */}
       <View style={styles.profileStats}>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{userInfo.user?.total_posts}</Text>
+          <Text style={styles.statNumber}>{userInfo?.total_active_posts_count}</Text>
           <Text style={styles.statText}>Posts</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{userInfo.user?.total_properties}</Text>
+          <Text style={styles.statNumber}>{userInfo?.total_posts_count}</Text>
           <Text style={styles.statText}>Properties</Text>
         </View>
         <View style={styles.statItem}>
@@ -333,11 +346,13 @@ const MeScreen = () => {
         </View>
         <View style={styles.statItem}>
           {/* shorten estimate_profit amount */}
-          <Text style={styles.statNumber}>{formatEstimateProfit(userInfo.user?.estimate_profit)}</Text>
+          <Text style={styles.statNumber}>{formatEstimateProfit(userInfo?.estimate_profit)}</Text>
           <Text style={styles.statText}>Estimate Profits</Text>
         </View>
       </View>
-  
+      
+      {/* Ads Section */}
+      {/* <SmallBannerAd /> */}
       {/* Change Password Bottom Sheet */}
       <ChangePasswordModal
         isVisible={changePasswordModalVisible}
@@ -385,18 +400,26 @@ const MeScreen = () => {
           <MaterialCommunityIcons name="account-edit-outline" style={styles.linkIcon} />
         </TouchableOpacity>
         <View style={styles.detailItem}>
+          <Text style={styles.detailLabel}>Phone Number</Text>
+          <Text style={styles.detailValue}>{userInfo?.phone || 'Not set'}</Text>
+        </View>
+        <View style={styles.detailItem}>
           <Text style={styles.detailLabel}>Location</Text>
-          <Text style={styles.detailValue}>{userInfo.user?.location || 'Not set'}</Text>
+          <Text style={styles.detailValue}>{userInfo?.location || 'Not set'}</Text>
         </View>
         <View style={styles.detailItem}>
           <Text style={styles.detailLabel}>Email</Text>
-          <Text style={styles.detailValue}>{userInfo.user?.email}</Text>
+          <Text style={styles.detailValue}>{userInfo?.email}</Text>
         </View>
         <TouchableOpacity style={styles.detailItem}>
           <Text style={styles.detailLabel}>About</Text>
-          <Text style={[styles.detailValue, styles.link]}>{userInfo.user?.bio || 'Not set'}</Text>
+          <Text style={[styles.detailValue, styles.link]}>{userInfo?.bio || 'Not set'}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Subscription Plans */}
+      <SubscriptionPlan/>
+
       {/* Change password link action button section */}
       <TouchableOpacity onPress={openChangePasswordModal} style={styles.actionButton}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -405,31 +428,34 @@ const MeScreen = () => {
             </Text>
             <MaterialCommunityIcons name="lock" size={24} color="#60279C" />
         </View>
-      </TouchableOpacity>
-
+      </TouchableOpacity> 
+      
+      {/* Logout section */}
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.logoutButton]}
+          onPress={handleLogout}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={[styles.actionButtonText, styles.logoutText]}>
+              Logout
+            </Text>
+            <MaterialCommunityIcons name="logout" size={24} color="#FF3B30" />
+          </View>
+        </TouchableOpacity>
     </View>
-  
 
     </ScrollView>
-  ); 
+  );
 };
-
-const Card = ({ title, value, onPress }) => (
-  <TouchableOpacity onPress={onPress} style={styles.card}>
-    <Text style={styles.cardTitle}>{title}</Text>
-    <Text style={styles.cardValue}>{value}</Text>
-  </TouchableOpacity>
-);
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: '#F0F2F5',
-    marginHorizontal:0,
   },
   profileHeader: {
     position: 'relative',
-    height: 300,
+    height: 320,
     overflow: 'hidden',
   },
   coverImage: {
@@ -439,21 +465,21 @@ const styles = StyleSheet.create({
   },
   coverOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)', // Increased opacity for better readability
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   blurOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backdropFilter: 'blur(5px)', // Add blur effect
+    backdropFilter: 'blur(3px)',
   },
   editCoverButton: {
     position: 'absolute',
     top: 40,
     right: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.3)',
     padding: 12,
     borderRadius: 30,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255,255,255,0.4)',
   },
   profileInfo: {
     position: 'absolute',
@@ -461,22 +487,22 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 25,
   },
   profilePictureContainer: {
-    marginBottom: 15,
+    marginBottom: 20,
   },
   profilePicture: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
     borderWidth: 4,
     borderColor: '#fff',
   },
   pictureButton: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
+    bottom: 5,
+    right: 5,
     backgroundColor: '#60279C',
     padding: 10,
     borderRadius: 20,
@@ -488,16 +514,16 @@ const styles = StyleSheet.create({
   },
   profileText: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
   },
   profileName: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: '700',
     color: '#fff',
     textShadowColor: 'rgba(0, 0, 0, 0.75)',
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
-    marginBottom: 5,
+    marginBottom: 8,
   },
   profileBio: {
     fontSize: 16,
@@ -506,32 +532,27 @@ const styles = StyleSheet.create({
     maxWidth: '80%',
     lineHeight: 22,
   },
-  editButton: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    padding: 12,
-    borderRadius: 30,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-  },
   profileStats: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    marginHorizontal: 2,
-    marginTop: -30
+    borderRadius: 25,
+    padding: 25,
+    marginHorizontal: 15,
+    marginTop: -35,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   statItem: {
     alignItems: 'center',
   },
   statNumber: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#918895',
+    color: '#60279C',
   },
   statText: {
     fontSize: 14,
@@ -539,32 +560,23 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   detailsContainer: {
-    paddingHorizontal: 10,
-    marginTop: 30,
-    marginBottom: 20,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 4,
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#cdc5d0',
+    paddingHorizontal: 15,
+    marginTop: 35,
+    marginBottom: 25,
   },
   userDetailsSection: {
     backgroundColor: '#fff',
-    borderRadius: 10,
-    marginHorizontal:0,
-    padding: 20,
+    borderRadius: 20,
+    padding: 25,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
   },
   detailItem: {
-    marginBottom: 15,
+    marginBottom: 20,
   },
   detailLabel: {
     fontSize: 14,
@@ -580,26 +592,37 @@ const styles = StyleSheet.create({
     color: '#60279C',
     textDecorationLine: 'underline',
   },
-  card: {
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#fff',
     borderRadius: 20,
-    padding: 25,
-    marginBottom: 20,
+    padding: 20,
+    marginBottom: 15,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 8,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 10,
-  },
-  cardValue: {
+  actionButtonText: {
     fontSize: 16,
-    color: '#555',
+    fontWeight: '600',
+    color: '#60279C',
+  },
+  editButton: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    backgroundColor: '#F0F2F5',
+    padding: 10,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   modalTitle: {
     fontSize: 28,
@@ -636,9 +659,9 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   profilePicturePreview: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
     marginVertical: 30,
     alignSelf: 'center',
     borderWidth: 5,
@@ -686,6 +709,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#60279C',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  logoutButton: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#FF3B30',
+    backgroundColor: '#FFF5F5',
+  },
+  logoutText: {
+    color: '#FF3B30',
+    marginRight: 10,
   },
 });
 

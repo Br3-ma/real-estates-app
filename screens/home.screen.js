@@ -19,11 +19,16 @@ import Communications from 'react-native-communications';
 import HomeImageViewerModal from '../components/post-home-details';
 import CommentsModal from '../components/post-comments-modal';
 import TopListing from '../components/top-listing';
+import TopListingClassic from '../components/top-listing-classic';
+import TimedAdPopup from '../components/ad-timed-modal';
+import LongHomeRectangleAd from '../components/ad-home-one';
+import LongHomeRectangleTopAd from '../components/ad-home-two';
 
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [properties, setProperties] = useState([]);
   const [hot_properties, setHotProperties] = useState([]);
+  const [hot_properties_c, setHotPropertiesC] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -48,10 +53,36 @@ const HomeScreen = ({ navigation }) => {
   const [btnOptions, setButtons] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const isMountedRef = useRef(true);
+  useEffect(() => {
+    // Fetch user info first
+    const loadUserInfo = async () => {
+      try {
+        const user = await fetchUserInfo();
+        console.log('User fetched:', user);
+        setUserInfo(user);
+        console.log(userInfo);
+      } catch (error) {
+        console.error('Failed to fetch user info:', error);
+      } finally {
+        
+      }
+    };
+    loadUserInfo();
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
+  useEffect(() => {
+    // Log userInfo after it’s been set
+    if (userInfo !== null) {
+      console.log('Updated userInfo:', userInfo);
+    }
+  }, [userInfo]);
   useEffect(() => {
     const fetchProperties = async () => {
       try {
+
         const response = await axios.get(`${API_BASE_URL}/property-posts`); 
         if (isMountedRef.current) setProperties(response.data);
 
@@ -61,23 +92,23 @@ const HomeScreen = ({ navigation }) => {
         const response2 = await axios.get(`${API_BASE_URL}/categories`); 
         if (isMountedRef.current) setButtons(response2.data.data);
 
+        const response3 = await axios.get(`${API_BASE_URL}/hot-property-posts-x2`); 
+        if (isMountedRef.current) setHotPropertiesC(response3.data.data);
+
       } catch (error) {
         console.error('Failed to fetch properties:', error);
       } finally {
         if (isMountedRef.current) setLoading(false);
       }
     };
-    const fetchUser = async () => {
-      const user = await fetchUserInfo();
-      if (isMountedRef.current) setUserInfo(user);
-    };
-    fetchUser();
+  
     fetchProperties();
     return () => {
-      isMountedRef.current = false; 
+      isMountedRef.current = false;
       terminateFetchInterval();
     };
   }, []);
+
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -90,7 +121,7 @@ const HomeScreen = ({ navigation }) => {
 
         const response1 = await axios.get(`${API_BASE_URL}/hot-property-posts`);
         if (isMountedRef.current) setHotProperties(response1.data);
-  
+
         const response2 = await axios.get(`${API_BASE_URL}/categories`); 
         if (isMountedRef.current) setButtons(response2.data.data);
       } catch (error) {
@@ -119,7 +150,7 @@ const HomeScreen = ({ navigation }) => {
   const closeModal = () => {
     setIsModalVisible(false);
   };
-  
+
   const handleSearch = async (searchData) => {
     setIsLoading(true);
     try {
@@ -270,8 +301,10 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.featuredSectionTitle}>This might help you</Text>
             <FeaturedItems />
           </View>
-          <TopListing 
-            properties={hot_properties.slice(0, 10)} 
+          {userInfo && userInfo.isSub === 0 && <LongHomeRectangleTopAd />}
+          {/* Top Listing of Boosted Posts */}
+          <TopListing
+            properties={hot_properties ? hot_properties.slice(0, 10) : []} 
             loading={loading}
             onPress={handleTopListingPress}
           />
@@ -288,10 +321,19 @@ const HomeScreen = ({ navigation }) => {
               ))}
             </View>
           )}
-
-          <AdAdPost />
+          {userInfo?.isSub === 0 && <LongHomeRectangleAd/>}
+          <AdAdPost
+            navigation={navigation}
+          />
+          {/* Top Listing for Boosted Posts */}
+          <TopListingClassic 
+            properties={hot_properties_c ? hot_properties_c.slice(0, 10):[]} 
+            loading={loading}
+            onPress={handleTopListingPress}
+          />
           <BlankView />
         </ScrollView>
+        {userInfo?.isSub === 0 && <TimedAdPopup/>}
       </LinearGradient>
 
       <SearchModal
@@ -322,7 +364,7 @@ const HomeScreen = ({ navigation }) => {
       />
       {isLoading && (
         <View style={styles.fullScreenLoading}>
-          <ActivityIndicator size="large" color="#0000ff" />
+          <ActivityIndicator size="large" color="#60279C" />
         </View>
       )}
       <Toast />

@@ -44,9 +44,10 @@ const CommentsModal = ({ visible, postId, onClose }) => {
     const fetchUserData = async () => {
       try {
         const user = await fetchUserInfo();
+        console.log('----------user mounted on comments----------------');
+        console.log(user);
         console.log("My User Details");
         setUserInfo(user);
-        console.log(user.user);
       } catch (error) {
         console.error('Failed to fetch user info:', error);
       }
@@ -91,7 +92,7 @@ const CommentsModal = ({ visible, postId, onClose }) => {
     try {
       await axios.post(`${API_BASE_URL}/comment-reply`, {
         post_id: postId,
-        user_id: userInfo.user.id,
+        user_id: userInfo.id,
         content: newMessage,
       });
 

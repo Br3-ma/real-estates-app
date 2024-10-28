@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   },
   featuredSection: {
     marginTop: 14,
-    marginBottom: 10,
+    marginBottom: 5,
   },
   featuredSectionTitle: {
     fontSize: 18,

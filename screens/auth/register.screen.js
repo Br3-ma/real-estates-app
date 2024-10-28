@@ -63,51 +63,48 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
   };
 
   const handleSignup = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_BASE_URL}/signup/user-info`, {
-        name,
-        email,
-        phone,
-        password,
-      });
-      await AsyncStorage.removeItem('userInfo');
-      await AsyncStorage.setItem('userInfo', JSON.stringify(response.data));
-      // Clear saved signup values after successful signup
-      await AsyncStorage.multiRemove(['signupName', 'signupEmail', 'signupPhone']);
-      navigation.navigate('Main');
-    } catch (error) {
-        // Log the full error object
-        console.log('Error details:', error);
+      setLoading(true);
+      try {
+          const response = await axios.post(`${API_BASE_URL}/signup/user-info`, {
+              name,
+              email,
+              phone,
+              password,
+          });
+          await AsyncStorage.removeItem('userInfo');
+          await AsyncStorage.setItem('userInfo', JSON.stringify(response.data.user));
+          await AsyncStorage.multiRemove(['signupName', 'signupEmail', 'signupPhone']);
+          navigation.navigate('Main');
+      } catch (error) {
+          console.log('Error details:', error);
 
-        // Log useful parts of the error object for Axios
-        if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          console.log('Response data:', error.response.data);
-          console.log('Response status:', error.response.status);
-          console.log('Response headers:', error.response.headers);
-        } else if (error.request) {
-          // The request was made but no response was received
-          console.log('Request data:', error.request);
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          console.log('Error message:', error.message);
-        }
+          if (error.response) {
+              console.log('Response data:', error.response.data);
+              console.log('Response status:', error.response.status);
+              console.log('Response headers:', error.response.headers);
 
-        // Additional details about the request configuration
-        console.log('Config:', error.config);
+              // Extract validation errors
+              const errorMessages = Object.values(error.response.data.message)
+                  .flat()
+                  .join('\n');
 
-        // Show user-friendly error message via Toast
-        Toast.show({
-          type: 'error',
-          text1: 'Sign Up Error',
-          text2: error.message ? error.message : 'Unknown error occurred. Please try again.',
-        });
-      console.error('Signup Error:', error);
-    } finally {
-      setLoading(false);
-    }
+              // Show validation error messages via Toast
+              Toast.show({
+                  type: 'error',
+                  text1: 'Sign Up Failure',
+                  text2: errorMessages || 'Unknown error occurred. Please try again.',
+              });
+          } else if (error.request) {
+              console.log('Request data:', error.request);
+          } else {
+              console.log('Error message:', error.message);
+          }
+
+          console.log('Config:', error.config);
+          console.error('Signup Error:', error);
+      } finally {
+          setLoading(false);
+      }
   };
 
   const handlePhoneChange = (inputText) => {

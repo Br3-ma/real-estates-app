@@ -1,22 +1,24 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, ScrollView, Image, Dimensions, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator, Platform, RefreshControl  } from 'react-native';
-import axios from 'axios';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { fetchUserInfo } from '../../../controllers/auth/userController';
 import { API_BASE_URL, SERVER_BASE_URL } from '../../../confg/config';
 import { Card, Button } from '@rneui/themed';
+import { Menu, Provider } from 'react-native-paper'; 
+import { usePropertyActions } from '../../../tools/api/PropertyActions';
+import * as FileSystem from 'expo-file-system';
+import axios from 'axios';
 import styles from '../../../assets/css/my-properties.css';
 import UploadPost from '../../../components/upload-post';
 import mime from "mime";
 import CommentsModal from '../../../components/post-comments-modal';
 import PostViewerModal from '../../../components/post-details';
-import { Menu, Provider } from 'react-native-paper'; 
-import { usePropertyActions } from '../../../tools/api/PropertyActions';
-import * as FileSystem from 'expo-file-system';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import BidWizardModal from '../../../components/bidwiz-modal'; 
 import Toast from 'react-native-toast-message';
 import MenuContainer from '../../../components/menu-action-list';
 import EditProfileModal from '../../../components/update-profile-modal';
+import TimedAdModal from '../../../components/ad-ad-common';
+import TimedAdPopup from '../../../components/ad-timed-modal';
 
 const { width, height } = Dimensions.get('window');
 const MyPropertyScreen = ({ navigation }) => {
@@ -47,7 +49,7 @@ const MyPropertyScreen = ({ navigation }) => {
     setLoading(true);
     try {
       const user = await fetchUserInfo();
-      const response = await axios.get(`${API_BASE_URL}/my-property-posts/${user.user.id}`);
+      const response = await axios.get(`${API_BASE_URL}/my-property-posts/${user.id}`);
       setProperties(response.data);
     } catch (error) {
       console.error('Failed to fetch properties:', error);
@@ -69,6 +71,13 @@ const MyPropertyScreen = ({ navigation }) => {
 
     fetchData();
   }, [fetchProperties]);
+
+  useEffect(() => {
+    // Log userInfo after it’s been set
+    if (userInfo !== null) {
+      console.log('Updated userInfo:', userInfo);
+    }
+  }, [userInfo]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -142,6 +151,7 @@ const MyPropertyScreen = ({ navigation }) => {
 
 const MAX_VIDEO_SIZE = 25 * 1024 * 1024; 
 const uploadPost = useCallback(async () => {
+  console.log('Uploading post........');
   setUploading(true);
   try {
     const formData = new FormData();
@@ -151,7 +161,7 @@ const uploadPost = useCallback(async () => {
     formData.append('location', propertyDetails.location);
     formData.append('long', propertyDetails.long);
     formData.append('lat', propertyDetails.lat);
-    formData.append('user_id', userInfo.user.id);
+    formData.append('user_id', userInfo.id);
     formData.append('status_id', propertyDetails.status_id);
     formData.append('bedrooms', propertyDetails.bedrooms);
     formData.append('bathrooms', propertyDetails.bathrooms);
@@ -181,6 +191,7 @@ const uploadPost = useCallback(async () => {
       },
     });
 
+    console.log('Post uploaded successfully:', response.data);
     if (uploadVideos.length > 0) {
       for (let index = 0; index < uploadVideos.length; index++) {
         const video = uploadVideos[index];
@@ -223,6 +234,7 @@ const uploadPost = useCallback(async () => {
     setUploadVideos([]);  
     onRefresh();
   } catch (error) {
+    console.log(error.message);
     Toast.show({
       type: 'error',
       text1: 'Post Failed',
@@ -315,6 +327,9 @@ return (
       <ScrollView refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#3D6DCC']}  />
         }>
+
+        {/* Put an In-App ad here to obstruct user it should be closable */}
+        {userInfo?.isSub === 0 && <TimedAdModal />}
         {properties.map((property, index) => (
           <View key={index}>
             {renderPropertyItem({ item: property })}
@@ -366,6 +381,8 @@ return (
         onDismiss={() => setBidModalVisible(false)} 
         property={bidPropertyId}  
       />
+      
+      {userInfo?.isSub === 0 && <TimedAdPopup/>}
     </SafeAreaView>
   </Provider>
 );

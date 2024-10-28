@@ -1,0 +1,129 @@
+
+import Toast from 'react-native-toast-message';
+
+const generateUUID = () => {
+  return 'xxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+export const handlePaymentSubmit = async ({
+  paymentMethod,
+  cardNumber,
+  expiryDate,
+  cvv,
+  mobileNetwork,
+  mobilePhone,
+  amount,
+  payingFor,
+  boostInfo,
+  postID,
+  planID,
+  userID,
+  setIsLoading,
+}) => {
+  setIsLoading(true);
+
+  try {
+    // Prepare request body based on payment method
+    let requestBody;
+    if (paymentMethod === 'card') {
+      // Add card payment logic here if needed
+      requestBody = {
+        depositId: generateUUID,
+        amount: amount,
+        currency: "ZMW",
+        correspondent: "VISA_CARD",
+        payer: {
+          address: {
+            value: cardNumber,
+          },
+          type: "CARD",
+        },
+        customerTimestamp: new Date().toISOString(),
+        statementDescription: "Card payment",
+        country: "ZMB",
+        metadata: {
+          plan_id: planID,
+          user_id: userID,
+          post_id: postID,
+          type: payingFor,
+          boost: boostInfo,
+        },
+      };
+    } else {
+      // Mobile payment request body
+      requestBody = {
+        depositId: generateUUID,
+        amount: amount,
+        currency: "ZMW",
+        correspondent: mobileNetwork,
+        payer: {
+          address: {
+            value: '26' + mobilePhone,
+          },
+          type: "MSISDN",
+        },
+        customerTimestamp: new Date().toISOString(),
+        statementDescription: "Mobile payment",
+        country: "ZMB",
+        metadata: {
+          plan_id: planID,
+          user_id: userID,
+          post_id: postID,
+          type: payingFor,
+          boost: boostInfo,
+        },
+      };
+    }
+
+    Toast.show({
+      type: 'info',
+      text1: 'Submitting payment',
+      text2: JSON.stringify(requestBody),
+    });
+
+    // Setup headers
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Digest", "square rent app");
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Bearer eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjkzNSIsImV4cCI6MjA0NDc5MzI2NiwiaWF0IjoxNzI5MjYwNDY2LCJwbSI6IkRBRixQQUYiLCJqdGkiOiIzOTU5NmMyOS02MWJlLTQ2MjMtOTczZS1lMGE3Yzg3MzE0NDgifQ.mhcRvNtSGalGqzWqeqzFopLf1D1kmVxOjWyCb_7jCibrCMlPDbK5HunE7BbtKOYnGSsB_66ovRFsTV8b93xoqg");
+
+    // Fetch request options
+    const requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: JSON.stringify(requestBody),
+      redirect: "follow",
+    };
+
+    Toast.show({
+      type: 'info',
+      text1: 'Request options',
+      text2: JSON.stringify(requestOptions),
+    });
+
+    console.log(requestOptions);
+    // Execute fetch request
+    const response = await fetch("https://api.pawapay.io/deposits", requestOptions);
+    const result = await response.json();
+
+    console.log(response);
+    Toast.show({
+      type: 'success',
+      text1: 'Payment response',
+      text2: JSON.stringify(result),
+    });
+
+  } catch (error) {
+    console.log(error);
+    Toast.show({
+      type: 'error',
+      text1: 'Error submitting payment',
+      text2: error.message,
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};

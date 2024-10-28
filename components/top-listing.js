@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, View, Text, ScrollView, StyleSheet, TouchableOpacity, ImageBackground,SafeAreaView } from 'react-native';
-import { Image, Icon, Avatar } from 'react-native-elements';
+import { Icon, Avatar } from 'react-native-elements';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SERVER_BASE_URL } from '../confg/config';
@@ -128,6 +128,11 @@ const TopListings = ({ properties, loading, onPress }) => {
     ))
   ), []);
 
+  // Conditional rendering based on properties length
+  if (!properties || properties.length === 0) {
+    return null; // Don't render the component if properties are empty
+  }
+  
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Top Listings</Text>
@@ -144,7 +149,7 @@ const TopListings = ({ properties, loading, onPress }) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 16,
+    marginVertical: 2,
   },
   sectionTitle: {
     fontSize: 18,

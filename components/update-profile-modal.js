@@ -21,6 +21,12 @@ const EditProfileModal = ({ isVisible, onClose, formData, handleInputChange, han
         />
         <TextInput
           style={styles.input}
+          placeholder="Phone Number"
+          value={formData.phone}
+          onChangeText={(text) => handleInputChange('phone', text)}
+        />
+        <TextInput
+          style={styles.input}
           placeholder="Email"
           value={formData.email}
           onChangeText={(text) => handleInputChange('email', text)}

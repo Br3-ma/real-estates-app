@@ -14,8 +14,8 @@ import SignupsquareateAgentScreen from './screens/auth/register.screen';
 import MainScreen from './screens/main.screen';
 
 const Stack = createStackNavigator();
-// console.disableYellowBox = true;
-// LogBox.ignoreAllLogs(true);
+console.disableYellowBox = true;
+LogBox.ignoreAllLogs(true);
 
 const LoadingContext = createContext();
 export const useLoading = () => useContext(LoadingContext);
@@ -48,6 +48,7 @@ const App = () => {
 
   const checkAuthentication = async () => {
     try {
+      console.log('----------OnLoad----------');
       const userInfoString = await AsyncStorage.getItem('userInfo');
       const userInfo = userInfoString ? JSON.parse(userInfoString) : null;
   
@@ -55,14 +56,16 @@ const App = () => {
         throw new Error('User info not found');
       }
 
-      const phoneNumber = userInfo.data?.user?.phone || userInfo.user?.phone;
+      const phoneNumber = userInfo.phone || userInfo.user?.phone;
   
       if (!phoneNumber) {
         throw new Error('Phone number not found in user info');
       }
-  
       const url = `${API_BASE_URL}/connectx`;
       const response = await axios.post(url, { phone: phoneNumber });
+      
+      console.log(url);
+      console.log(response);
       setAuthenticated(response.data.status);
     } catch (error) {
       console.log(error);

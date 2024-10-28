@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 import { AntDesign } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -7,20 +7,17 @@ import * as ImagePicker from 'expo-image-picker';
 const UploadProfilePictureModal = ({ isVisible, onClose, uploadImages, setUploadImages, handleSavePicture, saving }) => {
   const [uploadingImages, setUploadingImages] = useState(false);
 
-  useEffect(() => {
-  }, []);
-
   const pickImages = async () => {
     try {
       setUploadingImages(true);
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsMultipleSelection: false,
-        aspect: [4, 3],
+        allowsEditing: true,
+        aspect: [1, 1],
         quality: 1,
       });
 
-      if (!result.cancelled) {
+      if (!result.canceled) {
         if (result.assets && Array.isArray(result.assets)) {
           setUploadImages(prevImages => [...prevImages, ...result.assets]);
         } else if (result.uri) {
@@ -45,89 +42,105 @@ const UploadProfilePictureModal = ({ isVisible, onClose, uploadImages, setUpload
       style={styles.bottomModal}
     >
       <View style={styles.bottomSheetContainer}>
-        <Text style={styles.modalTitle}>Upload Profile Picture</Text>
-        <TouchableOpacity onPress={pickImages} style={styles.uploadButton}>
-          <AntDesign name="camera" style={{ width: 30, height: 25 }} />
-          <Text style={styles.uploadButtonText}>
-            {uploadingImages ? 'Opening...' : 'Upload Images'}
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.uploadedImageContainer}>
-          {uploadImages && uploadImages.length > 0 ? (
-            uploadImages.map((image, index) => (
-              <Image key={index} source={{ uri: image.uri }} style={styles.uploadedImage} />
-            ))
-          ) : (
-            <Text style={styles.noImageText}>No images uploaded</Text>
-          )}
-        </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={handleSavePicture} disabled={saving || uploadingImages}>
-            <Text style={styles.buttonText}>
-              {saving || uploadingImages ? <ActivityIndicator size="small" color="#fff" /> : 'Save Changes'}
-            </Text>
+        <View style={styles.header}>
+          <Text style={styles.modalTitle}>Upload Profile Picture</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <AntDesign name="close" size={24} color="#000" />
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity onPress={pickImages} style={styles.uploadContainer}>
+          {uploadImages && uploadImages.length > 0 ? (
+            <Image source={{ uri: uploadImages[0].uri }} style={styles.uploadedImage} />
+          ) : (
+            <View style={styles.uploadPlaceholder}>
+              <AntDesign name="camera" size={40} color="#3498db" />
+              <Text style={styles.uploadText}>
+                {uploadingImages ? 'Opening...' : 'Tap to upload'}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.saveButton, (uploadImages.length === 0 || saving || uploadingImages) && styles.disabledButton]} 
+          onPress={handleSavePicture} 
+          disabled={uploadImages.length === 0 || saving || uploadingImages}
+        >
+          {saving || uploadingImages ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.saveButtonText}>Save Changes</Text>
+          )}
+        </TouchableOpacity>
       </View>
     </Modal>
   );
 };
 
+
 const styles = StyleSheet.create({
+  bottomModal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
   bottomSheetContainer: {
     backgroundColor: '#fff',
-    borderRadius: 10,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     padding: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
   },
-  uploadButton: {
+  closeButton: {
+    padding: 5,
+  },
+  uploadContainer: {
     alignItems: 'center',
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
+    justifyContent: 'center',
+    height: 200,
+    borderWidth: 2,
+    borderColor: '#3498db',
+    borderStyle: 'dashed',
+    borderRadius: 20,
+    marginBottom: 20,
+    overflow: 'hidden',
   },
-  uploadButtonText: {
-    marginLeft: 10,
+  uploadPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  uploadedImageContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 10,
+  uploadText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#3498db',
   },
   uploadedImage: {
-    width: 100,
-    height: 100,
-    margin: 5,
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
   },
-  noImageText: {
-    textAlign: 'center',
-    color: '#888',
-  },
-  buttonContainer: {
-    marginTop: 20,
+  saveButton: {
+    backgroundColor: '#3498db',
+    paddingVertical: 12,
+    borderRadius: 10,
     alignItems: 'center',
   },
-  button: {
-    backgroundColor: '#3498db',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+  disabledButton: {
+    backgroundColor: '#bdc3c7',
   },
-  buttonText: {
+  saveButtonText: {
     color: '#fff',
-    fontSize: 16,
-  },
-  bottomModal: {
-    justifyContent: 'flex-end',
-    margin: 0,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View, Text, FlatList, StyleSheet, SafeAreaView, Image,
+  View, Text, StyleSheet, SafeAreaView, Image,
   TouchableOpacity, Modal, Dimensions, RefreshControl, Animated
 } from 'react-native';
 import { Icon } from 'react-native-elements';
@@ -10,6 +10,7 @@ import { fetchUserInfo } from '../../../controllers/auth/userController';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { API_BASE_URL } from '../../../confg/config';
 import NotificationPreviewModal from '../../../components/notification-preview-modal';
+import PostNotifyViewerModal from '../../../components/post-notification-details';
 
 const NotificationScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -18,11 +19,14 @@ const NotificationScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [scrollY] = useState(new Animated.Value(0));
   const [showClearWarning, setShowClearWarning] = useState(false);
+  const [isPostViewerModalVisible, setPostViewerModalVisible] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+
 
   const fetchNotifications = useCallback(async () => {
     try {
       const user = await fetchUserInfo();
-      const response = await fetch(`${API_BASE_URL}/notify/${user.user.id}`);
+      const response = await fetch(`${API_BASE_URL}/notify/${user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch notifications');
       }
@@ -64,6 +68,30 @@ const NotificationScreen = () => {
   const cancelClearNotifications = useCallback(() => {
     setShowClearWarning(false);
   }, []);
+
+  const openCommentsModal = useCallback(async (itemId) => {
+    try {
+      setSelectedItemId(itemId);
+      setCommentsModalVisible(true);
+    } catch (error) {
+      console.error('Failed to open comments modal:', error);
+    }
+  }, []);
+
+  const showImageViewer = useCallback(async (property) => {
+    console.log(property);
+    try {
+      if (isPostViewerModalVisible) {
+        setPostViewerModalVisible(false);
+      }
+      setSelectedProperty(property);
+      setPostViewerModalVisible(true);
+
+    } catch (error) {
+      console.error('Error in showImageViewer:', error);
+    }
+  }, [isPostViewerModalVisible]);
+
   const getHumanReadableDate = useCallback((dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -208,9 +236,15 @@ const NotificationScreen = () => {
           notification={selectedNotification}
           onClose={closeNotificationPreview}
           getHumanReadableDate={getHumanReadableDate}
+          onActionPress={showImageViewer}
+        />
+        <PostNotifyViewerModal
+          visible={isPostViewerModalVisible}
+          property={selectedProperty}
+          openCommentsModal={openCommentsModal}
+          onClose={() => setPostViewerModalVisible(false)}
         />
       </View>
-      
       <WarningPopup />
     </SafeAreaView>
   );

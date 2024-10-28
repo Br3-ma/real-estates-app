@@ -14,7 +14,6 @@ import SearchResultScreen from './search/search-result.screen';
 
 const Tab = createBottomTabNavigator();
 
-
 const TabBarIcon = ({ name, size, color, focused }) => {
   const iconMap = {
     Home: ['home', 'home-outline'],
@@ -30,18 +29,19 @@ const TabBarIcon = ({ name, size, color, focused }) => {
   return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
 };
 
-
 const CustomHeader = () => {
   const navigation = useNavigation();
   const [notificationCount, setNotificationCount] = useState(0);
 
-  
   const fetchNotificationCount = async () => {
     try {
       const userData = await fetchUserInfo();
-      const response = await fetch(`${API_BASE_URL}/notify-count/${userData.user.id}`);
-      const count = await response.json(); 
-      setNotificationCount(count); 
+      
+      console.log('----------user from notification----------------');
+      console.log(userData);
+      const response = await fetch(`${API_BASE_URL}/notify-count/${userData.id}`);
+      const count = await response.json();
+      setNotificationCount(count);
     } catch (error) {
       console.error('Error fetching notification count:', error);
     }
@@ -51,23 +51,29 @@ const CustomHeader = () => {
     fetchNotificationCount();
     const intervalId = setInterval(() => {
       fetchNotificationCount();
-    }, 60000); 
-    
+    }, 60000); // refresh every 60 seconds
+
     return () => clearInterval(intervalId);
   }, []);
 
   const goToHomeAndRefresh = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Home', params: { refresh: Date.now() } }],
-    });
+    try {
+      navigation.navigate('Home');
+      // navigation.reset({
+      //   index: 0,
+      //   routes: [{ name: 'Home', params: { refresh: Date.now() } }],
+      // });
+      // console.log('Navigating to Home and refreshing');
+    } catch (error) {
+      // console.error('Error resetting navigation:', error);
+    }
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <TouchableOpacity onPress={goToHomeAndRefresh} style={styles.headerTitleContainer}>
-          <Image source={require('../assets/icon/ddd.png')} style={styles.headerImage} />
+          <Image source={require('../assets/icon/logo.png')} style={styles.headerImage} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.headerRightButton}>
           <MaterialCommunityIcons name="bell-outline" size={24} color="#FFFFFF" />
@@ -122,7 +128,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 15,
     backgroundColor: '#8E2DE2',
   },
   headerTitleContainer: {
@@ -130,11 +136,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerImage: {
-    width: 32,
-    height: 32,
+    width: 45,
+    height: 45,
     marginRight: 12,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    borderRadius: 50,
+    backgroundColor: '#faedff',
   },
   headerRightButton: {
     position: 'relative',

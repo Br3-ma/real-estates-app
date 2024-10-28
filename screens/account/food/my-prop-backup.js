@@ -46,7 +46,7 @@ const MyPropertyScreen = ({ navigation }) => {
     setLoading(true);
     try {
       const user = await fetchUserInfo();
-      const response = await axios.get(`${API_BASE_URL}/my-property-posts/${user.user.id}`);
+      const response = await axios.get(`${API_BASE_URL}/my-property-posts/${user.id}`);
       setProperties(response.data);
     } catch (error) {
       console.error('Failed to fetch properties:', error);

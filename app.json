@@ -3,7 +3,7 @@
     "name": "square",
     "slug": "square",
     "scheme": "square",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon/logo.png",
     "userInterfaceStyle": "light",
@@ -20,7 +20,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.br3mah.square"
+      "bundleIdentifier": "com.br3mah.square",
+      "buildNumber": "1.0.2"
     },
     "android": {
       "permissions": [
@@ -33,7 +34,8 @@
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       },
-      "package": "com.br3mah.square"
+      "package": "com.br3mah.square",
+      "versionCode":3
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -45,10 +47,12 @@
       }
     },
     "updates": {
-      "enabled": false,
-      "checkAutomatically": "NEVER"
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD"
     },
-    "runtimeVersion": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion" 
+    },
     "owner": "br3mah"
   }
 }
