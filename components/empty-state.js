@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Image, Text, Dimensions, TouchableOpacity, ScrollView, SafeAreaView, StatusBar } from 'react-native';
+import { View, Image, Text, Dimensions, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const EmptyStateView = ({ onRefresh }) => {
   return (
@@ -12,32 +12,48 @@ const EmptyStateView = ({ onRefresh }) => {
       <LinearGradient
         colors={['#4A90E2', '#50E3C2']}
         style={styles.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          bounces={false}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>Discover Your Dream Home</Text>
-            <Text style={styles.subtitle}>Let's find the perfect property for you</Text>
+            <Text style={styles.subtitle}>Find the perfect property for you</Text>
           </View>
 
-          <Image
-            source={require('../assets/img/empty-state.avif')} 
-            style={styles.image}
-            resizeMode="cover"
-          />
+          <View style={styles.imageContainer}>
+            <Image
+              source={require('../assets/img/empty-state.avif')} 
+              style={styles.image}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.3)']}
+              style={styles.imageOverlay}
+            />
+          </View>
 
           <View style={styles.content}>
             <Text style={styles.paragraph}>
-              Ready to start your journey? Explore our curated listings and find the home that speaks to you.
+              Ready to start your journey? Explore our curated listings.
             </Text>
 
-            <TouchableOpacity style={styles.button} onPress={onRefresh}>
-              <Text style={styles.buttonText}>Begin Your Search</Text>
+            <TouchableOpacity 
+              style={styles.button} 
+              onPress={onRefresh}
+              activeOpacity={0.8}
+            >
+              <Icon name="home-search" size={20} color="#4A90E2" style={styles.buttonIcon} />
+              <Text style={styles.buttonText}>Begin Search</Text>
             </TouchableOpacity>
 
             <View style={styles.tipSection}>
-              <Icon name="lightbulb-outline" size={24} color="#FFF" style={styles.tipIcon} />
+              <Icon name="lightbulb-outline" size={20} color="#FFF" style={styles.tipIcon} />
               <Text style={styles.tipText}>
-                Pro Tip: Save your favorite searches to get notified about new matching properties!
+                Pro Tip: Save searches for new property notifications!
               </Text>
             </View>
           </View>
@@ -56,76 +72,92 @@ const styles = {
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'space-between',
   },
   header: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
     alignItems: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#E0E0E0',
     textAlign: 'center',
   },
-  image: {
+  imageContainer: {
+    position: 'relative',
     width: width,
-    height: height * 0.4,
+    height: width * 0.6,
+    marginVertical: 16,
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  imageOverlay: {
+    ...StyleSheet.absoluteFillObject,
   },
   content: {
-    padding: 20,
+    padding: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   paragraph: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#FFFFFF',
-    lineHeight: 24,
-    marginBottom: 20,
+    lineHeight: 22,
+    marginBottom: 16,
     textAlign: 'center',
   },
   button: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 15,
-    paddingHorizontal: 30,
-    borderRadius: 30,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  buttonIcon: {
+    marginRight: 8,
   },
   buttonText: {
     color: '#4A90E2',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
   },
   tipSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 15,
-    borderRadius: 15,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    padding: 12,
+    borderRadius: 12,
   },
   tipIcon: {
-    marginRight: 12,
+    marginRight: 8,
   },
   tipText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 13,
     color: '#FFFFFF',
+    lineHeight: 18,
   },
 };
 

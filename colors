@@ -12,13 +12,13 @@
 
 //Convert
 eas build --profile preview --platform android
+https://github.com/Br3-ma/real-estates-app.git
 
- "foregroundImage": "./assets/icon/logo.png",
- export const API_BASE_URL = 'http://192.168.43.134/square-api-server/api';
+"foregroundImage": "./assets/icon/logo.png",
+export const API_BASE_URL = 'http://192.168.43.134/square-api-server/api';
 export const API_BASE_URL = 'http://localhost/square-api-server/api';
- export const SERVER_BASE_URL = 'http://192.168.43.134/square-api-server/';
+export const SERVER_BASE_URL = 'http://192.168.43.134/square-api-server/';
 export const SERVER_BASE_URL = 'http://localhost/square-api-server';
-
 
 MTN_MOMO_ZMB
 AIRTEL_OAPI_ZMB

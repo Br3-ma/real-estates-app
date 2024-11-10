@@ -4,6 +4,7 @@ import { Button, IconButton } from 'react-native-paper';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Modal from 'react-native-modal';
+import { Menu, Provider } from 'react-native-paper'; 
 import { API_BASE_URL, SERVER_BASE_URL } from '../../confg/config';
 import PostViewerModal from '../../components/post-details';
 import CommentsModal from '../../components/post-comments-modal';
@@ -248,6 +249,7 @@ const SearchResultScreen = ({ route, navigation }) => {
   );
 
   return (
+    <Provider>
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <IconButton icon="arrow-left" onPress={() => navigation.goBack()} />
@@ -284,6 +286,7 @@ const SearchResultScreen = ({ route, navigation }) => {
         openPostDetails={showImageViewer}
         openCommentsModal={openCommentsModal}
         onClose={() => setPostViewerModalVisible(false)}
+        fetchProperties={data}
       />
       <CommentsModal
         visible={isCommentsModalVisible}
@@ -338,6 +341,7 @@ const SearchResultScreen = ({ route, navigation }) => {
         serverBaseUrl={SERVER_BASE_URL}
       />
     </SafeAreaView>
+  </Provider>
   );
 };
 

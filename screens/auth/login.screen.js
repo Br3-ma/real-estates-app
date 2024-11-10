@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, Animated, View } from 'react-native';
+import { StyleSheet, ScrollView, Animated, View, Linking } from 'react-native';
 import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -227,6 +227,12 @@ const SignInScreen = ({ navigation }) => {
             >
               Don't have an account? Sign Up
             </Button>
+            <Text
+              onPress={() => Linking.openURL('https://square.twalitso.com/privacy-policy')} 
+              style={styles.privacyPolicyLink}
+            >
+              Privacy Policy
+            </Text>
           </Animated.View>
         </ScrollView>
         <Toast />
@@ -324,6 +330,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFFFFF',
   },
+  privacyPolicyLink: {
+    marginTop: 16,
+    fontSize: 12,
+    color: theme.colors.primary,
+    textDecorationLine: 'underline',
+    textAlign: 'center',
+  },
+  
 });
 
 export default SignInScreen;

@@ -3,7 +3,7 @@
     "name": "square",
     "slug": "square",
     "scheme": "square",
-    "version": "1.0.3",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/icon/logo.png",
     "userInterfaceStyle": "light",
@@ -21,7 +21,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.br3mah.square",
-      "buildNumber": "1.0.3"
+      "buildNumber": "1.0.7"
     },
     "android": {
       "permissions": [
@@ -35,7 +35,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.br3mah.square",
-      "versionCode":4
+      "versionCode":8
     },
     "web": {
       "favicon": "./assets/favicon.png"

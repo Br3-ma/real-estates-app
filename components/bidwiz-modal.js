@@ -11,20 +11,14 @@ import { fetchUserInfo } from '../controllers/auth/userController';
 
 const { width, height } = Dimensions.get('window');
 
-const bidPackages = [
-  { id: 1, amount: '100', desc: '1 Week', icon: 'calendar-week', features: ['Top Listing', 'Priority Support'] },
-  { id: 2, amount: '200', desc: '2 Weeks', icon: 'calendar-range', features: ['Featured Badge', 'Email Marketing'] },
-  { id: 3, amount: '300', desc: '3 Weeks', icon: 'calendar-month', features: ['Social Promotion', 'Analytics Report'] },
- 
-];
-
 const BidWizardModal = ({ visible, onDismiss, property }) => {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState({ propertyId: property });
-  const [selectedPackage, setSelectedPackage] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isPaymentSheetVisible, setIsPaymentSheetVisible] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState(null);
+  const [bidPackages, setBidPackages] = useState([]);
   
   useEffect(() => {
     fetchUserInfo()
@@ -42,7 +36,23 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
       });
   }, [property]);
   
+  useEffect(() => {
+    const fetchBidPackages = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/bid-packages`);
+        setBidPackages(response.data);
+      } catch (error) {
+        console.error('Error fetching bid packages:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to load bid packages.'
+        });
+      }
+    };
 
+    fetchBidPackages();
+  }, []);
   const steps = [
     { 
       title: 'Boost Your Property',
@@ -62,7 +72,7 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
     {
       title: 'Complete Payment',
       subtitle: 'Secure payment process',
-      image: require('../assets/icon/payment.webp')
+      image: require('../assets/icon/payment.jpg')
     },
   ];
 
@@ -103,7 +113,7 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
       onPress={() => setSelectedPackage(item.id)}
     >
       <LinearGradient
-        colors={selectedPackage === item.id ? ['#6c63ff', '#3e74bc'] : ['#ffffff', '#ffffff']}
+        colors={selectedPackage === item.id ? ['#8bbee1', '#3e74bc'] : ['#ffffff', '#ffffff']}
         style={styles.packageContent}
       >
         <IconButton 
@@ -115,8 +125,15 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
           K{item.amount}
         </Text>
         <Text style={[styles.packageDuration, selectedPackage === item.id && styles.selectedText]}>
-          {item.desc}
+        {item.duration} {item.duration_type}s
         </Text>
+        <View style={styles.featuresList}>
+            <Text 
+              style={[styles.featureText, selectedPackage === item.id && styles.selectedText]}
+            >
+              {item.desc}
+            </Text>
+        </View>
         {/* <View style={styles.featuresList}>
           {item.features.map((feature, index) => (
             <Text 
@@ -168,7 +185,8 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
                 <View style={styles.reviewItem}>
                   <Text style={styles.reviewLabel}>Duration</Text>
                   <Text style={styles.reviewValue}>
-                    {bidPackages.find(p => p.id === selectedPackage)?.desc}
+                  {bidPackages.find(p => p.id === selectedPackage)?.duration}
+                  {bidPackages.find(p => p.id === selectedPackage)?.duration_type}
                   </Text>
                 </View>
                 <View style={styles.reviewItem}>
@@ -293,81 +311,91 @@ const BidWizardModal = ({ visible, onDismiss, property }) => {
 const styles = StyleSheet.create({
   modalContainer: {
     margin: 0,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffff',
     flex: 1,
+    zIndex: 100,
   },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffff',
   },
   header: {
-    paddingTop: 48,
-    paddingBottom: 16,
+    paddingTop: 35,
+    paddingBottom: 10,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 15,
+    backgroundColor: '#4a4e69',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 50,
   },
   headerContent: {
-    paddingHorizontal: 24,
-    paddingBottom: 16,
+    paddingHorizontal: 10,
+    paddingBottom: 6,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
     color: '#fff',
-    marginBottom: 4,
+    marginBottom: 2,
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.7)',
+    letterSpacing: -0.3,
   },
   closeButton: {
     position: 'absolute',
-    top: 48,
-    right: 16,
-    zIndex: 1,
-    color: '#ffffff',
+    top: 35,
+    right: 8,
+    zIndex: 60,
   },
   progressBar: {
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    height: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
   },
   welcomeContainer: {
     alignItems: 'center',
-    padding: 24,
+    padding: 16,
   },
   welcomeImage: {
-    width: width * 0.5,
-    height: width * 0.5,
+    width: width * 0.35,
+    height: width * 0.35,
     resizeMode: 'contain',
-    marginBottom: 5,
+    marginBottom: 8,
   },
   welcomeText: {
-    fontSize: 18,
-    color: '#9694b0',
+    fontSize: 14,
+    color: '#6c7093',
     textAlign: 'center',
-    lineHeight: 26,
+    lineHeight: 20,
+    letterSpacing: -0.2,
   },
   packageList: {
-    paddingVertical: 8,
-    margin: 2,
+    paddingVertical: 2,
   },
   packageCard: {
-    marginBottom: 12,
-    borderRadius: 12,
+    marginBottom: 6,
+    borderRadius: 8,
     elevation: 3,
-    backgroundColor: '#ebebf9',
-    shadowColor: '#ebebf9',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    backgroundColor: '#ffffff',
+    shadowColor: '#4a4e69',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
     shadowRadius: 3,
-    width: '100%',
     overflow: 'hidden',
+    zIndex: 10,
   },
   packageContent: {
-    padding: 16,
-    borderRadius: 12,
+    padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -375,21 +403,20 @@ const styles = StyleSheet.create({
   selectedPackage: {
     elevation: 8,
     transform: [{ scale: 1.02 }],
+    zIndex: 20,
   },
   packageAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#9694b0',
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#5a5a6d',
     flex: 1,
     textAlign: 'center',
-    marginHorizontal: 8,
   },
   packageDuration: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 12,
+    color: '#7a7a8c',
     flex: 1,
     textAlign: 'right',
-    marginLeft: 8,
   },
   selectedText: {
     color: '#fff',
@@ -397,125 +424,125 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
-  featuresList: {
-    marginTop: 8,
-    paddingLeft: 12,
-  },
-  featureText: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
-  },
   reviewContainer: {
     padding: 0,
   },
   reviewCard: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 12,
     elevation: 2,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   reviewHeader: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
     color: '#9694b0',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   reviewItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 8,
     paddingHorizontal: 4,
   },
   reviewLabel: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
   },
   reviewValue: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#9694b0',
     fontWeight: '500',
   },
-  paymentContainer: {
-    alignItems: 'center',
-    padding: 24,
-  },
-  paymentImage: {
-    width: width * 0.5,
-    height: width * 0.5,
-    resizeMode: 'contain',
-    marginBottom: 24,
-  },
-  paymentText: {
-    fontSize: 18,
-    color: '#9694b0',
-    textAlign: 'center',
-  },
   footer: {
     flexDirection: 'row',
-    padding: 20,
-    backgroundColor: '#fff',
+    padding: 10,
+    backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: '#f0f0f5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 5,
+    zIndex: 40,
   },
   backButton: {
     flex: 1,
-    paddingVertical: 16,
-    marginRight: 12,
-    borderRadius: 12,
+    paddingVertical: 10,
+    marginRight: 6,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#9694b0',
+    borderColor: '#e0e0e8',
     alignItems: 'center',
   },
   backButtonText: {
-    color: '#60279C',
-    fontSize: 16,
+    color: '#4a4e69',
+    fontSize: 13,
     fontWeight: '600',
+    letterSpacing: -0.3,
   },
   nextButton: {
     flex: 2,
-    backgroundColor: '#60279C',
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: '#4a4e69',
+    paddingVertical: 10,
+    borderRadius: 8,
     alignItems: 'center',
   },
   nextButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: '600',
+    letterSpacing: -0.3,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    zIndex: 90,
   },
   additionalOptionsContainer: {
-    marginTop: 16,
+    marginTop: 12,
   },
   adCard: {
-    borderRadius: 12,
-    marginBottom: 12,
+    borderRadius: 10,
+    marginBottom: 8,
     overflow: 'hidden',
-    elevation: 3,
+    elevation: 2,
   },
   adCardGradient: {
-    padding: 16,
+    padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
   },
   adCardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '700',
     color: '#fff',
-    marginLeft: 12,
+    marginLeft: 10,
     flex: 1,
   },
   adCardDescription: {
-    fontSize: 14,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.8)',
-    marginLeft: 12,
+    marginLeft: 10,
+  },
+  paymentContainer: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  paymentImage: {
+    width: width * 0.4,
+    height: width * 0.4,
+    resizeMode: 'contain',
+    marginBottom: 16,
+  },
+  paymentText: {
+    fontSize: 16,
+    color: '#6c7093',
+    textAlign: 'center',
   },
 });
 

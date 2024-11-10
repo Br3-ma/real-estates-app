@@ -1,27 +1,19 @@
 import React, { useRef, useState, useCallback } from 'react';
-import { Modal, View, Text, ScrollView, TouchableOpacity,Alert, ImageBackground, Dimensions, Platform, StyleSheet, Linking, SafeAreaView, Image, ActivityIndicator } from 'react-native';
+import { Modal, View, Text, ScrollView, TouchableOpacity, ImageBackground, Dimensions, Platform, StyleSheet, Linking, SafeAreaView, Image, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from 'react-native-vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { usePropertyActions } from '../tools/api/PropertyActions';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import moment from 'moment';
-import { SERVER_BASE_URL, API_BASE_URL } from '../confg/config';
+import { SERVER_BASE_URL } from '../confg/config';
 import Communications from 'react-native-communications';
 import LongRectangleAd from './ads-long';
-import BidWizardModal from './bidwiz-modal'; 
-import Toast from 'react-native-toast-message';
-import axios from 'axios';
 
 const { width, height } = Dimensions.get('window');
 
-const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal, allProperties, openPostDetails, fetchProperties = null }) => {
+const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal, allProperties, openPostDetails }) => {
   const navigation = useNavigation();
   const scrollViewRef = useRef(null); 
-  const [loading, setLoading] = useState(false);
-  const [isBidModalVisible, setBidModalVisible] = useState(false); 
-  const [bidPropertyId, setBidPropertyId] = useState(null);
-
-  const { hideFromPosts, bidForTopPosts } = usePropertyActions(fetchProperties);
+  const [loading, setLoading] = useState(false); 
 
   const sendSMS = (phoneNumber) => {
     Communications.text(phoneNumber, 'Hello, I\'m interested in your property listing.');
@@ -50,56 +42,12 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({ y: 0, animated: true });
     }
-
+    
     setTimeout(() => {
       openPostDetails(images, property);
       setLoading(false); 
     }, 500); 
   }, [openPostDetails]);
-
-  const handleBoostProperty = useCallback((itemId) => {
-    console.log('Boosting...');
-    console.log(itemId);
-    setBidPropertyId(itemId);
-    setBidModalVisible(true);
-  }, []);
-
-  const handleVisibilityProperty = useCallback((itemId) => {
-  }, []);
-
-  // CRUDS
-  const handleDeleteProperty = useCallback(async (propertyId) => {
-      console.log('I am here');
-      Alert.alert(
-        "Confirm Delete",
-        "Are you sure you want to delete this property?",
-        [
-          {
-            text: "Cancel",
-            style: "cancel"
-          },
-          {
-            text: "Delete",
-            onPress: async () => {
-              // setDeleting(true);
-              try {
-                await axios.delete(`${API_BASE_URL}/delete-post/${propertyId}`);
-                Alert.alert("Deleted");
-                fetchProperties(); 
-              } catch (error) {
-                console.error('Failed to delete property:', error);
-                Alert.alert("Failed");
-              } finally {
-                // setDeleting(false);
-                onClose
-              }
-            },
-            style: "destructive"
-          }
-        ],
-        { cancelable: true }
-      );
-  }, []);
 
   const renderImageViewerModal = () => {
     return (
@@ -114,38 +62,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <MaterialIcons name="arrow-back" size={24} color="#8E2DE2" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Property Info</Text>
-            <View style={styles.adminActions}>
-              {/* <TouchableOpacity
-                style={[styles.adminButton, styles.boostButton]} 
-                onPress={()=>handleBoostProperty(property?.id)}
-              >
-                <MaterialIcons name="trending-up" size={16} color="#fff" />
-                <Text style={styles.adminButtonText}>Boost</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.adminButton, property?.hidden ? styles.showButton : styles.hideButton]} 
-                onPress={()=>hideFromPosts(property?.id)}
-              >
-                <MaterialIcons 
-                  name={property?.hidden ? "visibility" : "visibility-off"} 
-                  size={16} 
-                  color="#fff" 
-                />
-                <Text style={styles.adminButtonText}>
-                  {property?.hidden ? 'Show' : 'Hide'}
-                </Text>
-              </TouchableOpacity> */}
-
-              <TouchableOpacity 
-                style={[styles.adminButton, styles.deleteButton]} 
-                onPress={() => handleDeleteProperty(property.id)}
-              >
-                <MaterialIcons name="delete-outline" size={16} color="#fff" />
-                <Text style={styles.adminButtonText}>Delete</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.headerTitle}>Property Details</Text>
           </View>
 
           <ScrollView
@@ -188,8 +105,21 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
 
                 <Text style={styles.propertyDescription}>{property.description}</Text>
 
+                {/* <View style={styles.mapContainer}>
+                  <Text style={styles.sectionTitle}>Map Locatior</Text>
+                  <Image
+                    source={
+                      property.latitude && property.longitude
+                        ? { uri: `https://maps.googleapis.com/maps/api/staticmap?center=${property.latitude}&zoom=13&size=400x200&maptype=roadmap&markers=color:red%7C${property.longitude}&key=YOUR_GOOGLE_MAPS_API_KEY` }
+                        : 'https://www.instalki.pl/wp-content/uploads/webp/krolewiec_mapy_google-850x478.webp' // Placeholder image
+                    }
+                    style={styles.mapImage}
+                  />
+                  <Text style={styles.locationText}>{property.location || 'Location not available'}</Text>
+                </View> */}
+
                 <View style={styles.amenitiesContainer}>
-                  <Text style={styles.sectionTitle}>Features & Amenities</Text>
+                  <Text style={styles.sectionTitle}>Amenities</Text>
                   <View style={styles.amenitiesList}>
                     {property.amenities.map((amenity, index) => (
                       <View key={index} style={styles.amenityItem}>
@@ -202,6 +132,12 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
 
                 {/* replace this and put an  */}
                 <LongRectangleAd/>
+                {/* <View style={styles.promoContainer}>
+                  <Text style={styles.sectionTitle}>Special Offer</Text>
+                  <View style={styles.promoBox}>
+                    <Text style={styles.promoText}>Get 5% off if you book within the next 24 hours!</Text>
+                  </View>
+                </View> */}
 
                 <View style={styles.relatedPropertiesContainer}>
                   <Text style={styles.sectionTitle}>You might also like this</Text>
@@ -226,6 +162,8 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                     ))}
                   </ScrollView>
                 </View>
+
+
               </View>
             )}
           </ScrollView>
@@ -257,13 +195,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
               <Text style={styles.buttonLabel}>Comments</Text>
             </TouchableOpacity>
           </View>
-
         </SafeAreaView>
-        <BidWizardModal 
-            visible={isBidModalVisible} 
-            onDismiss={() => setBidModalVisible(false)} 
-            property={bidPropertyId}  
-          />
       </Modal>
     );
   };
@@ -276,62 +208,19 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  // header: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   padding: 15,
-  //   borderBottomWidth: 1,
-  //   borderBottomColor: '#e0e0e0',
-  // },
-  // headerTitle: {
-  //   fontSize: 18,
-  //   fontWeight: 'bold',
-  // },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
-    justifyContent: 'space-between',
-  },
-  headerTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    flex: 1,
-    marginLeft: 15,
-  },
-  adminActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  adminButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-    gap: 4,
-  },
-  adminButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  boostButton: {
-    backgroundColor: '#4CAF50',
-  },
-  hideButton: {
-    backgroundColor: '#FFA000',
-  },
-  showButton: {
-    backgroundColor: '#2196F3',
-  },
-  deleteButton: {
-    backgroundColor: '#F44336',
   },
   closeButton: {
     marginRight: 15,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   modalContent: {
     flexGrow: 1,

@@ -46,19 +46,25 @@ const LoadingDots = () => {
 
 
 const PaymentBottomSheet = ({ isVisible, onClose, amount, payFor, boostData = null, postID = null, planID = null, userID = null }) => {
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState('mobile');
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
   const [cvv, setCvv] = useState('');
   const [mobileName, setMobileName] = useState('');
   const [mobilePhone, setMobilePhone] = useState('');
   const [mobileNetwork, setMobileNetwork] = useState('MTN_MOMO_ZMB');
+  const [phoneError, setPhoneError] = useState('');
   const payingFor = payFor;
   const boostInfo = boostData;
   const [isLoading, setIsLoading] = useState(false);
   const slideAnimation = useRef(new Animated.Value(0)).current;
 
-  const onSubmit = () => {
+  const onSubmit = () => {    
+    if (!validatePhoneNumber(mobilePhone)) {
+      setPhoneError('Please enter a valid 10-digit phone number');
+      return;
+    }
+
     handlePaymentSubmit({
       paymentMethod,
       cardNumber,
@@ -84,6 +90,25 @@ const PaymentBottomSheet = ({ isVisible, onClose, amount, payFor, boostData = nu
     }).start();
   };
 
+  const validatePhoneNumber = (phone) => {
+    // Remove any non-digit characters
+    const cleanPhone = phone.replace(/\D/g, '');
+    
+    // Update state with only digits
+    setMobilePhone(cleanPhone);
+    
+    // Validate length
+    if (cleanPhone.length === 0) {
+      setPhoneError('');
+    } else if (cleanPhone.length !== 10) {
+      setPhoneError('Phone number must be exactly 10 digits');
+    } else {
+      setPhoneError('');
+    }
+    
+    return cleanPhone.length === 10;
+  };
+
   return (
     <Modal
       isVisible={isVisible}
@@ -102,13 +127,13 @@ const PaymentBottomSheet = ({ isVisible, onClose, amount, payFor, boostData = nu
         <Text style={styles.title}>Payment Information</Text>
 
         <View style={styles.toggleContainer}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[styles.toggleButton, paymentMethod === 'card' && styles.activeButton]}
             onPress={() => setPaymentMethod('card')}
           >
             <Icon name="credit-card" size={24} color={paymentMethod === 'card' ? '#fff' : '#333'} />
             <Text style={paymentMethod === 'card' ? styles.activeButtonText : styles.buttonText}>Card</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity
             style={[styles.toggleButton, paymentMethod === 'mobile' && styles.activeButton]}
             onPress={() => setPaymentMethod('mobile')}
@@ -156,14 +181,18 @@ const PaymentBottomSheet = ({ isVisible, onClose, amount, payFor, boostData = nu
               onChangeText={setMobileName}
               textContentType="name"
             />
-            <TextInput
-              style={styles.input}
-              placeholder="Phone Number"
-              keyboardType="phone-pad"
-              value={mobilePhone}
-              onChangeText={setMobilePhone}
-              textContentType="telephoneNumber"
-            />
+            <View>
+              <TextInput
+                style={[styles.input, phoneError ? styles.inputError : null]}
+                placeholder="000-000-0000"
+                keyboardType="phone-pad"
+                value={mobilePhone}
+                onChangeText={(text) => validatePhoneNumber(text)}
+                textContentType="telephoneNumber"
+                maxLength={10}
+              />
+              {phoneError ? <Text style={styles.errorText}>{phoneError}</Text> : null}
+            </View>
             <View style={styles.pickerContainer}>
               {Platform.OS === 'web' ? (
                 <select
@@ -171,9 +200,9 @@ const PaymentBottomSheet = ({ isVisible, onClose, amount, payFor, boostData = nu
                   onChange={(e) => setMobileNetwork(e.target.value)}
                   style={styles.picker}
                 >
-                  <option value="AIRTEL_OAPI_ZMB">Airtel</option>
-                  <option value="MTN_MOMO_ZMB">MTN</option>
-                  <option value="ZAMTEL_ZMB">Zamtel</option>
+                  <option value="AIRTEL_OAPI_ZMB">Airtel Money</option>
+                  <option value="MTN_MOMO_ZMB">MTN Money</option>
+                  <option value="ZAMTEL_ZMB">Zamtel Money</option>
                 </select>
               ) : (
                 <Picker
@@ -190,7 +219,11 @@ const PaymentBottomSheet = ({ isVisible, onClose, amount, payFor, boostData = nu
           </Animated.View>
         )}
 
-        <TouchableOpacity style={styles.submitButton} onPress={onSubmit} disabled={isLoading}>
+        <TouchableOpacity 
+          style={[styles.submitButton, phoneError ? styles.submitButtonDisabled : null]} 
+          onPress={onSubmit} 
+          disabled={isLoading || !!phoneError}
+        >
           {isLoading ? <LoadingDots /> : <Text style={styles.submitButtonText}>Submit Payment</Text>}
         </TouchableOpacity>
       </Animated.View>
@@ -291,15 +324,28 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   submitButton: {
-    backgroundColor: '#60279C',
-    padding: 15,
+    backgroundColor: '#4a4e69',
+    padding: 10,
     borderRadius: 5,
     alignItems: 'center',
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
+  },
+  inputError: {
+    borderColor: '#ff4444',
+  },
+  errorText: {
+    color: '#ff4444',
+    fontSize: 12,
+    marginTop: -10,
+    marginBottom: 10,
+    marginLeft: 5,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#8a8a8a',
   },
 });
 

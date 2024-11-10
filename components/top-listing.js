@@ -31,16 +31,16 @@ const TopListings = ({ properties, loading, onPress }) => {
         <Avatar
             rounded
             source={{
-              uri: `${SERVER_BASE_URL}/storage/app/${item.user.picture}`
+              uri: `${SERVER_BASE_URL}/storage/app/${item?.user?.picture}`
             }}
             placeholderStyle={{ backgroundColor: '#e1e4e8' }}
             PlaceholderContent={<ActivityIndicator />}
             size="small"
           />
           <View style={styles.userTextContainer}>
-            <Text style={styles.userName}>{item.user.name}</Text>
-            {item.user.location !== 'Not set' && (
-              <Text style={styles.userLocation}>{item.user.location}</Text>
+            <Text style={styles.userName}>{item?.user?.name}</Text>
+            {item?.user?.location !== 'Not set' && (
+              <Text style={styles.userLocation}>{item?.user?.location}</Text>
             )}
           </View>
         </View>

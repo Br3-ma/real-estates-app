@@ -1,10 +1,8 @@
-// ImageViewerModal.js
-import React from 'react';
-import { View, Animated, Linking, Easing, ActivityIndicator, Text, ScrollView, TouchableOpacity, SafeAreaView, Modal, Platform, StatusBar, Keyboard, TextInput, ImageBackground, Dimensions } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Animated, Dimensions, Modal, Platform, Text, ScrollView, TouchableOpacity, SafeAreaView, ImageBackground } from 'react-native';
 import { Video } from 'expo-av';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Button, Icon } from 'react-native-elements';
 import { SERVER_BASE_URL } from '../confg/config';
 
 const { width, height } = Dimensions.get('window');
@@ -23,10 +21,28 @@ const HomeImageViewerModal = ({
   openWhatsApp,
   openCommentsModal
 }) => {
+  const [isOverlayVisible, setIsOverlayVisible] = useState(true);
+  const overlayAnim = useRef(new Animated.Value(1)).current;
 
-return (
+  const toggleOverlay = () => {
+    const toValue = isOverlayVisible ? 0 : 1;
+    Animated.spring(overlayAnim, {
+      toValue,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 60,
+    }).start();
+    setIsOverlayVisible(!isOverlayVisible);
+  };
+
+  const translateY = overlayAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [height, 0]
+  });
+
+  return (
     <Modal
-      animationType="slide"
+      animationType="fade"
       transparent={false}
       visible={isImageViewVisible}
       onRequestClose={() => {
@@ -34,7 +50,20 @@ return (
         terminateFetchInterval();
       }}
     >
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        {/* Toggle Overlay Button */}
+        <TouchableOpacity
+          style={styles.toggleButton}
+          onPress={toggleOverlay}
+        >
+          <MaterialIcons 
+            name={isOverlayVisible ? "keyboard-arrow-down" : "keyboard-arrow-up"} 
+            size={28} 
+            color="#FFF" 
+          />
+        </TouchableOpacity>
+
+        {/* Close button */}
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => {
@@ -42,423 +71,371 @@ return (
             terminateFetchInterval();
           }}
         >
-          <MaterialIcons name="arrow-back" size={24} color="#8E2DE2" />
+          <MaterialIcons name="close" size={24} color="#FFF" />
         </TouchableOpacity>
 
-        <ScrollView contentContainerStyle={styles.modalContent}>
-          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.topImageContainer}>
-            {currentImages.map((image, index) => (
-              <View key={index} style={styles.imageContainer}>
-                <ImageBackground
-                  source={{ uri: `${SERVER_BASE_URL}/storage/app/` + image.path }}
-                  style={styles.imageBackground}
-                >
-
-                </ImageBackground>
-              </View>
-            ))}
-            {currentVideos.map((video, index) => (
-              <Video
-                key={index}
-                source={{ uri: `${SERVER_BASE_URL}/storage/app/` + video.path }}
-                style={styles.videoCover}
-                useNativeControls
-                resizeMode="cover"
-              />
-            ))}
-          </ScrollView>
-
-          <View style={styles.detailsContainer}>
-            {selectedProperty && (
-              <>
-                <Text style={styles.propertyTitle}>{selectedProperty.title}</Text>
-                <Text style={styles.propertyPrice}>Price: K{selectedProperty.price}</Text>
-                <Text style={styles.propertyDescription}>{selectedProperty.description}</Text>
-                <Text style={styles.propertyDescription}>{selectedProperty.location}</Text>
-                <View style={styles.propertyDetailsRow}>
-                  <View style={styles.propertyDetailsItem}>
-                    <MaterialIcons name="hotel" size={20} color="#8E2DE2" />
-                    <Text style={styles.propertyDetailsText}>{selectedProperty.bedrooms} Bedrooms</Text>
-                  </View>
-                  <View style={styles.propertyDetailsItem}>
-                    <MaterialIcons name="bathtub" size={20} color="#8E2DE2" />
-                    <Text style={styles.propertyDetailsText}>{selectedProperty.bathrooms} Bathroom</Text>
-                  </View>
-                  <View style={styles.propertyDetailsItem}>
-                    <MaterialIcons name="aspect-ratio" size={20} color="#8E2DE2" />
-                    <Text style={styles.propertyDetailsText}>{selectedProperty.area} Sqr. foot</Text>
-                  </View>
-                </View>
-              </>
-            )}
-          </View>
-
-          {/* Features & Amenities */}
-          <View style={styles.featureAmenitiesContainer}>
-            <Text style={styles.featureAmenitiesTitle}>Features & Amenities</Text>
-            {selectedProperty && selectedProperty.amenities ? (
-              selectedProperty.amenities.map((feature, index) => (
-                <View key={index} style={styles.featureAmenitiesItem}>
-                  <MaterialIcons name="check" size={20} color="#000" />
-                  <Text style={styles.featureAmenitiesText}>{feature.amenity_name}</Text>
-                  {/* {feature.link && (
-                    <TouchableOpacity onPress={() => openFeatureLink(feature.link)}>
-                      <Text style={styles.featureAmenitiesLink}>View More</Text>
-                    </TouchableOpacity>
-                  )} */}
-                </View>
-              ))
-            ) : (
-              <Text>No features available</Text>
-            )}
-          </View>
-
-          {/* Map Finder */}
-          {/* <View style={styles.mapFinderContainer}>
-            <Text style={styles.sectionTitle}>Map Finder</Text>
+        {/* Full-screen media viewer */}
+        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.mediaScroller}>
+          {currentImages.map((image, index) => (
             <ImageBackground
-              source={{ uri: 'https://cms-assets.tutsplus.com/cdn-cgi/image/width=850/uploads/users/346/posts/6709/final_image/informativemap_final.jpg' }}
-              style={styles.mapImage}
-            >
-              <Button title="Open Map" style={styles.openMapButton} onPress={() => openMap(selectedProperty.location)} />
-            </ImageBackground>
-          </View> */}
+              key={index}
+              source={{ uri: `${SERVER_BASE_URL}/storage/app/${image.path}` }}
+              style={styles.mediaItem}
+              resizeMode="cover"
+            />
+          ))}
+          {currentVideos.map((video, index) => (
+            <Video
+              key={`video-${index}`}
+              source={{ uri: `${SERVER_BASE_URL}/storage/app/${video.path}` }}
+              style={styles.mediaItem}
+              useNativeControls
+              resizeMode="cover"
+            />
+          ))}
         </ScrollView>
 
-        {/* View Comments Button */}
-        <View style={styles.toggleButton}>
-          {/* SMS Button */}
-          <TouchableOpacity style={styles.smstButton} onPress={() => sendSMS(selectedProperty.phone)}>
-            <MaterialIcons name="message" size={20} color="#165F56" />
-            <Text style={styles.buttonLabel}>SMS</Text>
-          </TouchableOpacity>
+        {/* Animated Content Overlay */}
+        <Animated.View 
+          style={[
+            styles.contentOverlay,
+            { transform: [{ translateY }] }
+          ]}
+        >
+          <ScrollView>
+            {/* Marketing Banner */}
+            <View style={styles.marketingBanner}>
+              <MaterialIcons name="local-offer" size={24} color="#FFF" />
+              <Text style={styles.marketingText}>Special Offer: Schedule a viewing today!</Text>
+            </View>
 
-          {/* Call Button */}
-          <TouchableOpacity style={styles.callButton} onPress={() => callNumber(selectedProperty.phone)}>
-            <MaterialIcons name="call" size={20} color="#165F56" />
-            <Text style={styles.buttonLabel}>Call</Text>
-          </TouchableOpacity>
+            <View style={styles.propertyHeader}>
+              <Text style={styles.price}>K{selectedProperty?.price}</Text>
+              <Text style={styles.title}>{selectedProperty?.title}</Text>
+              <Text style={styles.location}>
+                <MaterialIcons name="location-on" size={16} color="#666" />
+                {selectedProperty?.location}
+              </Text>
+            </View>
 
-          {/* WhatsApp Button */}
-          <TouchableOpacity style={styles.whatsappIcon} onPress={() => openWhatsApp(selectedProperty.phone)}>
-            <MaterialCommunityIcons name="whatsapp" size={20} color="#165F56" />
-            <Text style={styles.buttonLabel}>WhatsApp</Text>
-          </TouchableOpacity>
+            <View style={styles.statsContainer}>
+              <View style={styles.statItem}>
+                <MaterialIcons name="king-bed" size={24} color="#8E2DE2" />
+                <Text style={styles.statValue}>{selectedProperty?.bedrooms}</Text>
+                <Text style={styles.statLabel}>Beds</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <MaterialIcons name="bathtub" size={24} color="#8E2DE2" />
+                <Text style={styles.statValue}>{selectedProperty?.bathrooms}</Text>
+                <Text style={styles.statLabel}>Baths</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <MaterialIcons name="square-foot" size={24} color="#8E2DE2" />
+                <Text style={styles.statValue}>{selectedProperty?.area}</Text>
+                <Text style={styles.statLabel}>Sq.ft</Text>
+              </View>
+            </View>
 
-          {/* Comments Button */}
-          <TouchableOpacity style={styles.commentButton} onPress={() => openCommentsModal(selectedProperty.id)}>
-            <MaterialCommunityIcons name="chat" size={20} color="#165F56" />
-            <Text style={styles.buttonLabel}>Comments</Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.description}>{selectedProperty?.description}</Text>
+
+            {/* Featured Highlights */}
+            <View style={styles.highlightsContainer}>
+              <Text style={styles.sectionTitle}>Property Highlights</Text>
+              <View style={styles.highlightsList}>
+                <View style={styles.highlightItem}>
+                  <MaterialIcons name="verified" size={20} color="#4CAF50" />
+                  <Text style={styles.highlightText}>Verified Property</Text>
+                </View>
+                <View style={styles.highlightItem}>
+                  <MaterialIcons name="schedule" size={20} color="#2196F3" />
+                  <Text style={styles.highlightText}>Immediate Availability</Text>
+                </View>
+                <View style={styles.highlightItem}>
+                  <MaterialIcons name="security" size={20} color="#FF9800" />
+                  <Text style={styles.highlightText}>24/7 Security</Text>
+                </View>
+              </View>
+            </View>
+
+            {selectedProperty?.amenities && (
+              <View style={styles.amenitiesContainer}>
+                <Text style={styles.sectionTitle}>Features & Amenities</Text>
+                <View style={styles.amenitiesGrid}>
+                  {selectedProperty.amenities.map((feature, index) => (
+                    <View key={index} style={styles.amenityItem}>
+                      <MaterialIcons name="check-circle" size={20} color="#8E2DE2" />
+                      <Text style={styles.amenityText}>{feature.amenity_name}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Related Properties */}
+            <View style={styles.relatedContainer}>
+              {/*<Text style={styles.sectionTitle}>Similar Properties</Text>
+               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.relatedScroll}>
+                {[1, 2, 3].map((_, index) => (
+                  <View key={index} style={styles.relatedItem}>
+                    <View style={styles.relatedImage} />
+                    <Text style={styles.relatedPrice}>K250,000</Text>
+                    <Text style={styles.relatedLocation}>Similar Location</Text>
+                  </View>
+                ))}
+              </ScrollView> */}
+            </View>
+          </ScrollView>
+
+          {/* Action buttons */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity style={[styles.actionButton, styles.callButton]} onPress={() => callNumber(selectedProperty?.phone)}>
+              <MaterialIcons name="call" size={24} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionButton, styles.messageButton]} onPress={() => sendSMS(selectedProperty?.phone)}>
+              <MaterialIcons name="message" size={24} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionButton, styles.whatsappButton]} onPress={() => openWhatsApp(selectedProperty?.phone)}>
+              <MaterialCommunityIcons name="whatsapp" size={24} color="#FFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionButton, styles.commentButton]} onPress={() => openCommentsModal(selectedProperty?.id)}>
+              <MaterialCommunityIcons name="comment-text" size={24} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
       </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = {
-  modalContent: {
-    flexGrow: 1,
-    backgroundColor: '#FFFFFF',
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  toggleButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 30,
+    left: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 12,
+    borderRadius: 30,
+    zIndex: 10,
   },
   closeButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 44 : 24,
-    left: 16,
-    zIndex: 10,
+    top: Platform.OS === 'ios' ? 50 : 30,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     padding: 12,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+    borderRadius: 30,
+    zIndex: 10,
   },
-  topImageContainer: {
-    height: height * 0.65, // Slightly larger images
-    width: width,
-    backgroundColor: '#F0F0F0',
-  },
-  imageContainer: {
-    width: width,
-    height: height * 0.65,
-    position: 'relative',
-  },
-  imageBackground: {
+  mediaScroller: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#000',
   },
-  videoCover: {
-    width: width,
-    height: height * 0.65,
-    backgroundColor: '#F0F0F0',
+  mediaItem: {
+    width,
+    height: height * 0.7,
   },
-  detailsContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    marginTop: -32,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.05)',
+  contentOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    maxHeight: height * 0.8,
   },
-  propertyTitle: {
+  marketingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#8E2DE2',
+    padding: 12,
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 12,
+  },
+  marketingText: {
+    color: '#FFF',
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  propertyHeader: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  price: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#111827',
-    marginBottom: 12,
-    letterSpacing: -0.5,
-    lineHeight: 34,
+    color: '#8E2DE2',
+    marginBottom: 8,
   },
-  propertyPrice: {
-    fontSize: 26,
+  title: {
+    fontSize: 24,
     fontWeight: '700',
-    color: '#2563EB',
-    marginBottom: 16,
-    letterSpacing: -0.5,
-    textShadowColor: 'rgba(37, 99, 235, 0.1)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    color: '#1A1A1A',
+    marginBottom: 8,
   },
-  propertyDescription: {
+  location: {
     fontSize: 16,
-    color: '#4B5563',
+    color: '#666',
     marginBottom: 16,
-    lineHeight: 24,
-    letterSpacing: 0.1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  propertyDetailsRow: {
+  statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    paddingVertical: 20,
+    backgroundColor: '#F8F9FA',
+    marginBottom: 20,
   },
-  propertyDetailsItem: {
-    flexDirection: 'column',
+  statItem: {
     alignItems: 'center',
     flex: 1,
-    paddingHorizontal: 8,
-    borderRightWidth: 1,
-    borderRightColor: '#E2E8F0',
-    marginHorizontal: 4,
   },
-  propertyDetailsText: {
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: '#E0E0E0',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1A1A1A',
     marginTop: 8,
-    fontSize: 14,
-    color: '#374151',
-    textAlign: 'center',
-    fontWeight: '600',
   },
-  featureAmenitiesContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 24,
+  statLabel: {
+    fontSize: 14,
+    color: '#666',
     marginTop: 4,
-    marginHorizontal: 16,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
   },
-  featureAmenitiesTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 16,
-    letterSpacing: -0.3,
+  description: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#444',
+    paddingHorizontal: 20,
+    marginBottom: 24,
   },
-  featureAmenitiesItem: {
+  highlightsContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  highlightsList: {
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 16,
+  },
+  highlightItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
   },
-  featureAmenitiesText: {
+  highlightText: {
     marginLeft: 12,
+    fontSize: 15,
+    color: '#444',
+  },
+  amenitiesContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1A1A1A',
+    marginBottom: 16,
+  },
+  amenitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  amenityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '50%',
+    paddingVertical: 8,
+  },
+  amenityText: {
+    fontSize: 15,
+    color: '#444',
+    marginLeft: 8,
+  },
+  relatedContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 100,
+  },
+  relatedScroll: {
+    marginLeft: -20,
+    paddingLeft: 20,
+  },
+  relatedItem: {
+    width: 200,
+    marginRight: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    padding: 12,
+  },
+  relatedImage: {
+    height: 120,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  relatedPrice: {
     fontSize: 16,
-    color: '#374151',
-    flex: 1,
-    fontWeight: '500',
+    fontWeight: '700',
+    color: '#8E2DE2',
+    marginBottom: 4,
   },
-  featureAmenitiesLink: {
-    color: '#2563EB',
-    marginLeft: 12,
+  relatedLocation: {
     fontSize: 14,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
+    color: '#666',
   },
-  toggleButton: {
+  actionButtons: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
     paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#FFF',
     borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 8,
+    borderTopColor: '#E0E0E0',
   },
-  smstButton: {
-    alignItems: 'center',
+  actionButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     justifyContent: 'center',
-    padding: 10,
-    borderRadius: 14,
-    minWidth: 75,
-    backgroundColor: '#F0FDF4',
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  callButton: {
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    borderRadius: 14,
-    minWidth: 75,
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  whatsappIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    borderRadius: 14,
-    minWidth: 75,
-    backgroundColor: '#DCFCE7',
-    borderWidth: 1,
-    borderColor: '#86EFAC',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  commentButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    borderRadius: 14,
-    minWidth: 75,
-    backgroundColor: '#EEF2FF',
-    borderWidth: 1,
-    borderColor: '#C7D2FE',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  buttonLabel: {
-    marginTop: 8,
-    fontSize: 13,
-    color: '#111827',
-    fontWeight: '600',
-    letterSpacing: 0.1,
-  },
-  imageCounter: {
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  imageCounterText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  propertyBadge: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  propertyBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.2,
+  callButton: {
+    backgroundColor: '#4CAF50',
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#E2E8F0',
-    marginVertical: 24,
-    marginHorizontal: 16,
+  messageButton: {
+    backgroundColor: '#2196F3',
   },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    marginHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+  whatsappButton: {
+    backgroundColor: '#25D366',
   },
-  locationText: {
-    fontSize: 14,
-    color: '#374151',
-    marginLeft: 8,
-    flex: 1,
-    fontWeight: '500',
+  commentButton: {
+    backgroundColor: '#8E2DE2',
   },
 };
 

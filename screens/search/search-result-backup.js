@@ -422,9 +422,9 @@ const SearchResultScreen = ({ route, navigation }) => {
         )}
       </Card.Content>
       <Card.Actions>
-        <IconButton icon="phone" onPress={() => Linking.openURL(`tel:26${item.user.phone}`)} />
-        <IconButton icon="whatsapp" onPress={() => Linking.openURL(`https://wa.me/26${item.user.phone}`)} />
-        <IconButton icon="message" onPress={() => Linking.openURL(`sms:${item.user.phone}`)} />
+        <IconButton icon="phone" onPress={() => Linking.openURL(`tel:26${item?.user?.phone}`)} />
+        <IconButton icon="whatsapp" onPress={() => Linking.openURL(`https://wa.me/26${item?.user?.phone}`)} />
+        <IconButton icon="message" onPress={() => Linking.openURL(`sms:${item?.user?.phone}`)} />
         <IconButton icon="share" onPress={() => openShareModal(item)} />
         <IconButton icon="comment-outline" onPress={() => openCommentsModal(item.id)} />
       </Card.Actions>

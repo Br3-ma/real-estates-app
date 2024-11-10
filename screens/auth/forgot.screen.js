@@ -94,6 +94,9 @@ const ForgotPasswordScreen = ({ navigation }) => {
           <Feather name="arrow-left" size={20} color="#FFF" />
           <Text style={styles.backButtonText}>Back to Login</Text>
         </TouchableOpacity>
+
+        
+        <Text style={styles.footerText}>version. 8</Text>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
@@ -124,14 +127,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFF',
     marginBottom: 10,
-    fontFamily: Platform.OS === 'ios' ? 'Avenir-Heavy' : 'sans-serif-condensed',
   },
   subtitle: {
     fontSize: 16,
     color: '#E0D1FF',
     textAlign: 'center',
     opacity: 0.8,
-    fontFamily: Platform.OS === 'ios' ? 'Avenir' : 'sans-serif',
     maxWidth: 280,
   },
   inputContainer: {
@@ -152,7 +153,6 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     fontSize: 16,
     color: '#FFF',
-    fontFamily: Platform.OS === 'ios' ? 'Avenir' : 'sans-serif',
   },
   button: {
     backgroundColor: '#A388EE',
@@ -172,7 +172,6 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: Platform.OS === 'ios' ? 'Avenir-Heavy' : 'sans-serif-medium',
   },
   backButton: {
     flexDirection: 'row',
@@ -183,7 +182,13 @@ const styles = StyleSheet.create({
     color: '#E0D1FF',
     fontSize: 16,
     marginLeft: 5,
-    fontFamily: Platform.OS === 'ios' ? 'Avenir' : 'sans-serif',
+  },
+  footerText: {
+    fontSize: 16,
+    color: '#bfcfd9',
+    textAlign: 'center',
+    fontWeight: '500',
+    letterSpacing: 0.5,
   },
 });
 

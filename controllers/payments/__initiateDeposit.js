@@ -1,4 +1,6 @@
-
+import axios from 'axios';
+import React, { useState } from 'react';
+import { View, ActivityIndicator, Button } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 const generateUUID = () => {
@@ -8,11 +10,9 @@ const generateUUID = () => {
     return v.toString(16);
   });
 };
+
 export const handlePaymentSubmit = async ({
   paymentMethod,
-  cardNumber,
-  expiryDate,
-  cvv,
   mobileNetwork,
   mobilePhone,
   amount,
@@ -26,104 +26,81 @@ export const handlePaymentSubmit = async ({
   setIsLoading(true);
 
   try {
-    // Prepare request body based on payment method
-    let requestBody;
-    if (paymentMethod === 'card') {
-      // Add card payment logic here if needed
-      requestBody = {
-        depositId: generateUUID,
-        amount: amount,
-        currency: "ZMW",
-        correspondent: "VISA_CARD",
-        payer: {
-          address: {
-            value: cardNumber,
-          },
-          type: "CARD",
-        },
-        customerTimestamp: new Date().toISOString(),
-        statementDescription: "Card payment",
-        country: "ZMB",
-        metadata: {
-          plan_id: planID,
-          user_id: userID,
-          post_id: postID,
-          type: payingFor,
-          boost: boostInfo,
-        },
-      };
-    } else {
-      // Mobile payment request body
-      requestBody = {
-        depositId: generateUUID,
-        amount: amount,
-        currency: "ZMW",
-        correspondent: mobileNetwork,
-        payer: {
-          address: {
-            value: '26' + mobilePhone,
-          },
-          type: "MSISDN",
-        },
-        customerTimestamp: new Date().toISOString(),
-        statementDescription: "Mobile payment",
-        country: "ZMB",
-        metadata: {
-          plan_id: planID,
-          user_id: userID,
-          post_id: postID,
-          type: payingFor,
-          boost: boostInfo,
-        },
-      };
-    }
+    const requestBody = {
+      amount,
+      correspondent: mobileNetwork,
+      phone: '26' + mobilePhone,
+      plan_id: planID,
+      user_id: userID,
+      post_id: postID,
+      payingFor: payingFor,
+      boost: boostInfo?.id,
+    };
 
+    // Notify user of the payment submission
     Toast.show({
       type: 'info',
       text1: 'Submitting payment',
       text2: JSON.stringify(requestBody),
     });
 
-    // Setup headers
-    const myHeaders = new Headers();
-    myHeaders.append("Content-Digest", "square rent app");
-    myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("Authorization", "Bearer eyJraWQiOiIxIiwiYWxnIjoiRVMyNTYifQ.eyJ0dCI6IkFBVCIsInN1YiI6IjkzNSIsImV4cCI6MjA0NDc5MzI2NiwiaWF0IjoxNzI5MjYwNDY2LCJwbSI6IkRBRixQQUYiLCJqdGkiOiIzOTU5NmMyOS02MWJlLTQ2MjMtOTczZS1lMGE3Yzg3MzE0NDgifQ.mhcRvNtSGalGqzWqeqzFopLf1D1kmVxOjWyCb_7jCibrCMlPDbK5HunE7BbtKOYnGSsB_66ovRFsTV8b93xoqg");
-
-    // Fetch request options
-    const requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body: JSON.stringify(requestBody),
-      redirect: "follow",
+    const headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      // "Authorization": "Bearer YOUR_LARAVEL_API_TOKEN",
     };
 
-    Toast.show({
-      type: 'info',
-      text1: 'Request options',
-      text2: JSON.stringify(requestOptions),
-    });
+    // Send request to Laravel endpoint
+    const response = await axios.post("https://square.twalitso.com/api/v1/submit-mobile-payment", requestBody, { headers });
 
-    console.log(requestOptions);
-    // Execute fetch request
-    const response = await fetch("https://api.pawapay.io/deposits", requestOptions);
-    const result = await response.json();
-
-    console.log(response);
     Toast.show({
       type: 'success',
-      text1: 'Payment response',
-      text2: JSON.stringify(result),
+      text1: 'Payment submitted successfully',
+      text2: JSON.stringify(response.data),
     });
-
   } catch (error) {
-    console.log(error);
+    console.error(error);
     Toast.show({
       type: 'error',
       text1: 'Error submitting payment',
-      text2: error.message,
+      text2: error.response?.data?.message || error.message,
     });
   } finally {
     setIsLoading(false);
   }
 };
+
+const LoadingIndicator = ({ isLoading }) => (
+  <View>
+    {isLoading && <ActivityIndicator size="large" color="#0000ff" />}
+  </View>
+);
+
+const PaymentComponent = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = () => {
+    handlePaymentSubmit({
+      paymentMethod: 'mobile',
+      mobileNetwork: 'AIRTEL_OAPI_ZMB',
+      mobilePhone: '260772147755',
+      amount: 15,
+      payingFor: 'subscription',
+      boostInfo: '',
+      postID: 'POST_ID',
+      planID: 2,
+      userID: 1,
+      setIsLoading,
+    });
+  };
+
+  return (
+    <View>
+      <LoadingIndicator isLoading={isLoading} />
+      <Button title="Submit Payment" onPress={handleSubmit} disabled={isLoading} />
+      <Toast ref={(ref) => Toast.setRef(ref)} />
+    </View>
+  );
+};
+
+export default PaymentComponent;

@@ -8,10 +8,10 @@ const TimedAdPopup = () => {
   const reopenTimerRef = useRef(null);
 
   useEffect(() => {
-    // Initial delay to show the ad after 5 seconds
+    // Initial delay to show the ad after
     const initialTimer = setTimeout(() => {
       setVisible(true);
-    }, 10000);
+    }, 30000);
 
     return () => {
       // Cleanup all timers when component unmounts
@@ -27,7 +27,7 @@ const TimedAdPopup = () => {
     if (!visible) {
       reopenTimerRef.current = setTimeout(() => {
         setVisible(true);
-      }, 12000);
+      }, 40000);
     }
 
     return () => {

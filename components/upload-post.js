@@ -9,10 +9,14 @@ import { API_BASE_URL } from '../confg/config';
 import { Video } from 'expo-av';
 import PingMapModal from '../screens/maps/ping-location.screen';
 import AddAmenitiesModal from './add-amenities-modal';
-
+import StepOne from './upload-post-step1';
+import StepTwo from './upload-post-step2';
+import StepThree from './upload-post-step3';
+import StepFour from './upload-post-step4';
+import StepFive from './upload-post-step5';
+import StepSix from './upload-post-step6';
 
 const { width, height } = Dimensions.get('window');
-
 const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPropertyDetails, uploadImages, uploadVideos, setUploadImages, setUploadVideos, uploadPost, uploading }) => {
   const [propertyTypes, setPropertyTypes] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -24,11 +28,14 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
   const [uploadingVideos, setUploadingVideos] = useState(false);
   const [mapModalVisible, setMapModalVisible] = useState(false);
   const [amenitiesModalVisible, setAmenitiesModalVisible] = useState(false);
-  const [selectedAmenities, setSelectedAmenities] = useState([]);
+  // const [selectedAmenities, setSelectedAmenities] = useState([]);
+  const [step, setStep] = useState(1);
   const titleRef = useRef(null);
   const descriptionRef = useRef(null);
   const addressRef = useRef(null);
 
+  const nextStep = () => setStep((prev) => prev + 1);
+  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', handleKeyboardShow);
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', handleKeyboardHide);
@@ -53,10 +60,8 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
         console.error('Failed to fetch data:', error);
       }
     };
-    
     fetchData();
   }, []);
-  
   const pickImages = useCallback(async () => {
     try {
       setUploadingImages(true);
@@ -66,7 +71,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
         aspect: [4, 3],
         quality: 1,
       });
-      if (result && !result.cancelled && result.assets) {
+      if (result && !result.canceled && result.assets) {
         setUploadImages(prevImages => [...prevImages, ...result.assets]);
       }
     } catch (error) {
@@ -76,7 +81,6 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
     }
   }, []);
 
-  
   const pickVideos = useCallback(async () => {
     try {
       setUploadingVideos(true);
@@ -121,12 +125,10 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
         style={styles.removeMediaButton}
         onPress={() => removeMedia(type, index)}
       >
-        <AntDesign name="closecircle" size={24} color="red" />
+        <AntDesign name="close-circle" size={24} color="red" />
       </TouchableOpacity>
     </View>
   );
-
-  
 
   const handleKeyboardShow = () => {
     if (Keyboard.isVisible()) {
@@ -152,218 +154,83 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
     });
     setMapModalVisible(false); 
   };
-  const handleSaveAmenities = (amenities) => {
-    setSelectedAmenities(amenities);
-    setPropertyDetails({ ...propertyDetails, amenities });
+
+  // const handleSaveAmenities = (amenities) => {
+  //   setSelectedAmenities(amenities);
+  //   setPropertyDetails({ ...propertyDetails, amenities });
+  // };
+
+  const renderStepContent = () => {
+    switch (step) {
+      case 1:
+        return <StepOne propertyDetails={propertyDetails} setPropertyDetails={setPropertyDetails} />;
+      case 2:
+        return <StepTwo propertyDetails={propertyDetails} setPropertyDetails={setPropertyDetails} />;
+      case 3:
+        return (
+          <StepThree propertyTypes={propertyTypes} propertyDetails={propertyDetails} setPropertyDetails={setPropertyDetails}/>
+        );
+      case 4:
+        return <StepFour locations={locations} propertyDetails={propertyDetails} setPropertyDetails={setPropertyDetails} />;
+      case 5:
+        return <StepFive categories={categories} propertyDetails={propertyDetails} setPropertyDetails={setPropertyDetails} />;
+      case 6:
+        return (
+          <StepSix
+            pickImages={pickImages}
+            pickVideos={pickVideos}
+            uploadImages={uploadImages}
+            uploadVideos={uploadVideos}
+            uploadingImages={uploadingImages}
+            uploadingVideos={uploadingVideos}
+            setUploadImages={setUploadImages} // Ensure these are passed
+            setUploadVideos={setUploadVideos}
+        />
+        );
+      default:
+        return null;
+    }
   };
 
   return (
     <>
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={isModalVisible}
-      onRequestClose={() => setModalVisible(false)}
-    >
-      <BlurView intensity={90} style={StyleSheet.absoluteFill}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create Post</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <AntDesign name="close" size={24} color="black" />
-              </TouchableOpacity>
-            </View>
-
-            <KeyboardAvoidingView
-              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-            <ScrollView 
-              style={styles.modalScrollView} 
-              contentContainerStyle={styles.modalScrollViewContent}
-            >
-              <TextInput
-                  placeholder="Title"
-                  style={styles.input}
-                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, title: text })}
-                />
-                <TextInput
-                  multiline
-                  numberOfLines={5}
-                  placeholder="Property description"
-                  style={styles.textarea}
-                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, description: text })}
-                />
-                <TextInput
-                  placeholder="Address"
-                  style={styles.input}
-                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, location: text })}
-                />
-                <TextInput
-                  placeholder="Price"
-                  style={styles.input}
-                  onChangeText={(text) => setPropertyDetails({ ...propertyDetails, price: text })}
-                />
-                <View style={styles.inputRow}>
-                  <TextInput
-                    placeholder="Number of Bedrooms"
-                    style={[styles.input, styles.inputRowItem]}
-                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bedrooms: text })}
-                  />
-                  <TextInput
-                    placeholder="Number of Bathrooms"
-                    style={[styles.input, styles.inputRowItem]}
-                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, bathrooms: text })}
-                  />
-                </View>
-                <View style={styles.inputRow}>
-                  <TextInput
-                    placeholder="Square Foot (Optional)"
-                    style={[styles.input, styles.inputRowItem]}
-                    onChangeText={(text) => setPropertyDetails({ ...propertyDetails, area: text })}
-                  />
-                </View>
-
-                <View style={styles.inputRow}>
-                    <TouchableOpacity
-                        style={styles.amenitiesButton}
-                        onPress={() => setAmenitiesModalVisible(true)} // Open amenities modal
-                      >
-                      <Text style={styles.amenitiesButtonText}>Add Amenities</Text>
-                    </TouchableOpacity>
-                    {/* <TouchableOpacity
-                        style={styles.mapLinkButton}
-                        onPress={() => setMapModalVisible(true)}
-                      >
-                        <Text style={styles.mapLinkText}>Ping Location</Text>
-                    </TouchableOpacity>
-                    <TextInput
-                      placeholder="Longitute"
-                      style={[styles.input, styles.inputRowItem]}
-                      onChangeText={(text) => setPropertyDetails({ ...propertyDetails, long: text })}
-                    />
-                    <TextInput
-                      placeholder="Latitude"
-                      style={[styles.input, styles.inputRowItem]}
-                      onChangeText={(text) => setPropertyDetails({ ...propertyDetails, lat: text })}
-                    /> */}
-                </View>
-
-                {/* Property Type selection */}
-                <View style={styles.categoryContainer}>
-                  <Text style={styles.categoryTitle}>What's the type of property?</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
-                    {propertyTypes.map((type) => (
-                      <TouchableOpacity
-                        key={type.id}
-                        style={[
-                          styles.categoryItem,
-                          selectedPropertyType === type.id && styles.categoryItemSelected
-                        ]}
-                        onPress={() => {
-                          setPropertyDetails({ ...propertyDetails, property_type_id: type.id });
-                          setSelectedPropertyType(type.id);
-                        }}
-                      >
-                        <Text style={styles.categoryItemText}>{type.name}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-
-                {/* Location selection */}
-                <View style={styles.categoryContainer}>
-                  <Text style={styles.categoryTitle}>Where is the property located?</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
-                    {locations.map((location) => (
-                      <TouchableOpacity
-                        key={location.id}
-                        style={[
-                          styles.categoryItem,
-                          selectedLocation === location.id && styles.categoryItemSelected
-                        ]}
-                        onPress={() => {
-                          setPropertyDetails({ ...propertyDetails, location_id: location.id });
-                          setSelectedLocation(location.id);
-                        }}
-                      >
-                        <Text style={styles.categoryItemText}>{location.name}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-
-                {/* Category selection */}
-                <View style={styles.categoryContainer}>
-                  <Text style={styles.categoryTitle}>Select a category</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryScrollView}>
-                    {categories.map((category) => (
-                      <TouchableOpacity
-                        key={category.id}
-                        style={[
-                          styles.categoryItem,
-                          selectedCategory === category.id && styles.categoryItemSelected
-                        ]}
-                        onPress={() => {
-                          setPropertyDetails({ ...propertyDetails, category_id: category.id });
-                          setSelectedCategory(category.id);
-                        }}
-                      >
-                        <Text style={styles.categoryItemText}>{category.name}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-
-                <View style={styles.uploadButtonsContainer}>
-                  <TouchableOpacity onPress={pickImages} style={styles.uploadButton}>
-                    <AntDesign name="camera" size={24} color="#438ab5" />
-                    <Text style={styles.uploadButtonText}>
-                      {uploadingImages ? 'Opening...' : 'Upload Images'}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity onPress={pickVideos} style={styles.uploadButton}>
-                    <AntDesign name="videocamera" size={24} color="#438ab5" />
-                    <Text style={styles.uploadButtonText}>
-                      {uploadingVideos ? 'Opening...' : 'Upload Videos'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.uploadedMediaContainer}>
-                  {uploadImages.map((image, index) => renderMediaItem(image, index, 'image'))}
-                  {(uploadVideos ?? []).map((video, index) => renderMediaItem(video, index, 'video'))}
-                </View>
-            </ScrollView>
-            </KeyboardAvoidingView>
-
-            <View style={styles.modalFooter}>
-              <RNButton
-                title="Create Post"
-                onPress={uploadPost}
-                disabled={uploading}
-                buttonStyle={styles.btnCreate}
-                titleStyle={styles.btnCreateText}
-              />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <BlurView intensity={90} style={StyleSheet.absoluteFill}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Create Post</Text>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <AntDesign name="close" size={24} color="black" />
+                </TouchableOpacity>
+              </View>
+              <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                <ScrollView style={styles.modalScrollView} contentContainerStyle={styles.modalScrollViewContent}>
+                  {renderStepContent()}
+                </ScrollView>
+              </KeyboardAvoidingView>
+              {/* Sticky Bottom Toolbar */}
+              <View style={styles.bottomToolbar}>
+                {step > 1 && (
+                  <RNButton title="Back" onPress={prevStep} buttonStyle={styles.toolbarButton} titleStyle={styles.toolbarButtonText} />
+                )}
+                {step < 6 ? (
+                  <RNButton title="Continue" onPress={nextStep} buttonStyle={styles.toolbarButton} titleStyle={styles.toolbarButtonText} />
+                ) : (
+                  <RNButton title="Create Post" onPress={uploadPost} disabled={uploading} buttonStyle={styles.toolbarButton} titleStyle={styles.toolbarButtonText} />
+                )}
+              </View>
             </View>
           </View>
-        </View>
-      </BlurView>
-    </Modal>      
-    <PingMapModal
-        visible={mapModalVisible}
-        onClose={() => setMapModalVisible(false)}
-        onSelectLocation={handleLocationSelect}
-      />
-
-    <AddAmenitiesModal
-      visible={amenitiesModalVisible}
-      onClose={() => setAmenitiesModalVisible(false)}
-      onSave={handleSaveAmenities}
-      selectedAmenities={selectedAmenities}
-      setSelectedAmenities={setSelectedAmenities}
-    />
+        </BlurView>
+      </Modal>
+      <PingMapModal visible={mapModalVisible} onClose={() => setMapModalVisible(false)} onSelectLocation={handleLocationSelect} />
+      {/* AddAmenitiesModal goes here if needed */}
     </>
   );
 };
@@ -379,20 +246,12 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 30,
     width: '100%',
     maxHeight: height * 0.9,
-    paddingTop: 20,
+    paddingTop: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 20,
-  },
-  dragIndicator: {
-    width: 40,
-    height: 5,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 3,
-    alignSelf: 'center',
-    marginBottom: 15,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -409,189 +268,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333333',
   },
-  closeButton: {
-    padding: 8,
-  },
   modalScrollView: {
     flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 50,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
   },
-  inputGrid: {
+  bottomToolbar: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -8,
-  },
-  inputWrapper: {
-    width: '50%',
-    paddingHorizontal: 8,
-    marginBottom: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
-  },
-  textarea: {
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 12,
-    padding: 16,
-    textAlignVertical: 'top',
-    minHeight: 120,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
-    marginBottom: 16,
-  },
-  categoryContainer: {
-    marginBottom: 24,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 16,
-    padding: 20,
-  },
-  categoryTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    color: '#333333',
-  },
-  categoryScrollView: {
-    paddingBottom: 8,
-  },
-  categoryItem: {
+    justifyContent: 'space-around',
     paddingVertical: 10,
-    paddingHorizontal: 18,
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    marginRight: 12,
-    marginBottom: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  categoryItemSelected: {
-    backgroundColor: '#007aff',
-    color: '#ffffff',
-    fontWeight: '600',
-    fontSize: 14
-  },
-  categoryItemText: {
-    color: '#f5dc4d0',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  categoryItemTextSelected: {
-    color: '#ffffff',
-  },
-  uploadButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-    marginTop: 8,
-  },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#007aff',
-    borderRadius: 12,
-    flex: 1,
-    marginHorizontal: 6,
-    backgroundColor: '#f0f8ff',
-  },
-  uploadButtonText: {
-    marginLeft: 8,
-    color: '#007aff',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  uploadedMediaContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -6,
-    marginBottom: 24,
-  },
-  mediaItemContainer: {
-    position: 'relative',
-    margin: 6,
-  },
-  uploadedMedia: {
-    width: (width - 72) / 3,
-    height: (width - 72) / 3,
-    borderRadius: 12,
-  },
-  removeMediaButton: {
-    position: 'absolute',
-    top: -8,
-    right: -8,
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  modalFooter: {
-    paddingHorizontal: 24,
-    paddingBottom: 30,
-    paddingTop: 16,
+    backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: '#ddd',
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
   },
-  btnCreate: {
-    backgroundColor: '#007aff',
-    borderRadius: 16,
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
+  toolbarButton: {
+    backgroundColor: '#69209c',
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    width: '100%',
   },
-  btnCreateText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ffffff',
-  },
-  mapLinkButton: {
-    backgroundColor: '#34c759',
-    padding: 14,
-    borderRadius: 16,
-    marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  mapLinkText: {
+  toolbarButtonText: {
     color: '#fff',
-    textAlign: 'center',
     fontWeight: '600',
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  amenitiesButton: {
-    padding: 14,
-    backgroundColor: '#5856d6',
-    borderRadius: 16,
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  amenitiesButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
   },
 });
 export default UploadPost;

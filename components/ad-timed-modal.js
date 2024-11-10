@@ -28,7 +28,7 @@ const TimedAdPopup = () => {
     showAd();
     const intervalId = setInterval(() => {
       forceShowAd();
-    }, 20000);
+    }, 30000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -36,7 +36,7 @@ const TimedAdPopup = () => {
     if (!visible) {
       setTimeout(() => {
         showAd();
-      }, 30000);
+      }, 60000);
     }
   }, [visible]);
 
@@ -60,7 +60,7 @@ const TimedAdPopup = () => {
       doubleTapRef.current = true;
       setTimeout(() => {
         doubleTapRef.current = false; // Reset the double tap state after a short delay
-      }, 15000); // Duration for double tap detection
+      }, 30000); // Duration for double tap detection
     }
   };
 

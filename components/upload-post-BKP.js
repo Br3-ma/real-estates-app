@@ -478,12 +478,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
-  uploadedMediaContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -6,
-    marginBottom: 24,
-  },
   mediaItemContainer: {
     position: 'relative',
     margin: 6,

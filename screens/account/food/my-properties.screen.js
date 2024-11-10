@@ -246,9 +246,9 @@ const uploadPost = useCallback(async () => {
 }, [propertyDetails, uploadImages, uploadVideos, userInfo]);
 
   
-  const { hideFromPosts, bidForTopPosts, editProperty } = usePropertyActions(fetchProperties);
+const { hideFromPosts, bidForTopPosts, editProperty } = usePropertyActions(fetchProperties);
 
-  const openSetBidModal = useCallback((itemId) => {
+const openSetBidModal = useCallback((itemId) => {
     setBidPropertyId(itemId);
     setBidModalVisible(true);
 }, []);
@@ -308,8 +308,31 @@ const renderPropertyItem = useCallback(({ item }) => {
           </View>
         </View>
       </View>
-      {/* <Text>{item.description}</Text> */}
       <View style={styles.buttonRow}>
+          <Button
+            type="clear"
+            title="Boost Post"
+            icon={() => <MaterialIcons name="trending-up" size={24} color="green" />}
+            onPress={() => openSetBidModal(item.id)} // Assuming this opens the bid modal as a shortcut to boost
+            buttonStyle={{
+              borderColor: 'green',
+              borderWidth: 1,
+              borderRadius: 10, 
+              paddingVertical: 5, 
+              paddingHorizontal: 10, 
+              backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 3,
+              elevation: 2,
+            }}
+            titleStyle={{
+              color: 'green',
+              fontWeight: 'bold', 
+            }}
+          />
+
         <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="blue" />} onPress={() => openCommentsModal(item.id)} />
         <Button
           type="clear"
@@ -336,6 +359,23 @@ return (
           </View>
         ))}
       </ScrollView>
+
+      {/* Smaller floating button for refreshing */}
+      <TouchableOpacity
+        onPress={onRefresh}
+        style={{
+          position: 'absolute',
+          right: 20,
+          bottom: 80,
+          backgroundColor: '#7c209c',
+          padding: 10,
+          borderRadius: 50,
+          elevation: 5,
+        }}
+      >
+        <MaterialIcons name="refresh" size={24} color="#FFF" />
+      </TouchableOpacity>
+      
       {/* Floating button to open UploadPost modal */}
       <TouchableOpacity
         style={styles.floatingButton}
@@ -370,6 +410,7 @@ return (
         allProperties={properties}
         openCommentsModal={openCommentsModal}
         onClose={() => setPostViewerModalVisible(false)}
+        fetchProperties={fetchProperties}
       />
       <CommentsModal
         visible={isCommentsModalVisible}

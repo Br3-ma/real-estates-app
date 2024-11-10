@@ -6,10 +6,11 @@ import { API_BASE_URL } from './confg/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import SplashScreen from './screens/splash.screen';
-
+import Toast from 'react-native-toast-message';
 import SignInScreen from './screens/auth/login.screen';
 import ForgotPasswordScreen from './screens/auth/forgot.screen';
 import OTPVerificationScreen from './screens/auth/otp-verification.screen';
+import ChangePasswordScreen from './screens/auth/reset.screen';
 import SignupsquareateAgentScreen from './screens/auth/register.screen';
 import MainScreen from './screens/main.screen';
 
@@ -94,6 +95,7 @@ const App = () => {
             <Stack.Screen name="RegisterByOTP" component={withLoading(SignupsquareateAgentScreen)} />
             <Stack.Screen name="ForgotPasswordScreen" component={withLoading(ForgotPasswordScreen)} />
             <Stack.Screen name="OTPVerification" component={withLoading(OTPVerificationScreen)} />
+            <Stack.Screen name="ChangePasswordScreen" component={withLoading(ChangePasswordScreen)} />
             <Stack.Screen name="Main" component={withLoading(MainScreen)} />
           </Stack.Navigator>
         )}
@@ -103,6 +105,7 @@ const App = () => {
           </View>
         )}
       </NavigationContainer>
+      <Toast />
     </LoadingContext.Provider>
   );
 };

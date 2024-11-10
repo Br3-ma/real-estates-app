@@ -1,38 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PaymentBottomSheet from './payments-modal';
 import { fetchUserInfo } from '../controllers/auth/userController';
-
-// Sample internal data for subscription plans
-const subscriptionPlans = [
-  {
-    id: 1,
-    name: 'free',
-    title: 'Free',
-    price: 'K0/month',
-    features: ['Basic access', 'Limited posts', 'Ad-supported'],
-  },
-  {
-    id: 2,
-    name: 'special',
-    title: 'Special',
-    price: 'K9.99/month',
-    features: ['Unlimited posts', 'No ads', 'Priority support'],
-    isRecommended: true,
-  },
-  {
-    id: 3,
-    name: 'premium',
-    title: 'Premium',
-    price: 'K19.99/month',
-    features: ['All Special features', 'Advanced analytics', 'Exclusive content'],
-  },
-];
+import { API_BASE_URL } from '../confg/config';
 
 const PlanCard = ({ plan, onSubscribe }) => {
-  const { id, title, price, features, isRecommended } = plan;
-  
+
+  console.log('---------Plan --------------');
+  console.log(plan);
+  const { id, name, amount, duration, duration_type, description, isRecommended } = plan;
+
+  console.log('---------Plan Data--------------');
+  console.log(plan.id);
+  console.log(plan.name);
+  console.log(plan.amount);
   return (
     <View style={[styles.planCard, isRecommended && styles.recommendedPlan]}>
       {isRecommended && (
@@ -40,18 +22,19 @@ const PlanCard = ({ plan, onSubscribe }) => {
           <Text style={styles.recommendedText}>Recommended</Text>
         </View>
       )}
-      <Text style={styles.planTitle}>{title}</Text>
-      <Text style={styles.planPrice}>{price}</Text>
-      {features && features.map((feature, index) => (
+      <Text style={styles.planTitle}>{name}</Text>
+      <Text style={styles.planPrice}>K{amount} /{duration_type}</Text>
+      <Text style={styles.featureText}>{description}</Text>
+      {/* {features && features.map((feature, index) => (
         <View key={index} style={styles.featureItem}>
           <Ionicons name="checkmark-circle" size={20} color="#60279C" />
-          <Text style={styles.featureText}>{feature}</Text>
+          <Text style={styles.featureText}>{description}</Text>
         </View>
-      ))}
+      ))} */}
       <TouchableOpacity 
         style={styles.subscribeButton} 
         onPress={() => onSubscribe(id)}
-        accessibilityLabel={`Subscribe to ${title} plan`}
+        accessibilityLabel={`Subscribe to ${name} plan`}
       >
         <Text style={styles.subscribeButtonText}>Subscribe</Text>
       </TouchableOpacity>
@@ -70,7 +53,7 @@ const ConfirmationModal = ({ visible, plan, onConfirm, onCancel }) => (
       <View style={styles.modalContent}>
         <Text style={styles.modalTitle}>Confirm Subscription</Text>
         <Text style={styles.modalText}>
-          Are you sure you want to subscribe to the {plan?.title} plan for {plan?.price}?
+          Are you sure you want to subscribe to the {plan?.name} plan for K{plan?.amount}?
         </Text>
         <View style={styles.modalButtons}>
           <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={onCancel}>
@@ -86,12 +69,23 @@ const ConfirmationModal = ({ visible, plan, onConfirm, onCancel }) => (
 );
 
 const SubscriptionPlan = () => {
+  const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPaymentSheetVisible, setIsPaymentSheetVisible] = useState(false);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    const fetchSubscriptionPlans = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/subscription-plans`);
+        const data = await response.json();
+        setSubscriptionPlans(data);
+      } catch (error) {
+        console.error('Error fetching subscription plans:', error);
+      }
+    };
+
     const getUserInfo = async () => {
       try {
         const userInfo = await fetchUserInfo();
@@ -100,13 +94,16 @@ const SubscriptionPlan = () => {
         console.error("Error fetching user info:", error);
       }
     };
-    getUserInfo();
-}, []); // No need to log `user` immediately here
 
+    fetchSubscriptionPlans();
+    getUserInfo();
+  }, []);
 
   const handleSubscribe = (planId) => {
     const plan = subscriptionPlans.find(p => p.id === planId);
+    console.log(plan);
     setSelectedPlan(plan);
+    console.log(selectedPlan);//this never sets
     setIsModalVisible(true);
   };
 
@@ -114,12 +111,9 @@ const SubscriptionPlan = () => {
     console.log(`Subscribed to ${selectedPlan.title}`);
     // Here you would typically handle the actual subscription process
     console.log(selectedPlan);
-    console.log('-------User Me--------');
-    console.log('---------------');
     console.log(user);
 
     setIsModalVisible(false);
-    setSelectedPlan(null);
     setIsPaymentSheetVisible(true);
   };
 
@@ -152,7 +146,8 @@ const SubscriptionPlan = () => {
         isVisible={isPaymentSheetVisible} 
         onClose={() => setIsPaymentSheetVisible(false)} 
         payFor='subscription'
-        planID={22}
+        amount={selectedPlan ? selectedPlan.amount : null} // Passes correctly when selectedPlan exists
+        planID={selectedPlan ? selectedPlan.id : null} // Passes correctly when selectedPlan exists
         userID={user ? user.id : null}
       />
     </View>

@@ -23,7 +23,7 @@ const MenuContainer = ({ itemId, hideFromPosts, openSetBidModal, editProperty, h
         <Menu.Item
           onPress={() => { hideFromPosts(itemId); setMenuVisible(false); }}
           title={item.status_id === 1 ? 'Hide' : 'Show'}
-          leadingIcon={item.status_id === 1 ? 'eye-off-outline' : 'eye-on-outline'}
+          leadingIcon={item.status_id === 1 ? 'eye-off-outline' : 'eye-outline'}
         />
         <Menu.Item
           onPress={() => { openSetBidModal(itemId); setMenuVisible(false); }}

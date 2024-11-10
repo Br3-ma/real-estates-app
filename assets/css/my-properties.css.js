@@ -2,32 +2,50 @@ import { StyleSheet, Dimensions, StatusBar, Platform } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
+const COLORS = {
+  background: '#F4F6F9',
+  card: '#FFFFFF',
+  primary: '#2C3E50',
+  accent: '#3498DB',
+  text: '#34495E',
+  muted: '#7F8C8D',
+  border: '#ECF0F1',
+};
+
+const TYPOGRAPHY = {
+  small: 12,
+  medium: 14,
+  large: 16,
+  xlarge: 18,
+};
+
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F2F5',
+    backgroundColor: COLORS.background,
   },
-  cardContainer: {
-    backgroundColor: '#FFFFFF',
-    marginBottom: 8,
+  card: {
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    paddingHorizontal: 15,
-    paddingTop: 15,
-    color: '#1C2331',
+    fontSize: TYPOGRAPHY.large,
+    fontWeight: '700',
+    color: COLORS.primary,
+    paddingHorizontal: 12,
+    paddingTop: 12,
   },
   menuContainer: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 8,
+    right: 8,
     zIndex: 10,
   },
   kabutton: {
@@ -36,8 +54,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F2F5',
   },
   cardImage: {
-    width: width,
-    height: width * 0.75,
+    width: width - 24,
+    height: width * 0.6,
     resizeMode: 'cover',
   },
   illustrativeImage: {
@@ -55,13 +73,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   priceText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    fontSize: TYPOGRAPHY.xlarge,
+    fontWeight: '700',
+    color: COLORS.accent,
   },
   locationText: {
-    fontSize: 14,
-    color: '#65676B',
+    fontSize: TYPOGRAPHY.medium,
+    color: COLORS.muted,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -102,16 +120,16 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 24,
-    width: width - 40,
-    maxHeight: height * 0.8,
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    width: width * 0.9,
+    maxHeight: height * 0.7,
+    padding: 16,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -139,11 +157,11 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#CED0D4',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    fontSize: 16,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+    fontSize: TYPOGRAPHY.medium,
   },
   inputRow: {
     flexDirection: 'row',
@@ -214,19 +232,19 @@ const styles = StyleSheet.create({
   },
   floatingButton: {
     position: 'absolute',
-    bottom: 24,
-    right: 24,
-    backgroundColor: '#1877F2',
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    bottom: 16,
+    right: 16,
+    backgroundColor: COLORS.accent,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
   },
 });
 

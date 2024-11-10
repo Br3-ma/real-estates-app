@@ -3,38 +3,34 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator 
 import axios from 'axios';
 import { ToastProvider, useToast } from 'react-native-toast-notifications';
 import { API_BASE_URL } from '../../confg/config';
+import { updateUserInfo } from '../../controllers/auth/userController';
 
 const ChangePasswordScreen = ({ route, navigation }) => {
   const { email } = route.params;
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
   const toast = useToast();
 
-  const handleChangePassword = async () => {
-    if (password !== confirmPassword) {
-      toast.show('Passwords do not match.', {
-        type: 'danger',
-        placement: 'top',
-        duration: 4000,
-        animationType: 'slide-in',
-      });
-      return;
-    }
-
+  const handleSavePassword = async () => {
     setLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/reset-password`, { email, password });
       if (response.data.resp) {
-        toast.show('Password reset successfully.', {
+        const updatedUserData = response.data;
+        console.log((updatedUserData.user));
+        await updateUserInfo(updatedUserData.user);
+        setUserInfo(updatedUserData.user);
+        toast.show(response.data.message, {
           type: 'success',
           placement: 'top',
           duration: 4000,
           animationType: 'slide-in',
         });
-        navigation.navigate('SignIn');
-      }else{
-        toast.show('Somthing went wrong. Try again.', {
+        navigation.navigate('Main');
+      } else {
+        toast.show(response.data.message, {
           type: 'danger',
           placement: 'top',
           duration: 4000,
@@ -63,7 +59,7 @@ const ChangePasswordScreen = ({ route, navigation }) => {
         placeholderTextColor="#cccccc"
         value={password}
         onChangeText={setPassword}
-        secureTextEntry={true}
+        secureTextEntry
       />
       <TextInput
         style={styles.input}
@@ -71,9 +67,9 @@ const ChangePasswordScreen = ({ route, navigation }) => {
         placeholderTextColor="#cccccc"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
-        secureTextEntry={true}
+        secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={handleChangePassword} disabled={loading}>
+      <TouchableOpacity style={styles.button} onPress={handleSavePassword} disabled={loading}>
         {loading ? (
           <ActivityIndicator size="small" color="#FFF" />
         ) : (
