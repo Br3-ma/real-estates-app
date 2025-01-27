@@ -23,7 +23,8 @@ import TopListingClassic from '../components/top-listing-classic';
 import TimedAdPopup from '../components/ad-timed-modal';
 import LongHomeRectangleAd from '../components/ad-home-one';
 import LongHomeRectangleTopAd from '../components/ad-home-two';
-
+// import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+// import { AdMobBanner } from 'expo-ads-admob';
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [properties, setProperties] = useState([]);
@@ -53,6 +54,9 @@ const HomeScreen = ({ navigation }) => {
   const [btnOptions, setButtons] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const isMountedRef = useRef(true);
+  const [isAdLoaded, setIsAdLoaded] = useState(true);
+
+  
   useEffect(() => {
     // Fetch user info first
     const loadUserInfo = async () => {
@@ -301,7 +305,10 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.featuredSectionTitle}>This might help you</Text>
             <FeaturedItems />
           </View>
-          {userInfo && userInfo.isSub === 0 && <LongHomeRectangleTopAd />}
+          
+          {/* Display ads here */}
+
+          {/* {userInfo && userInfo.isSub === 0 && <LongHomeRectangleTopAd />} */}
           {/* Top Listing of Boosted Posts */}
           <TopListing
             properties={hot_properties ? hot_properties.slice(0, 10) : []} 
@@ -321,7 +328,7 @@ const HomeScreen = ({ navigation }) => {
               ))}
             </View>
           )}
-          {userInfo?.isSub === 0 && <LongHomeRectangleAd/>}
+          {/* {userInfo?.isSub === 0 && <LongHomeRectangleAd/>} */}
           <AdAdPost
             navigation={navigation}
           />
@@ -333,7 +340,7 @@ const HomeScreen = ({ navigation }) => {
           />
           <BlankView />
         </ScrollView>
-        {userInfo?.isSub === 0 && <TimedAdPopup/>}
+        {/* {userInfo?.isSub === 0 && <TimedAdPopup/>} */}
       </LinearGradient>
 
       <SearchModal

@@ -32,22 +32,8 @@ const StepTwo = ({ propertyDetails, setPropertyDetails }) => {
     setMapModalVisible(false);
   };
 
-  const InputWithIcon = ({ icon, placeholder, value, onChangeText, keyboardType }) => (
-    <View style={styles.inputContainer}>
-      <MaterialCommunityIcons name={icon} size={20} color="#666" style={styles.icon} />
-      <TextInput
-        placeholder={placeholder}
-        value={value}
-        onChangeText={onChangeText}
-        style={styles.input}
-        placeholderTextColor="#999"
-        keyboardType={keyboardType || 'default'}
-      />
-    </View>
-  );
-
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
@@ -89,24 +75,32 @@ const StepTwo = ({ propertyDetails, setPropertyDetails }) => {
         <View style={styles.coordinatesContainer}>
           <View style={styles.coordinateField}>
             <Text style={styles.label}>Longitude</Text>
-            <InputWithIcon
-              icon="longitude"
-              placeholder="Enter longitude"
-              value={propertyDetails.long || ''}
-              onChangeText={(text) => setPropertyDetails({ ...propertyDetails, long: text })}
-              keyboardType="numeric"
-            />
+            <View style={styles.inputContainer}>
+              <MaterialCommunityIcons name="longitude" size={20} color="#666" style={styles.icon} />
+              <TextInput
+                placeholder="Enter longitude"
+                value={propertyDetails.long || ''}
+                onChangeText={(text) => setPropertyDetails({ ...propertyDetails, long: text })}
+                style={styles.input}
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+              />
+            </View>
           </View>
 
           <View style={styles.coordinateField}>
             <Text style={styles.label}>Latitude</Text>
-            <InputWithIcon
-              icon="latitude"
-              placeholder="Enter latitude"
-              value={propertyDetails.lat || ''}
-              onChangeText={(text) => setPropertyDetails({ ...propertyDetails, lat: text })}
-              keyboardType="numeric"
-            />
+            <View style={styles.inputContainer}>
+              <MaterialCommunityIcons name="latitude" size={20} color="#666" style={styles.icon} />
+              <TextInput
+                placeholder="Enter latitude"
+                value={propertyDetails.lat || ''}
+                onChangeText={(text) => setPropertyDetails({ ...propertyDetails, lat: text })}
+                style={styles.input}
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+              />
+            </View>
           </View>
         </View>
       </View>
@@ -118,7 +112,7 @@ const StepTwo = ({ propertyDetails, setPropertyDetails }) => {
         selectedAmenities={selectedAmenities}
         setSelectedAmenities={setSelectedAmenities}
       />
-      
+
       <PingMapModal
         visible={mapModalVisible}
         onClose={() => setMapModalVisible(false)}

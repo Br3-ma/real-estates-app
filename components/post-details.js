@@ -1,9 +1,10 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Modal, View, Text, ScrollView, TouchableOpacity,Alert, ImageBackground, Dimensions, Platform, StyleSheet, Linking, SafeAreaView, Image, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from 'react-native-vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { usePropertyActions } from '../tools/api/PropertyActions';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { fetchUserInfo } from '../controllers/auth/userController';
 import moment from 'moment';
 import { SERVER_BASE_URL, API_BASE_URL } from '../confg/config';
 import Communications from 'react-native-communications';
@@ -20,8 +21,28 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
   const [loading, setLoading] = useState(false);
   const [isBidModalVisible, setBidModalVisible] = useState(false); 
   const [bidPropertyId, setBidPropertyId] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const user = await fetchUserInfo();
+        setUserInfo(user);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
   const { hideFromPosts, bidForTopPosts } = usePropertyActions(fetchProperties);
+
+  useEffect(() => {
+    // Log userInfo after it’s been set
+    if (userInfo !== null) {
+      console.log('Updated userInfo:', userInfo);
+    }
+  }, [userInfo]);
 
   const sendSMS = (phoneNumber) => {
     Communications.text(phoneNumber, 'Hello, I\'m interested in your property listing.');
@@ -137,14 +158,16 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                   {property?.hidden ? 'Show' : 'Hide'}
                 </Text>
               </TouchableOpacity> */}
+              {userInfo && property && userInfo.id === property.user_id && (
+                <TouchableOpacity 
+                  style={[styles.adminButton, styles.deleteButton]} 
+                  onPress={() => handleDeleteProperty(property.id)}
+                >
+                  <MaterialIcons name="delete-outline" size={16} color="#fff" />
+                  <Text style={styles.adminButtonText}>Delete</Text>
+                </TouchableOpacity>
+              )}
 
-              <TouchableOpacity 
-                style={[styles.adminButton, styles.deleteButton]} 
-                onPress={() => handleDeleteProperty(property.id)}
-              >
-                <MaterialIcons name="delete-outline" size={16} color="#fff" />
-                <Text style={styles.adminButtonText}>Delete</Text>
-              </TouchableOpacity>
             </View>
           </View>
 

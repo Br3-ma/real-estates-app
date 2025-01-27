@@ -73,27 +73,45 @@ const HomeImageViewerModal = ({
         >
           <MaterialIcons name="close" size={24} color="#FFF" />
         </TouchableOpacity>
+{/* Full-screen media viewer */}
+<ScrollView 
+  horizontal 
+  pagingEnabled 
+  showsHorizontalScrollIndicator={false} 
+  style={styles.mediaScroller}
+>
+  {currentImages.map((image, index) => (
+    <ImageBackground
+      key={`bg-${index}`}
+      source={{ uri: `${SERVER_BASE_URL}/storage/app/${image.path}` }}
+      style={styles.backgroundImage}
+      blurRadius={10}
+    >
+      <ImageBackground
+        source={{ uri: `${SERVER_BASE_URL}/storage/app/${image.path}` }}
+        style={styles.mediaItem}
+        resizeMode="contain"
+      />
+    </ImageBackground>
+  ))}
+  {currentVideos.map((video, index) => (
+    <ImageBackground
+      key={`bg-video-${index}`}
+      source={{ uri: `${SERVER_BASE_URL}/storage/app/${video.path}` }}
+      style={styles.backgroundImage}
+      blurRadius={10}
+    >
+      <Video
+        key={`video-${index}`}
+        source={{ uri: `${SERVER_BASE_URL}/storage/app/${video.path}` }}
+        style={styles.mediaItem}
+        useNativeControls
+        resizeMode="contain"
+      />
+    </ImageBackground>
+  ))}
+</ScrollView>
 
-        {/* Full-screen media viewer */}
-        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.mediaScroller}>
-          {currentImages.map((image, index) => (
-            <ImageBackground
-              key={index}
-              source={{ uri: `${SERVER_BASE_URL}/storage/app/${image.path}` }}
-              style={styles.mediaItem}
-              resizeMode="cover"
-            />
-          ))}
-          {currentVideos.map((video, index) => (
-            <Video
-              key={`video-${index}`}
-              source={{ uri: `${SERVER_BASE_URL}/storage/app/${video.path}` }}
-              style={styles.mediaItem}
-              useNativeControls
-              resizeMode="cover"
-            />
-          ))}
-        </ScrollView>
 
         {/* Animated Content Overlay */}
         <Animated.View 
@@ -121,20 +139,20 @@ const HomeImageViewerModal = ({
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
                 <MaterialIcons name="king-bed" size={24} color="#8E2DE2" />
-                <Text style={styles.statValue}>{selectedProperty?.bedrooms}</Text>
-                <Text style={styles.statLabel}>Beds</Text>
+                <Text style={styles.statValue}>{selectedProperty?.bedrooms}<Text style={styles.statLabel}>Beds</Text></Text>
+                
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <MaterialIcons name="bathtub" size={24} color="#8E2DE2" />
-                <Text style={styles.statValue}>{selectedProperty?.bathrooms}</Text>
-                <Text style={styles.statLabel}>Baths</Text>
+                <Text style={styles.statValue}>{selectedProperty?.bathrooms}<Text style={styles.statLabel}>Baths</Text></Text>
+                
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
                 <MaterialIcons name="square-foot" size={24} color="#8E2DE2" />
-                <Text style={styles.statValue}>{selectedProperty?.area}</Text>
-                <Text style={styles.statLabel}>Sq.ft</Text>
+                <Text style={styles.statValue}>{selectedProperty?.area}<Text style={styles.statLabel}>Sq.ft</Text></Text>
+                
               </View>
             </View>
 
@@ -232,13 +250,20 @@ const styles = {
     borderRadius: 30,
     zIndex: 10,
   },
+  backgroundImage: {
+    width,
+    height: height * 1.0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mediaItem: {
+    width: width * 1.9,  // Slightly smaller than the background
+    height: height * 1.65,  // Slightly smaller than the background
+    backgroundColor: 'transparent',
+  },
   mediaScroller: {
     flex: 1,
     backgroundColor: '#000',
-  },
-  mediaItem: {
-    width,
-    height: height * 0.7,
   },
   contentOverlay: {
     position: 'absolute',
@@ -293,8 +318,8 @@ const styles = {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingVertical: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     backgroundColor: '#F8F9FA',
     marginBottom: 20,
   },
@@ -314,9 +339,9 @@ const styles = {
     marginTop: 8,
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
-    marginTop: 4,
+    marginLeft: 4,
   },
   description: {
     fontSize: 16,

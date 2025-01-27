@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#69209c',
   },
   modalScrollView: {
     flexGrow: 1,

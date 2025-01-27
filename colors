@@ -1,25 +1,54 @@
-#60279C - Main
-#D3C3E4 - Light
-#438ab5 - Partner Main
-#C1D5E1 - Partner Light
+// #60279C - Main
+// #D3C3E4 - Light
+// #438ab5 - Partner Main
+// #C1D5E1 - Partner Light
 
 
-#C1D5E1 - Text Main
-#C1D5E1 - Text Light
+// #C1D5E1 - Text Main
+// #C1D5E1 - Text Light
 
-#  - Mild
-#  - Weird
+// #  - Mild
+// #  - Weird
 
-//Convert
-eas build --profile preview --platform android
-https://github.com/Br3-ma/real-estates-app.git
+// //Convert
+// eas build --profile preview --platform android
+// https://github.com/Br3-ma/real-estates-app.git
 
-"foregroundImage": "./assets/icon/logo.png",
-export const API_BASE_URL = 'http://192.168.43.134/square-api-server/api';
-export const API_BASE_URL = 'http://localhost/square-api-server/api';
-export const SERVER_BASE_URL = 'http://192.168.43.134/square-api-server/';
-export const SERVER_BASE_URL = 'http://localhost/square-api-server';
+// "foregroundImage": "./assets/icon/logo.png",
+// export const API_BASE_URL = 'http://192.168.43.134/square-api-server/api';
+// export const API_BASE_URL = 'http://localhost/square-api-server/api';
+// export const SERVER_BASE_URL = 'http://192.168.43.134/square-api-server/';
+// export const SERVER_BASE_URL = 'http://localhost/square-api-server';
 
-MTN_MOMO_ZMB
-AIRTEL_OAPI_ZMB
-ZAMTEL_ZMB
+// MTN_MOMO_ZMB
+// AIRTEL_OAPI_ZMB
+// ZAMTEL_ZMB
+
+// https://square.twalitso.com/api/deposit-callback
+
+// https://square.twalitso.com/api/refund-callback
+
+// {
+//     "correspondent":"ZAMTEL_ZMB",
+//     "correspondentIds":{
+//         "financialTransactionId":"000620731093"
+//     },
+//     "country":"ZMB",
+//     "created":"2024-11-12T08:57:17Z",
+//     "currency":"ZMW",
+//     "customerTimestamp":"2024-11-12T08:57:17Z",
+//     "depositId":"14c2e973-6b88-4a84-adcf-4e1301a97d70",
+//     "depositedAmount":"19.9900",
+//     "metadata":{
+//         "orderId":"1","customerId":"24"
+//     },
+//     "payer":{
+//         "address":{
+//             "value":"260952564843"
+//         },
+//         "type":"MSISDN"
+//     },
+//     "requestedAmount":"19.9900",
+//     "statementDescription":"Payment of item on SQr",
+//     "status":"COMPLETED"
+// }

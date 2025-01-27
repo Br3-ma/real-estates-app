@@ -34,7 +34,6 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
       useNativeDriver: true,
     }).start();
 
-    // Load saved values
     loadSavedValues();
   }, []);
 
@@ -43,7 +42,6 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
       const savedName = await AsyncStorage.getItem('signupName');
       const savedEmail = await AsyncStorage.getItem('signupEmail');
       const savedPhone = await AsyncStorage.getItem('signupPhone');
-      
       if (savedName) setName(savedName);
       if (savedEmail) setEmail(savedEmail);
       if (savedPhone) setPhone(savedPhone);
@@ -74,34 +72,16 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
           await AsyncStorage.removeItem('userInfo');
           await AsyncStorage.setItem('userInfo', JSON.stringify(response.data.user));
           await AsyncStorage.multiRemove(['signupName', 'signupEmail', 'signupPhone']);
-          navigation.navigate('Main');
+          navigation.navigate('OTPScreen');
       } catch (error) {
-          console.log('Error details:', error);
-
           if (error.response) {
-              console.log('Response data:', error.response.data);
-              console.log('Response status:', error.response.status);
-              console.log('Response headers:', error.response.headers);
-
-              // Extract validation errors
-              const errorMessages = Object.values(error.response.data.message)
-                  .flat()
-                  .join('\n');
-
-              // Show validation error messages via Toast
+              const errorMessages = Object.values(error.response.data.message).flat().join('\n');
               Toast.show({
                   type: 'error',
                   text1: 'Sign Up Failure',
                   text2: errorMessages || 'Unknown error occurred. Please try again.',
               });
-          } else if (error.request) {
-              console.log('Request data:', error.request);
-          } else {
-              console.log('Error message:', error.message);
           }
-
-          console.log('Config:', error.config);
-          console.error('Signup Error:', error);
       } finally {
           setLoading(false);
       }
@@ -154,7 +134,7 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
             mode="outlined"
             style={styles.input}
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="account" size={24} color={theme.colors.primary} />} />}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="account" size={20} color={theme.colors.primary} />} />}
           />
 
           <TextInput
@@ -165,7 +145,7 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
             style={styles.input}
             keyboardType="email-address"
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="email" size={24} color={theme.colors.primary} />} />}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="email" size={20} color={theme.colors.primary} />} />}
           />
 
           <TextInput
@@ -176,7 +156,7 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
             style={styles.input}
             keyboardType="phone-pad"
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="phone" size={24} color={theme.colors.primary} />} />}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="phone" size={20} color={theme.colors.primary} />} />}
           />
 
           <TextInput
@@ -187,7 +167,7 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
             style={styles.input}
             secureTextEntry
             theme={{ colors: { primary: theme.colors.primary } }}
-            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="lock" size={24} color={theme.colors.primary} />} />}
+            left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="lock" size={20} color={theme.colors.primary} />} />}
           />
 
           <ProgressBar progress={passwordStrength.progress} color={passwordStrength.color} style={styles.progressBar} />
@@ -201,7 +181,7 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
             contentStyle={styles.buttonContent}
             labelStyle={styles.buttonLabel}
           >
-            <Text>Sign Up</Text>
+            Sign Up
           </Button>
           
           <Button 
@@ -209,7 +189,7 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
             style={styles.textButton}
             labelStyle={styles.textButtonLabel}
           >
-            <Text>Already have an account? Log In</Text>
+            Already have an account? Log In
           </Button>
         </Animated.View>
       </ScrollView>
@@ -226,64 +206,55 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 10,
   },
   surface: {
-    padding: 20,
+    padding: 15,
     width: '90%',
     maxWidth: 380,
     alignItems: 'center',
-    borderRadius: 16,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    elevation: 4,
-  },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-    elevation: 2,
+    elevation: 3,
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: theme.colors.primary,
-    marginVertical: 2,
+    marginVertical: 4,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   input: {
     width: '100%',
-    marginBottom: 12,
+    marginBottom: 8,
     backgroundColor: 'white',
   },
   progressBar: {
     width: '100%',
-    height: 4,
-    marginBottom: 16,
+    height: 3,
+    marginBottom: 12,
   },
   button: {
     width: '100%',
-    marginTop: 2,
-    borderRadius: 25,
+    marginTop: 4,
+    borderRadius: 20,
   },
   buttonContent: {
-    height: 44,
+    height: 40,
   },
   buttonLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   textButton: {
-    marginTop: 12,
+    marginTop: 10,
   },
   textButtonLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: theme.colors.primary,
   },
 });

@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = width * 0.22;
+const ITEM_WIDTH = width * 0.18; // Reduced from 0.22 for more compact layout
 
 const FeaturedItems = () => {
   const [categories, setCategories] = useState([]);
@@ -22,7 +22,7 @@ const FeaturedItems = () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/property-types`);
         if (Array.isArray(response.data.data)) {
-          if (isMountedRef.current) { // Check if the component is still mounted
+          if (isMountedRef.current) {
             setCategories(response.data.data);
           }
         } else {
@@ -38,7 +38,7 @@ const FeaturedItems = () => {
         }
       } finally {
         if (isMountedRef.current) {
-          setIsLoading(false); // Ensure loading state is updated
+          setIsLoading(false);
         }
       }
     };
@@ -46,7 +46,7 @@ const FeaturedItems = () => {
     fetchCategories();
 
     return () => {
-      isMountedRef.current = false; // Cleanup: set ref to false when component unmounts
+      isMountedRef.current = false;
     };
   }, []);
 
@@ -60,7 +60,7 @@ const FeaturedItems = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(Object.fromEntries(searchData)), // Convert FormData to JSON
+        body: JSON.stringify(Object.fromEntries(searchData)),
       });
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -69,7 +69,6 @@ const FeaturedItems = () => {
       navigation.navigate('SearchResultScreen', { results: data, searchKeyword: 'Search Results' });
     } catch (err) {
       console.error('Error during search:', err);
-      // Handle any additional error state or user feedback here
     }
   }, [navigation]);
 
@@ -90,7 +89,7 @@ const FeaturedItems = () => {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Icon name="error-outline" type="material" size={36} color="#FF6B6B" />
+        <Icon name="error-outline" type="material" size={24} color="#FF4757" />
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
@@ -98,18 +97,33 @@ const FeaturedItems = () => {
 
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.sectionTitle}>Browse categories</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.container}>
+      <Text style={styles.sectionTitle}>Browse For Property</Text>
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false} 
+        contentContainerStyle={styles.container}
+        snapToInterval={ITEM_WIDTH + 8} // Added smooth snapping
+        decelerationRate="fast"
+      >
         {Array.isArray(categories) && categories.map((category) => (
           <TouchableOpacity 
             key={category.id} 
             style={styles.featuredItem}
             onPress={() => handlePress(category.id)}
+            activeOpacity={0.7}
           >
             <View style={styles.iconContainer}>
-              <Icon name={category.icon_name || 'home'} type={category.type} size={24} color="#4FACFE" />
+              <Icon 
+                name={category.icon_name || 'home'} 
+                type={category.type} 
+                size={20} 
+                color="#4FACFE"
+                style={styles.icon}
+              />
             </View>
-            <Text style={styles.featuredItemTitle}>{category.name}</Text>
+            <Text style={styles.featuredItemTitle} numberOfLines={1}>
+              {category.name}
+            </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -120,60 +134,86 @@ const FeaturedItems = () => {
 const styles = StyleSheet.create({
   wrapper: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: '#E2E8F0',
-    marginVertical: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginVertical: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   sectionTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#2D3748',
-    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1A202C',
+    marginBottom: 6,
     paddingHorizontal: 12,
+    letterSpacing: 0.3,
   },
   container: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   featuredItem: {
     width: ITEM_WIDTH,
-    marginRight: 12,
+    marginHorizontal: 4,
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 4,
   },
   iconContainer: {
-    width: ITEM_WIDTH * 0.8,
-    height: ITEM_WIDTH * 0.8,
-    borderRadius: ITEM_WIDTH * 0.4,
+    width: ITEM_WIDTH * 0.75,
+    height: ITEM_WIDTH * 0.75,
+    borderRadius: ITEM_WIDTH * 0.375,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F7FAFC',
     marginBottom: 4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    shadowColor: '#4FACFE',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.84,
+    elevation: 3,
+  },
+  icon: {
+    transform: [{ scale: 1.1 }],
   },
   featuredItemTitle: {
     fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
-    color: '#4A5568',
-    marginTop: 4,
+    color: '#2D3748',
+    marginTop: 2,
+    paddingHorizontal: 2,
   },
   shimmerItem: {
     width: ITEM_WIDTH,
-    height: ITEM_WIDTH * 1.2,
-    marginRight: 12,
+    height: ITEM_WIDTH * 1.1,
+    marginHorizontal: 4,
+    borderRadius: 8,
   },
   errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
+    paddingVertical: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    justifyContent: 'center',
+    backgroundColor: '#FFF5F5',
+    marginHorizontal: 12,
+    borderRadius: 8,
   },
   errorText: {
     fontSize: 12,
-    color: '#FF6B6B',
-    textAlign: 'center',
-    marginTop: 4,
+    color: '#FF4757',
+    marginLeft: 6,
+    fontWeight: '500',
   },
 });
 

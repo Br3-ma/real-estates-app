@@ -102,7 +102,7 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
       </View>
       <View style={styles.detailsContainer}>
         <View style={styles.priceLocationRow}>
-          <Text style={styles.priceText}>K{item.price}</Text>
+          <Text style={styles.priceText}>K{parseFloat(item.price).toLocaleString()}</Text>
           <TouchableOpacity>
             <Text style={styles.locationText}>
               <MaterialIcons name="place" size={20} color="#333" />
@@ -129,7 +129,7 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
         <Button
           type="clear"
           style={styles.buttonCover}
-          icon={<MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={20} color={isFavorite ? "#E91E63" : "gray"} />}
+          icon={<MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={20} color={isFavorite ? "#60279C" : "gray"} />}
           onPress={() => toggleFavorite(item)}
           
         />
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#E91E63',
+    color: '#60279C',
   },
   locationText: {
     fontSize: 14,

@@ -10,7 +10,7 @@ const EmptyStateView = ({ onRefresh }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={['#4A90E2', '#50E3C2']}
+        colors={['#ad82dc', '#eef7f7']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
@@ -24,9 +24,9 @@ const EmptyStateView = ({ onRefresh }) => {
             <Text style={styles.subtitle}>Find the perfect property for you</Text>
           </View>
 
-          <View style={styles.imageContainer}>
+          {/* <View style={styles.imageContainer}>
             <Image
-              source={require('../assets/img/empty-state.avif')} 
+              source={require('../assets/gifs/empty.gif')} 
               style={styles.image}
               resizeMode="cover"
             />
@@ -34,7 +34,7 @@ const EmptyStateView = ({ onRefresh }) => {
               colors={['transparent', 'rgba(0,0,0,0.3)']}
               style={styles.imageOverlay}
             />
-          </View>
+          </View> */}
 
           <View style={styles.content}>
             <Text style={styles.paragraph}>

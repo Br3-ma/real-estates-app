@@ -6,7 +6,7 @@ import axios from 'axios';
 import { ToastProvider, useToast } from 'react-native-toast-notifications';
 import { API_BASE_URL } from '../../confg/config';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -50,7 +50,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
   return (
     <LinearGradient
-      colors={['#fef8d4', '#a810ff']}
+      colors={['#ffff', '#02206f']}
       style={styles.container}
     >
       <KeyboardAvoidingView
@@ -58,18 +58,16 @@ const ForgotPasswordScreen = ({ navigation }) => {
         style={styles.content}
       >
         <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <Feather name="lock" size={40} color="#FFF" />
-          </View>
+          <Feather name="lock" size={30} color="#FFF" style={styles.icon} />
           <Text style={styles.title}>Forgot Password</Text>
-          <Text style={styles.subtitle}>Enter your email to reset your password</Text>
+          <Text style={styles.subtitle}>Enter your email to reset</Text>
         </View>
         <View style={styles.inputContainer}>
-          <Feather name="mail" size={24} color="#A388EE" style={styles.inputIcon} />
+          <Feather name="mail" size={20} color="#02206f" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Email"
-            placeholderTextColor="#A388EE"
+            placeholderTextColor="#02206f"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -91,12 +89,10 @@ const ForgotPasswordScreen = ({ navigation }) => {
           style={styles.backButton}
           onPress={() => navigation.navigate('SignIn')}
         >
-          <Feather name="arrow-left" size={20} color="#FFF" />
+          <Feather name="arrow-left" size={18} color="#FFF" />
           <Text style={styles.backButtonText}>Back to Login</Text>
         </TouchableOpacity>
-
-        
-        <Text style={styles.footerText}>version. 8</Text>
+        <Text style={styles.footerText}>version. 13</Text>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
@@ -110,85 +106,83 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
-  },
-  iconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 50,
-    padding: 20,
     marginBottom: 20,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFF',
+  icon: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 50,
+    padding: 15,
     marginBottom: 10,
   },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: 5,
+  },
   subtitle: {
-    fontSize: 16,
-    color: '#E0D1FF',
+    fontSize: 14,
+    color: '#fff',
     textAlign: 'center',
     opacity: 0.8,
-    maxWidth: 280,
+    maxWidth: 250,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 12,
-    marginBottom: 25,
+    borderRadius: 10,
+    marginBottom: 20,
     width: width * 0.85,
-    maxWidth: 400,
-    paddingHorizontal: 15,
+    paddingHorizontal: 12,
   },
   inputIcon: {
-    marginRight: 10,
+    marginRight: 8,
   },
   input: {
     flex: 1,
-    paddingVertical: 15,
-    fontSize: 16,
+    paddingVertical: 12,
+    fontSize: 14,
     color: '#FFF',
   },
   button: {
-    backgroundColor: '#A388EE',
-    paddingVertical: 15,
-    paddingHorizontal: 40,
+    backgroundColor: '#02206f',
+    paddingVertical: 12,
+    paddingHorizontal: 35,
     borderRadius: 30,
     width: width * 0.85,
-    maxWidth: 400,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
-    elevation: 8,
+    elevation: 6,
+    marginBottom: 15,
   },
   buttonText: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 30,
+    marginTop: 25,
   },
   backButtonText: {
-    color: '#E0D1FF',
-    fontSize: 16,
+    color: '#fff',
+    fontSize: 14,
     marginLeft: 5,
   },
   footerText: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#bfcfd9',
     textAlign: 'center',
     fontWeight: '500',
-    letterSpacing: 0.5,
   },
 });
 

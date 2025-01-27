@@ -229,6 +229,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F0F2F5',
+  },  
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: '#f8f8f8', // Light gray background
+  },
+  emptyStateImage: {
+    width: 180,
+    height: 180,
+    marginBottom: 20,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333', // Darker gray text color
+    textAlign: 'center',
+    marginTop: 12,
+  },
+  emptyStateDescription: {
+    fontSize: 16,
+    color: '#757575', // Lighter gray description color
+    textAlign: 'center',
+    marginTop: 8,
   },
   floatingButton: {
     position: 'absolute',

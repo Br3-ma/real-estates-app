@@ -12,6 +12,12 @@ import ForgotPasswordScreen from './screens/auth/forgot.screen';
 import OTPVerificationScreen from './screens/auth/otp-verification.screen';
 import ChangePasswordScreen from './screens/auth/reset.screen';
 import SignupsquareateAgentScreen from './screens/auth/register.screen';
+
+
+import SearchResultScreen from './screens/search/search-result.screen';
+import OverviewScreen from './screens/onboarding/overview.screen';
+import KYCScreen from './screens/onboarding/kyc.screen';
+import OTPScreen from './screens/onboarding/otp.screen';
 import MainScreen from './screens/main.screen';
 
 const Stack = createStackNavigator();
@@ -44,6 +50,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+
     checkAuthentication();
   }, []);
 
@@ -88,6 +95,7 @@ const App = () => {
         {authenticated ? (
           <Stack.Navigator initialRouteName="Main" screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Main" component={withLoading(MainScreen)} />
+            <Stack.Screen name="SearchResultScreen" component={withLoading(SearchResultScreen)} />
           </Stack.Navigator>
         ) : (
           <Stack.Navigator initialRouteName="SignIn" screenOptions={{ headerShown: false }}>
@@ -96,6 +104,9 @@ const App = () => {
             <Stack.Screen name="ForgotPasswordScreen" component={withLoading(ForgotPasswordScreen)} />
             <Stack.Screen name="OTPVerification" component={withLoading(OTPVerificationScreen)} />
             <Stack.Screen name="ChangePasswordScreen" component={withLoading(ChangePasswordScreen)} />
+            <Stack.Screen name="OverviewScreen" component={withLoading(OverviewScreen)} />
+            <Stack.Screen name="KYCScreen" component={withLoading(KYCScreen)} />
+            <Stack.Screen name="OTPScreen" component={withLoading(OTPScreen)} />
             <Stack.Screen name="Main" component={withLoading(MainScreen)} />
           </Stack.Navigator>
         )}

@@ -17,6 +17,7 @@ import RenderItem from '../../components/search-render-item';
 import RenderLocationCarousel from '../../components/carousel-locations';
 import RenderCategoryCarousel from '../../components/carousel-categories';
 import EmptyStateView from '../../components/empty-state';
+import ShimmerSearchLoading from '../../components/shimmer-loader-search';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const { width, height } = Dimensions.get('window');
@@ -263,7 +264,9 @@ const SearchResultScreen = ({ route, navigation }) => {
           setModalVisible(true);
         }}
       />
-      {data.length === 0 ? (
+      {loading ? (
+        <ShimmerSearchLoading isLoading={loading} />
+      ) : data.length === 0 ? (
         renderEmptyView()
       ) : (
         <FlatList
@@ -278,6 +281,7 @@ const SearchResultScreen = ({ route, navigation }) => {
           onRefresh={onRefresh}
         />
       )}
+
       <PostViewerModal
         visible={isPostViewerModalVisible}
         images={currentImages}

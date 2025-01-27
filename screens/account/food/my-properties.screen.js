@@ -32,7 +32,10 @@ const MyPropertyScreen = ({ navigation }) => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isPostViewerModalVisible, setPostViewerModalVisible] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState({
-    title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '', property_type_id: '', category_id: '', location_id: '', status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', images: [],
+    title: '', description: '', price: '', location: '', long: '', lat: '', user_id: '',
+    property_type_id: '', category_id: '', location_id: '',
+    status_id: '', bedrooms: '', bathrooms: '', area: '', amenities: '', phone:'',
+    images: [], utility_file: [], support_file: [], 
   });
   const [uploadImages, setUploadImages] = useState([]);
   const [uploadVideos, setUploadVideos] = useState([]);
@@ -148,10 +151,10 @@ const MyPropertyScreen = ({ navigation }) => {
     );
 }, [fetchProperties]);
 
-
 const MAX_VIDEO_SIZE = 25 * 1024 * 1024; 
 const uploadPost = useCallback(async () => {
   console.log('Uploading post........');
+  console.log(propertyDetails);
   setUploading(true);
   try {
     const formData = new FormData();
@@ -159,6 +162,7 @@ const uploadPost = useCallback(async () => {
     formData.append('description', propertyDetails.description);
     formData.append('price', propertyDetails.price);
     formData.append('location', propertyDetails.location);
+    formData.append('phone', propertyDetails.phone);
     formData.append('long', propertyDetails.long);
     formData.append('lat', propertyDetails.lat);
     formData.append('user_id', userInfo.id);
@@ -172,6 +176,31 @@ const uploadPost = useCallback(async () => {
     formData.append('category_id', propertyDetails.category_id);
     formData.append('status_id', 1);
 
+    // // Append support_file[]
+    // for (let index = 0; index < propertyDetails.support_file.length; index++) {
+    //   const file = propertyDetails.support_file[index];
+    //   const newFileUri = Platform.OS === 'android' ? file.uri : file.uri.replace('file://', '');
+    //   const fileType = mime.getType(newFileUri) || 'application/octet-stream';
+    //   formData.append(`support_file[${index}]`, {
+    //     name: file.name || `support_file_${index}`,
+    //     type: fileType,
+    //     uri: newFileUri,
+    //   });
+    // }
+
+    // // Append utility_file[]
+    // for (let index = 0; index < propertyDetails.utility_file.length; index++) {
+    //   const file = propertyDetails.utility_file[index];
+    //   const newFileUri = Platform.OS === 'android' ? file.uri : file.uri.replace('file://', '');
+    //   const fileType = mime.getType(newFileUri) || 'application/octet-stream';
+    //   formData.append(`utility_file[${index}]`, {
+    //     name: file.name || `utility_file_${index}`,
+    //     type: fileType,
+    //     uri: newFileUri,
+    //   });
+    // }
+
+    // Append images
     for (let index = 0; index < uploadImages.length; index++) {
       const image = uploadImages[index];
       const newImageUri = Platform.OS === 'android' ? image.uri : image.uri.replace('file://', '');
@@ -192,6 +221,8 @@ const uploadPost = useCallback(async () => {
     });
 
     console.log('Post uploaded successfully:', response.data);
+
+    // Video upload logic remains unchanged
     if (uploadVideos.length > 0) {
       for (let index = 0; index < uploadVideos.length; index++) {
         const video = uploadVideos[index];
@@ -224,6 +255,7 @@ const uploadPost = useCallback(async () => {
         });
       }
     }
+
     Toast.show({
       type: 'success',
       text1: 'Posted',
@@ -231,7 +263,7 @@ const uploadPost = useCallback(async () => {
     });
     setModalVisible(false);
     setUploadImages([]);
-    setUploadVideos([]);  
+    setUploadVideos([]);
     onRefresh();
   } catch (error) {
     console.log(error.message);
@@ -244,6 +276,7 @@ const uploadPost = useCallback(async () => {
     setUploading(false);
   }
 }, [propertyDetails, uploadImages, uploadVideos, userInfo]);
+
 
   
 const { hideFromPosts, bidForTopPosts, editProperty } = usePropertyActions(fetchProperties);
@@ -312,23 +345,23 @@ const renderPropertyItem = useCallback(({ item }) => {
           <Button
             type="clear"
             title="Boost Post"
-            icon={() => <MaterialIcons name="trending-up" size={24} color="green" />}
-            onPress={() => openSetBidModal(item.id)} // Assuming this opens the bid modal as a shortcut to boost
+            icon={() => <MaterialIcons name="trending-up" size={24} color="white" />}
+            onPress={() => openSetBidModal(item.id)} 
             buttonStyle={{
-              borderColor: 'green',
+              borderColor: 'white',
               borderWidth: 1,
               borderRadius: 10, 
               paddingVertical: 5, 
               paddingHorizontal: 10, 
-              backgroundColor: 'rgba(255, 255, 255, 0.1)', 
-              shadowColor: '#000',
+              backgroundColor: 'purple', 
+              shadowColor: '#ffff',
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.2,
               shadowRadius: 3,
               elevation: 2,
             }}
             titleStyle={{
-              color: 'green',
+              color: 'white',
               fontWeight: 'bold', 
             }}
           />
@@ -343,6 +376,12 @@ const renderPropertyItem = useCallback(({ item }) => {
     </Card>
   );
 }, [deleting, showImageViewer, handleDeleteProperty, openCommentsModal, menuVisible]);
+const renderEmptyState = () => (
+  <View style={styles.emptyStateContainer}>
+    <Image source={require('../../../assets/gifs/empty.gif')} style={styles.emptyStateImage} />
+    <Text style={styles.emptyStateText}>No properties available. Start by adding your first property!</Text>
+  </View>
+);
 
 return (
   <Provider>
@@ -350,14 +389,17 @@ return (
       <ScrollView refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#3D6DCC']}  />
         }>
-
-        {/* Put an In-App ad here to obstruct user it should be closable */}
         {userInfo?.isSub === 0 && <TimedAdModal />}
-        {properties.map((property, index) => (
-          <View key={index}>
-            {renderPropertyItem({ item: property })}
-          </View>
-        ))}
+        {properties.length === 0 ? (
+            renderEmptyState() // Render empty state if no properties
+          ) : (
+            properties.map((property, index) => (
+              <View key={index}>
+                {/* Render individual property item */}
+                {renderPropertyItem({ item: property })}
+              </View>
+            ))
+          )}
       </ScrollView>
 
       {/* Smaller floating button for refreshing */}
