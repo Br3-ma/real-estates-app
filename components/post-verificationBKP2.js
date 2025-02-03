@@ -9,11 +9,14 @@ import {
   Alert,
   TextInput,
   ProgressBarAndroid,
+  ProgressBar,
 } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import axios from 'axios';
+
+const API_BASE_URL = 'YOUR_API_URL'; // Replace with your API URL
 
 const PropertyVerificationModal = ({ visible, onClose, propertyId }) => {
   const [files, setFiles] = useState({
@@ -29,47 +32,53 @@ const PropertyVerificationModal = ({ visible, onClose, propertyId }) => {
   const pickFile = async (type) => {
     try {
       if (type === 'self') {
-        const result = await ImagePicker.launchCameraAsync({
+        const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
           aspect: [4, 3],
           quality: 1,
         });
 
-        if (result.canceled) return;
-
-        setFiles(prev => ({
-          ...prev,
-          [type]: {
-            uri: result.uri,
-            name: 'self.jpg',
-            type: 'image/*',
-          },
-        }));
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          const { uri } = result.assets[0];
+          setFiles((prev) => ({
+            ...prev,
+            [type]: {
+              uri,
+              name: 'self_photo.jpg',
+              type: 'image/jpeg',
+            },
+          }));
+        }
       } else {
         const result = await DocumentPicker.getDocumentAsync({
-          type: ['image/*'],
+          type: ['image/*', 'application/pdf'],
           copyToCacheDirectory: true,
         });
 
         if (result.type === 'success') {
-          setFiles(prev => ({
+          const fileType = result.name.endsWith('.pdf')
+            ? 'application/pdf'
+            : 'image/jpeg';
+
+          setFiles((prev) => ({
             ...prev,
             [type]: {
               uri: result.uri,
               name: result.name,
-              type: 'image/*',
+              type: fileType,
             },
           }));
         }
       }
     } catch (error) {
+      console.error('File picking error:', error);
       Alert.alert('Error', 'Could not select file');
     }
   };
 
   const removeFile = (type) => {
-    setFiles(prev => ({
+    setFiles((prev) => ({
       ...prev,
       [type]: null,
     }));
@@ -86,21 +95,9 @@ const PropertyVerificationModal = ({ visible, onClose, propertyId }) => {
     try {
       const formData = new FormData();
       formData.append('property_id', propertyId);
-      formData.append('deed', {
-        uri: files.deed.uri,
-        name: files.deed.name,
-        type: 'image/*',
-      });
-      formData.append('id', {
-        uri: files.id.uri,
-        name: files.id.name,
-        type: 'image/*',
-      });
-      formData.append('self', {
-        uri: files.self.uri,
-        name: files.self.name,
-        type: 'image/*',
-      });
+      formData.append('deed', files.deed);
+      formData.append('id', files.id);
+      formData.append('self', files.self);
       formData.append('full_name', fullName);
       formData.append('phone', phone);
 
@@ -109,17 +106,20 @@ const PropertyVerificationModal = ({ visible, onClose, propertyId }) => {
           'Content-Type': 'multipart/form-data',
         },
         onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          const progress = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
           setUploadProgress(progress);
         },
       };
 
-      await axios.post('/api/property/verify', formData, config);
+      await axios.post(`${API_BASE_URL}/property/verify`, formData, config);
 
       Alert.alert('Success', 'Documents uploaded successfully', [
         { text: 'OK', onPress: onClose },
       ]);
     } catch (error) {
+      console.error('Upload error:', error);
       Alert.alert('Error', 'Upload failed. Please try again.');
     } finally {
       setIsUploading(false);
@@ -175,53 +175,37 @@ const PropertyVerificationModal = ({ visible, onClose, propertyId }) => {
             />
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>Property Deed</Text>
-            {renderFilePreview(files.deed, 'deed')}
-            {!files.deed && (
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={() => pickFile('deed')}
-              >
-                <MaterialIcons name="upload-file" size={24} color="#666" />
-                <Text style={styles.uploadText}>Upload Deed</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.label}>ID Document</Text>
-            {renderFilePreview(files.id, 'id')}
-            {!files.id && (
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={() => pickFile('id')}
-              >
-                <MaterialIcons name="upload-file" size={24} color="#666" />
-                <Text style={styles.uploadText}>Upload ID</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.label}>Self Photo</Text>
-            {renderFilePreview(files.self, 'self')}
-            {!files.self && (
-              <TouchableOpacity
-                style={styles.uploadButton}
-                onPress={() => pickFile('self')}
-              >
-                <MaterialIcons name="camera-alt" size={24} color="#666" />
-                <Text style={styles.uploadText}>Take Self Photo</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          {['deed', 'id', 'self'].map((type) => (
+            <View key={type} style={styles.section}>
+              <Text style={styles.label}>
+                {type === 'self' ? 'Self Photo' : `Property ${type}`}
+              </Text>
+              {renderFilePreview(files[type], type)}
+              {!files[type] && (
+                <TouchableOpacity
+                  style={styles.uploadButton}
+                  onPress={() => pickFile(type)}
+                >
+                  <MaterialIcons
+                    name={type === 'self' ? 'camera-alt' : 'upload-file'}
+                    size={24}
+                    color="#666"
+                  />
+                  <Text style={styles.uploadText}>
+                    {type === 'self' ? 'Take Photo' : 'Upload File'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          ))}
 
           {isUploading && (
-            <ProgressBarAndroid
+            <ProgressBar
               styleAttr="Horizontal"
               indeterminate={false}
               progress={uploadProgress / 100}
+              color="#2196F3"
+              style={styles.progressBar}
             />
           )}
         </View>
@@ -229,13 +213,14 @@ const PropertyVerificationModal = ({ visible, onClose, propertyId }) => {
         <TouchableOpacity
           style={[
             styles.submitButton,
-            (!files.deed || !files.id || !files.self || !fullName || !phone || isUploading) && styles.submitButtonDisabled
+            (!files.deed || !files.id || !files.self || !fullName || !phone || isUploading) &&
+              styles.submitButtonDisabled,
           ]}
           onPress={handleSubmit}
           disabled={!files.deed || !files.id || !files.self || !fullName || !phone || isUploading}
         >
           <Text style={styles.submitText}>
-            {isUploading ? 'Uploading...' : 'Submit Documents'}
+            {isUploading ? `Uploading... ${uploadProgress}%` : 'Submit Documents'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -329,6 +314,9 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },  
+  progressBar: {
+    marginTop: 8,
   },
 });
 

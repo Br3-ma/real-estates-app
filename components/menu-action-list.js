@@ -6,7 +6,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import PropertyVerificationModal from './post-verification';
 
 const { width } = Dimensions.get('window');
-
+const STATUS_TYPES = {
+  0: { label: 'Not Verified', color: '#FFA500', icon: 'error-outline' },
+  1: { label: 'Verified', color: '#4CAF50', icon: 'verified' },
+  2: { label: 'Stalled', color: '#FFC107', icon: 'warning' },
+  3: { label: 'Rejected', color: '#F44336', icon: 'cancel' },
+  4: { label: 'Unknown', color: '#9E9E9E', icon: 'help-outline' }
+};
 const MenuContainer = ({ itemId, hideFromPosts, openSetBidModal, editProperty, handleDeleteProperty, item }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const [verificationModalVisible, setVerificationModalVisible] = useState(false);
@@ -65,21 +71,33 @@ const MenuContainer = ({ itemId, hideFromPosts, openSetBidModal, editProperty, h
           )}
           style={styles.menuItem}
         />
-        <Menu.Item
+        {/* <Menu.Item
           onPress={() => { editProperty(item); setMenuVisible(false); }}
           title="Edit Property"
           leadingIcon={({ size, color }) => (
             <MaterialIcons name="edit" size={size} color={color} />
           )}
           style={styles.menuItem}
-        />
+        /> */}
         <Menu.Item
           onPress={handleVerificationPress}
-          title="Verify Property"
-          leadingIcon={({ size, color }) => (
-            <MaterialIcons name="verified" size={size} color="#4CAF50" />
+          title={`${STATUS_TYPES[item.verified_status]?.label || STATUS_TYPES[4].label} Property`}
+          leadingIcon={({ size }) => (
+            <MaterialIcons 
+              name={STATUS_TYPES[item.verified_status]?.icon || STATUS_TYPES[4].icon} 
+              size={size} 
+              color={STATUS_TYPES[item.verified_status]?.color || STATUS_TYPES[4].color}
+            />
           )}
-          style={styles.menuItem}
+          titleStyle={{
+            color: STATUS_TYPES[item.verified_status]?.color || STATUS_TYPES[4].color
+          }}
+          style={[
+            styles.menuItem,
+            {
+              opacity: item.verified_status === 1 ? 0.7 : 1 // slightly dim if already verified
+            }
+          ]}
         />
         <Menu.Item
           onPress={() => { handleDeleteProperty(itemId); setMenuVisible(false); }}
@@ -94,7 +112,7 @@ const MenuContainer = ({ itemId, hideFromPosts, openSetBidModal, editProperty, h
       <PropertyVerificationModal
         visible={verificationModalVisible}
         onClose={() => setVerificationModalVisible(false)}
-        property={{ id: item.id }}
+        propertyId={ item.id }
       />
     </View>
   );
@@ -137,6 +155,15 @@ const styles = StyleSheet.create({
   deleteItem: {
     borderTopWidth: 0.5,
     borderTopColor: '#E0E0E0',
+  },  
+  menuItem: {
+    height: 48,
+    justifyContent: 'center',
+    color: '#000'
+  },
+  verificationText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 

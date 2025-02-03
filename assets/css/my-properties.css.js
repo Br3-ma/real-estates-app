@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'flex-start',
     borderTopWidth: 1,
     borderTopColor: '#E4E6EB',
     paddingVertical: 10,

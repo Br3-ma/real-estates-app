@@ -17,8 +17,9 @@ import BidWizardModal from '../../../components/bidwiz-modal';
 import Toast from 'react-native-toast-message';
 import MenuContainer from '../../../components/menu-action-list';
 import EditProfileModal from '../../../components/update-profile-modal';
-import TimedAdModal from '../../../components/ad-ad-common';
+// import TimedAdModal from '../../../components/ad-ad-common';
 import TimedAdPopup from '../../../components/ad-timed-modal';
+import StatusFlag from '../../../components/status-flag';
 
 const { width, height } = Dimensions.get('window');
 const MyPropertyScreen = ({ navigation }) => {
@@ -304,6 +305,7 @@ const renderPropertyItem = useCallback(({ item }) => {
       />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <StatusFlag status={item.verified_status} />
         {item.images.length > 0 ? (
           item.images.map((img, index) => (
             <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>
@@ -389,7 +391,7 @@ return (
       <ScrollView refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#3D6DCC']}  />
         }>
-        {userInfo?.isSub === 0 && <TimedAdModal />}
+        {/* {userInfo?.isSub === 0 && <TimedAdModal />} */}
         {properties.length === 0 ? (
             renderEmptyState() // Render empty state if no properties
           ) : (

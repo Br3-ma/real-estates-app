@@ -36,7 +36,7 @@ const TimedAdPopup = () => {
     if (!visible) {
       setTimeout(() => {
         showAd();
-      }, 60000);
+      }, 600000);
     }
   }, [visible]);
 

@@ -7,6 +7,7 @@ import moment from 'moment';
 import { SERVER_BASE_URL } from '../confg/config';
 import ShareModal from './share-modal';
 import { Video } from 'expo-av';
+import StatusFlag from './status-flag';
 
 const { width } = Dimensions.get('window');
 
@@ -72,6 +73,7 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
 
   return (
     <Card containerStyle={styles.fullWidthCard}>
+      <StatusFlag status={item.verified_status} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
         {item.images.map((img, index) => (
           <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.videos, item)}>

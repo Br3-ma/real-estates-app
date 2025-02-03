@@ -21,8 +21,8 @@ import OTPScreen from './screens/onboarding/otp.screen';
 import MainScreen from './screens/main.screen';
 
 const Stack = createStackNavigator();
-console.disableYellowBox = true;
-LogBox.ignoreAllLogs(true);
+// console.disableYellowBox = true;
+// LogBox.ignoreAllLogs(true);
 
 const LoadingContext = createContext();
 export const useLoading = () => useContext(LoadingContext);
