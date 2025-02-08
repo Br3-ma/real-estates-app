@@ -20,10 +20,9 @@ import HomeImageViewerModal from '../components/post-home-details';
 import CommentsModal from '../components/post-comments-modal';
 import TopListing from '../components/top-listing';
 import TopListingClassic from '../components/top-listing-classic';
-// Import Yandex Mobile Ads
-import { AdRequest, AdTheme, BannerAdSize, BannerView, Gender, Location } from 'yandex-mobile-ads';
-// import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
-// import { AdMobBanner } from 'expo-ads-admob';
+import * as YandexAds from 'rn-yandex-ads';
+
+const YANDEX_BANNER_ID = "R-M-2085336-1";
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [properties, setProperties] = useState([]);
@@ -55,7 +54,7 @@ const HomeScreen = ({ navigation }) => {
   const isMountedRef = useRef(true);
   const [isAdLoaded, setIsAdLoaded] = useState(true);
   const [adSize, setAdSize] = useState(null);
-
+  const [adReady, setAdReady] = useState(false);
   
   useEffect(() => {
     // Fetch user info first
@@ -113,14 +112,18 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  // Initialize Banner Ad Size
   useEffect(() => {
-    const initializeAdSize = async () => {
-      const size = await BannerAdSize.inlineSize(Dimensions.get('window').width, 250);
-      setAdSize(size);
-    };
-    initializeAdSize();
+    YandexAds.initialize({
+      userConsent: false,
+      locationConsent: false,
+    }).then(() => setAdReady(true));
+
+    // showInterstitialAd();
   }, []);
+
+  // const showInterstitialAd = () => {
+  //   YandexAds.showInterstitial(YANDEX_BANNER_ID);
+  // };
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setProperties([]);
@@ -287,15 +290,8 @@ const HomeScreen = ({ navigation }) => {
       />
     );
   };
-  // Ad Request Configuration
-  const adRequest = new AdRequest({
-    age: '20',
-    contextQuery: 'context-query',
-    contextTags: ['context-tag'],
-    gender: Gender.Male,
-    location: new Location(55.734202, 37.588063),
-    adTheme: AdTheme.Dark,
-  });
+
+  
   
   return (
     <SafeAreaView style={styles.container}>
@@ -322,19 +318,14 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.featuredSectionTitle}>This might help you</Text>
             <FeaturedItems />
           </View>
-          
-         {/* Display Yandex ads here */}
 
           {/* Yandex Banner Ad */}
-          {adSize && (
-            <BannerView
-              size={adSize}
-              adUnitId={'R-M-14060536-1'} // Replace with your actual ad unit ID
-              adRequest={adRequest}
-              onAdLoaded={() => console.log('Ad loaded successfully')}
-              onAdFailedToLoad={(event) => console.log(`Ad failed to load: ${JSON.stringify(event.nativeEvent)}`)}
-              onAdClicked={() => console.log('Ad clicked')}
-              onAdImpression={(event) => console.log(`Ad impression tracked: ${JSON.stringify(event.nativeEvent.impressionData)}`)}
+          {adReady && (
+            <YandexAds.RnYandexAdsView
+              adUnitId={YANDEX_BANNER_ID}
+              width={Dimensions.get('window').width - 20}
+              maxHeight={250}
+              onAdViewDidFailLoading={(event) => console.log(event)}
             />
           )}
 
