@@ -305,7 +305,7 @@ const renderPropertyItem = useCallback(({ item }) => {
       />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <StatusFlag status={item.verified_status} />
+        <StatusFlag status={item?.verified_status} />
         {item.images.length > 0 ? (
           item.images.map((img, index) => (
             <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>

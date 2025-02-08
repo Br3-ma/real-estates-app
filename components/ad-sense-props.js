@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Animated, WebView, StyleSheet } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-const gAdsense = () => {
+const GoogleAdsense = () => {
   const [visible, setVisible] = useState(false);
   const { width } = Dimensions.get('window');
   const animatedValue = useRef(new Animated.Value(0)).current;
@@ -184,4 +184,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default gAdsense;
+export default GoogleAdsense;

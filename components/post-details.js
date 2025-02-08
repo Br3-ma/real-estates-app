@@ -12,6 +12,7 @@ import LongRectangleAd from './ads-long';
 import BidWizardModal from './bidwiz-modal'; 
 import Toast from 'react-native-toast-message';
 import axios from 'axios';
+import StatusFlag from './status-flag';
 
 const { width, height } = Dimensions.get('window');
 
@@ -167,6 +168,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                   <Text style={styles.adminButtonText}>Delete</Text>
                 </TouchableOpacity>
               )}
+              <StatusFlag status={property?.verified_status} />
 
             </View>
           </View>

@@ -1,9 +1,8 @@
-// MainScreen.js
 import React from 'react';
-import { StatusBar, StyleSheet, Platform } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { useNavigation } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+// import { BannerAd, BannerAdSize } from 'yandex-mobile-ads';
 
 // Screen imports
 import HomeScreen from './home.screen';
@@ -12,8 +11,8 @@ import NotificationScreen from './account/donation/box.screen';
 import MeScreen from './account/profile/me.screen';
 import SearchResultScreen from './search/search-result.screen';
 
-// CustomHeader import
-import CustomHeader from '../components/top-custom-header'; // Import the separated header component
+// Custom Header
+import CustomHeader from '../components/top-custom-header';
 
 const Tab = createBottomTabNavigator();
 
@@ -51,10 +50,20 @@ const MainScreen = () => {
       >
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="My Property" component={MyPropertyScreen} />
-        <Tab.Screen name="Search" component={SearchResultScreen} initialParams={{ results: [], searchKeyword: 'Search For House Properties' }} />
+        <Tab.Screen name="Search" component={SearchResultScreen} />
         <Tab.Screen name="Notifications" component={NotificationScreen} />
         <Tab.Screen name="Profile" component={MeScreen} />
       </Tab.Navigator>
+
+      {/* Add Yandex Banner Ad at the bottom */}
+      {/* <View style={styles.adContainer}>
+        <BannerAd 
+          adUnitId="R-M-14060536-1" // Replace with your Yandex Ad Unit ID
+          size={BannerAdSize.BANNER_320x50}
+          onAdLoaded={() => console.log('Ad loaded')}
+          onAdFailedToLoad={(error) => console.log('Ad failed to load', error)}
+        />
+      </View> */}
     </>
   );
 };
@@ -71,7 +80,11 @@ const styles = StyleSheet.create({
   tabBarLabelStyle: {
     fontSize: 12,
     fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+  },
+  adContainer: {
+    alignItems: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#fff',
   },
 });
 

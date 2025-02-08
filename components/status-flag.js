@@ -3,11 +3,11 @@ import { View, Text } from 'react-native';
 import { StyleSheet } from 'react-native';
 
 const STATUS_TYPES = {
-  0: { label: 'Not Verified', color: '#FFA500', textColor: '#FFFFFF' },
+  0: { label: 'Unverified', color: '#9E9E9E', textColor: '#FFFFFF' },
   1: { label: 'Verified', color: '#4CAF50', textColor: '#FFFFFF' },
   2: { label: 'Under Review', color: '#FFC107', textColor: '#FFFFFF' },
   3: { label: 'Rejected', color: '#F44336', textColor: '#FFFFFF' },
-  4: { label: 'Unknown', color: '#9E9E9E', textColor: '#FFFFFF' }
+  4: { label: 'Unknown', color: '#00000', textColor: '#FFFFFF' }
 };
 
 const StatusFlag = ({ status }) => {

@@ -20,9 +20,8 @@ import HomeImageViewerModal from '../components/post-home-details';
 import CommentsModal from '../components/post-comments-modal';
 import TopListing from '../components/top-listing';
 import TopListingClassic from '../components/top-listing-classic';
-import TimedAdPopup from '../components/ad-timed-modal';
-import LongHomeRectangleAd from '../components/ad-home-one';
-import LongHomeRectangleTopAd from '../components/ad-home-two';
+// Import Yandex Mobile Ads
+import { AdRequest, AdTheme, BannerAdSize, BannerView, Gender, Location } from 'yandex-mobile-ads';
 // import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 // import { AdMobBanner } from 'expo-ads-admob';
 const HomeScreen = ({ navigation }) => {
@@ -55,6 +54,7 @@ const HomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const isMountedRef = useRef(true);
   const [isAdLoaded, setIsAdLoaded] = useState(true);
+  const [adSize, setAdSize] = useState(null);
 
   
   useEffect(() => {
@@ -113,7 +113,14 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-
+  // Initialize Banner Ad Size
+  useEffect(() => {
+    const initializeAdSize = async () => {
+      const size = await BannerAdSize.inlineSize(Dimensions.get('window').width, 250);
+      setAdSize(size);
+    };
+    initializeAdSize();
+  }, []);
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setProperties([]);
@@ -280,6 +287,16 @@ const HomeScreen = ({ navigation }) => {
       />
     );
   };
+  // Ad Request Configuration
+  const adRequest = new AdRequest({
+    age: '20',
+    contextQuery: 'context-query',
+    contextTags: ['context-tag'],
+    gender: Gender.Male,
+    location: new Location(55.734202, 37.588063),
+    adTheme: AdTheme.Dark,
+  });
+  
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="white-content" />
@@ -306,9 +323,21 @@ const HomeScreen = ({ navigation }) => {
             <FeaturedItems />
           </View>
           
-          {/* Display ads here */}
+         {/* Display Yandex ads here */}
 
-          {/* {userInfo && userInfo.isSub === 0 && <LongHomeRectangleTopAd />} */}
+          {/* Yandex Banner Ad */}
+          {adSize && (
+            <BannerView
+              size={adSize}
+              adUnitId={'R-M-14060536-1'} // Replace with your actual ad unit ID
+              adRequest={adRequest}
+              onAdLoaded={() => console.log('Ad loaded successfully')}
+              onAdFailedToLoad={(event) => console.log(`Ad failed to load: ${JSON.stringify(event.nativeEvent)}`)}
+              onAdClicked={() => console.log('Ad clicked')}
+              onAdImpression={(event) => console.log(`Ad impression tracked: ${JSON.stringify(event.nativeEvent.impressionData)}`)}
+            />
+          )}
+
           {/* Top Listing of Boosted Posts */}
           <TopListing
             properties={hot_properties ? hot_properties.slice(0, 10) : []} 
