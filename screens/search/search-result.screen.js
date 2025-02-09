@@ -23,7 +23,7 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const { width, height } = Dimensions.get('window');
 
 const SearchResultScreen = ({ route, navigation }) => {
-  const { results, searchKeyword } = route.params;
+  const { results, searchKeyword } = route?.params;
 
   const [filters] = useState(['All', 'Price', 'Category', 'Location']);
   const [selectedFilter, setSelectedFilter] = useState('All');

@@ -134,7 +134,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
         <SafeAreaView style={styles.container}>
           <View style={styles.header}>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <MaterialIcons name="arrow-back" size={24} color="#8E2DE2" />
+              <MaterialIcons name="arrow-back" size={24} color="#e0e0e0" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Property Info</Text>
             <View style={styles.adminActions}>
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   propertyPrice: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#C850C0',
     marginBottom: 15,
   },
   propertyDetailsRow: {
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   },
   relatedPropertyPrice: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: '#FFCC70',
   },
   actionButtons: {
     flexDirection: 'row',
@@ -494,7 +494,7 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     alignItems: 'center',
-    backgroundColor: '#165F56',
+    backgroundColor: '#8E2DE2',
     borderRadius: 8,
     padding: 8,
     minWidth: 70,

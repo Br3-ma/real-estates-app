@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius:10,
   },
   searchBarInput: {
-    backgroundColor: '#efd4f9',
+    backgroundColor: '#fff',
     borderRadius: 25,
     height: 35,
     shadowColor: '#000',
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 15,
     marginBottom: 5,
-    color: '#8E2DE2',
+    color: '#000',
   },
   bodyContent: {
     paddingHorizontal: 5,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   //   justifyContent: 'center',
   // },
   placeholder: {
-    width: '90%',
+    width: '100%',
     height: 200,
     marginBottom: 10,
   },  

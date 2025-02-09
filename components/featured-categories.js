@@ -75,7 +75,7 @@ const FeaturedItems = () => {
   if (isLoading) {
     return (
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.container}>
-        {[1, 2, 3, 4].map((index) => (
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
           <ShimmerPlaceholder
             key={`shimmer-${index}`}
             LinearGradient={LinearGradient}
@@ -116,8 +116,8 @@ const FeaturedItems = () => {
               <Icon 
                 name={category.icon_name || 'home'} 
                 type={category.type} 
-                size={20} 
-                color="#4FACFE"
+                size={30} 
+                color="#8E2DE2"
                 style={styles.icon}
               />
             </View>
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
-    color: '#2D3748',
+    color: '#574568',
     marginTop: 2,
     paddingHorizontal: 2,
   },

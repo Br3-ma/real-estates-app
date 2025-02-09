@@ -50,7 +50,8 @@ const MainScreen = () => {
       >
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="My Property" component={MyPropertyScreen} />
-        <Tab.Screen name="Search" component={SearchResultScreen} />
+        <Tab.Screen name="Search" component={SearchResultScreen}
+          initialParams={{ results: [], searchKeyword: 'Search For House Properties' }} />
         <Tab.Screen name="Notifications" component={NotificationScreen} />
         <Tab.Screen name="Profile" component={MeScreen} />
       </Tab.Navigator>

@@ -252,7 +252,6 @@ const NotificationScreen = () => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
     backgroundColor: '#f0f0f0',
   },
   header: {
@@ -285,9 +284,9 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   notificationItem: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 12,
+    marginHorizontal: 0,
+    marginBottom: 5,
+    borderRadius: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,

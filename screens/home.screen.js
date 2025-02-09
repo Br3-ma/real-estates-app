@@ -20,7 +20,7 @@ import HomeImageViewerModal from '../components/post-home-details';
 import CommentsModal from '../components/post-comments-modal';
 import TopListing from '../components/top-listing';
 import TopListingClassic from '../components/top-listing-classic';
-// import YandexInterstitialAd from '../components/yandex-ads';
+import YandexInterstitialAd from '../components/yandex-ads';
 
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
@@ -285,7 +285,7 @@ const HomeScreen = ({ navigation }) => {
         style={styles.gradient}
       >
       <SearchBar
-        placeholder="Search properties..."
+        placeholder="Find Property"
         onFocus={openModal}
         value={search}
         platform={Platform.OS}
@@ -293,7 +293,7 @@ const HomeScreen = ({ navigation }) => {
         inputContainerStyle={styles.searchBarInput}
         inputStyle={{ color: '#000' }}
         searchIcon={<Icon name="search" color="#60279C" />}
-        renderPlaceholder={(focused) => <MovingPlaceholder text="Search properties..." />}
+        renderPlaceholder={(focused) => <MovingPlaceholder text="Find Property" />}
       />
         <ScrollView style={styles.homeBody} refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -305,7 +305,7 @@ const HomeScreen = ({ navigation }) => {
 
          {/* Display ads here */}
 
-          {/* <YandexInterstitialAd/> */}
+          <YandexInterstitialAd/>
           {/* Top Listing of Boosted Posts */}
           <TopListing
             properties={hot_properties ? hot_properties.slice(0, 10) : []}

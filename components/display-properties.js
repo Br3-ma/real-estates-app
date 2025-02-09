@@ -131,7 +131,7 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
         <Button
           type="clear"
           style={styles.buttonCover}
-          icon={<MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={20} color={isFavorite ? "#60279C" : "gray"} />}
+          icon={<MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={20} color={isFavorite ? "#FFCC70" : "gray"} />}
           onPress={() => toggleFavorite(item)}
           
         />
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     padding: 0,
     borderRadius: 5,
     overflow: 'hidden',
-    elevation: 5,
+    elevation: 1,
   },
   postTitle: {
     fontSize: 20,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     paddingRight: 0,
   },
   titleHeaders: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 0,
     paddingVertical: 10,
     backgroundColor: '#f8f8f8',
     borderBottomWidth: 1,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   detailsContainer: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 0,
     paddingVertical: 10,
   },
   priceLocationRow: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#60279C',
+    color: '#C850C0',
   },
   locationText: {
     fontSize: 14,
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f8f8',
   },
   buttonCover: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
   },
 });
 

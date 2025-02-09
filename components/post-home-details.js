@@ -138,19 +138,19 @@ const HomeImageViewerModal = ({
 
             <View style={styles.statsContainer}>
               <View style={styles.statItem}>
-                <MaterialIcons name="king-bed" size={24} color="#8E2DE2" />
+                <MaterialIcons name="king-bed" size={24} color="#C850C0" />
                 <Text style={styles.statValue}>{selectedProperty?.bedrooms}<Text style={styles.statLabel}>Beds</Text></Text>
                 
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <MaterialIcons name="bathtub" size={24} color="#8E2DE2" />
+                <MaterialIcons name="bathtub" size={24} color="#C850C0" />
                 <Text style={styles.statValue}>{selectedProperty?.bathrooms}<Text style={styles.statLabel}>Baths</Text></Text>
                 
               </View>
               <View style={styles.statDivider} />
               <View style={styles.statItem}>
-                <MaterialIcons name="square-foot" size={24} color="#8E2DE2" />
+                <MaterialIcons name="square-foot" size={24} color="#C850C0" />
                 <Text style={styles.statValue}>{selectedProperty?.area}<Text style={styles.statLabel}>Sq.ft</Text></Text>
                 
               </View>
@@ -298,7 +298,7 @@ const styles = {
   price: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#8E2DE2',
+    color: '#C850C0',
     marginBottom: 8,
   },
   title: {
@@ -418,7 +418,7 @@ const styles = {
   relatedPrice: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#8E2DE2',
+    color: '#C850C0',
     marginBottom: 4,
   },
   relatedLocation: {

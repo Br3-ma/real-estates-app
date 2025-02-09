@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Button } from 'react-native';
+import { View } from 'react-native';
 import { 
   InterstitialAdLoader, 
   AdRequestConfiguration, 
@@ -20,7 +20,7 @@ const YandexInterstitialAd = () => {
       if (!loader) return;
 
       let adRequestConfig = new AdRequestConfiguration(
-        'demo-interstitial-yandex', // Replace with your Yandex Ad Unit ID  
+        'R-M-14068848-1', // Replace with your Yandex Ad Unit ID  
         '20',
         'context-query',
         ['context-tag'],
@@ -44,24 +44,21 @@ const YandexInterstitialAd = () => {
     ad.onAdClicked = () => console.log('Ad Clicked');
     ad.onAdDismissed = () => {
       console.log('Ad Dismissed');
-      loadInterstitialAd(); // Reload ad after dismissal
+      setInterstitialAd(null);
+      setTimeout(() => {
+        loadInterstitialAd();
+      }, 15000); // Wait 15 seconds before loading a new ad
     };
     ad.onAdImpression = (impressionData) => console.log('Ad Impression:', impressionData);
   };
 
-  const showAd = () => {
+  useEffect(() => {
     if (interstitialAd) {
       interstitialAd.show();
-    } else {
-      console.warn('Ad not loaded yet');
     }
-  };
+  }, [interstitialAd]);
 
-  return (
-    <View style={{ padding: 20 }}>
-      <Button title="Show Interstitial Ad" onPress={showAd} />
-    </View>
-  );
+  return <View />;
 };
 
 export default YandexInterstitialAd;

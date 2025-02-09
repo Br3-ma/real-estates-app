@@ -46,7 +46,7 @@ const EmptyStateView = ({ onRefresh }) => {
               onPress={onRefresh}
               activeOpacity={0.8}
             >
-              <Icon name="home-search" size={20} color="#4A90E2" style={styles.buttonIcon} />
+              <Icon name="home-search" size={20} color="#8E2DE2" style={styles.buttonIcon} />
               <Text style={styles.buttonText}>Begin Search</Text>
             </TouchableOpacity>
 
@@ -139,7 +139,7 @@ const styles = {
     marginRight: 8,
   },
   buttonText: {
-    color: '#4A90E2',
+    color: '#8E2DE2',
     fontSize: 16,
     fontWeight: '600',
   },

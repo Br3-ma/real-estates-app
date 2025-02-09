@@ -130,10 +130,10 @@ const SearchModal = ({
                 <BouncyCheckbox
                   key={`bedrooms-${num}`}
                   size={25}
-                  fillColor="#4a90e2"
+                  fillColor="#C850C0"
                   unfillColor="#FFFFFF"
                   text={`${num}`}
-                  iconStyle={{ borderColor: '#4a90e2' }}
+                  iconStyle={{ borderColor: '#FFCC70' }}
                   onPress={(isChecked) => {
                     handleFilterChange(`bedrooms${num}`, isChecked);
                     setNumBeds(isChecked ? num : 0);
@@ -150,10 +150,10 @@ const SearchModal = ({
                 <BouncyCheckbox
                   key={`bathrooms-${num}`}
                   size={25}
-                  fillColor="#4a90e2"
+                  fillColor="#C850C0"
                   unfillColor="#FFFFFF"
                   text={`${num}`}
-                  iconStyle={{ borderColor: '#4a90e2' }}
+                  iconStyle={{ borderColor: '#FFCC70' }}
                   onPress={(isChecked) => {
                     handleFilterChange(`bathrooms${num}`, isChecked);
                     setNumBaths(isChecked ? num : 0);
@@ -180,7 +180,7 @@ const SearchModal = ({
 
           {isLoading && (
             <View style={styles.fullScreenLoading}>
-              <ActivityIndicator size="large" color="#0000ff" />
+              <ActivityIndicator size="large" color="#C850C0" />
             </View>
           )}
         </ScrollView>
@@ -243,13 +243,13 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     width: '100%',
-    backgroundColor: '#438ab5',
+    backgroundColor: '#C850C0',
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: 'center',
   },
   searchButtonText: {
-    color: '#C1D5E1',
+    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
