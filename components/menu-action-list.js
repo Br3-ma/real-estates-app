@@ -79,13 +79,14 @@ const MenuContainer = ({ itemId, hideFromPosts, openSetBidModal, editProperty, h
           )}
           style={styles.menuItem}
         /> */}
+
         <Menu.Item
           onPress={handleVerificationPress}
           title={`${STATUS_TYPES[item.verified_status]?.label || STATUS_TYPES[4].label} Property`}
           leadingIcon={({ size }) => (
-            <MaterialIcons 
-              name={STATUS_TYPES[item.verified_status]?.icon || STATUS_TYPES[4].icon} 
-              size={size} 
+            <MaterialIcons
+              name={STATUS_TYPES[item.verified_status]?.icon || STATUS_TYPES[4].icon}
+              size={size}
               color={STATUS_TYPES[item.verified_status]?.color || STATUS_TYPES[4].color}
             />
           )}
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
   deleteItem: {
     borderTopWidth: 0.5,
     borderTopColor: '#E0E0E0',
-  },  
+  },
   menuItem: {
     height: 48,
     justifyContent: 'center',

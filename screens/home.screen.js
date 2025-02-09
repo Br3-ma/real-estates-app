@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View,Linking, ActivityIndicator, Text, ScrollView, SafeAreaView, Platform, StatusBar, Keyboard, RefreshControl } from 'react-native';
 import { Icon, SearchBar } from 'react-native-elements';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
-import FeaturedItems from './../components/featured-categories'; 
+import FeaturedItems from './../components/featured-categories';
 import Toast from 'react-native-toast-message';
 import moment from 'moment';
 import axios from 'axios';
@@ -20,10 +20,8 @@ import HomeImageViewerModal from '../components/post-home-details';
 import CommentsModal from '../components/post-comments-modal';
 import TopListing from '../components/top-listing';
 import TopListingClassic from '../components/top-listing-classic';
-// Import Yandex Mobile Ads
-import { AdRequest, AdTheme, BannerAdSize, BannerView, Gender, Location } from 'yandex-mobile-ads';
-// import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
-// import { AdMobBanner } from 'expo-ads-admob';
+// import YandexInterstitialAd from '../components/yandex-ads';
+
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
   const [properties, setProperties] = useState([]);
@@ -41,7 +39,7 @@ const HomeScreen = ({ navigation }) => {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const fetchIntervalRef = useRef(null);
   const [category, setCategory] = useState('');
   const [filterForm, setFilterForm] = useState({});
@@ -53,10 +51,8 @@ const HomeScreen = ({ navigation }) => {
   const [btnOptions, setButtons] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const isMountedRef = useRef(true);
-  const [isAdLoaded, setIsAdLoaded] = useState(true);
-  const [adSize, setAdSize] = useState(null);
-
   
+
   useEffect(() => {
     // Fetch user info first
     const loadUserInfo = async () => {
@@ -68,7 +64,7 @@ const HomeScreen = ({ navigation }) => {
       } catch (error) {
         console.error('Failed to fetch user info:', error);
       } finally {
-        
+
       }
     };
     loadUserInfo();
@@ -87,16 +83,16 @@ const HomeScreen = ({ navigation }) => {
     const fetchProperties = async () => {
       try {
 
-        const response = await axios.get(`${API_BASE_URL}/property-posts`); 
+        const response = await axios.get(`${API_BASE_URL}/property-posts`);
         if (isMountedRef.current) setProperties(response.data);
 
         const response1 = await axios.get(`${API_BASE_URL}/hot-property-posts`);
         if (isMountedRef.current) setHotProperties(response1.data);
 
-        const response2 = await axios.get(`${API_BASE_URL}/categories`); 
+        const response2 = await axios.get(`${API_BASE_URL}/categories`);
         if (isMountedRef.current) setButtons(response2.data.data);
 
-        const response3 = await axios.get(`${API_BASE_URL}/hot-property-posts-x2`); 
+        const response3 = await axios.get(`${API_BASE_URL}/hot-property-posts-x2`);
         if (isMountedRef.current) setHotPropertiesC(response3.data.data);
 
       } catch (error) {
@@ -105,7 +101,7 @@ const HomeScreen = ({ navigation }) => {
         if (isMountedRef.current) setLoading(false);
       }
     };
-  
+
     fetchProperties();
     return () => {
       isMountedRef.current = false;
@@ -113,14 +109,7 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
-  // Initialize Banner Ad Size
-  useEffect(() => {
-    const initializeAdSize = async () => {
-      const size = await BannerAdSize.inlineSize(Dimensions.get('window').width, 250);
-      setAdSize(size);
-    };
-    initializeAdSize();
-  }, []);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     setProperties([]);
@@ -133,7 +122,7 @@ const HomeScreen = ({ navigation }) => {
         const response1 = await axios.get(`${API_BASE_URL}/hot-property-posts`);
         if (isMountedRef.current) setHotProperties(response1.data);
 
-        const response2 = await axios.get(`${API_BASE_URL}/categories`); 
+        const response2 = await axios.get(`${API_BASE_URL}/categories`);
         if (isMountedRef.current) setButtons(response2.data.data);
       } catch (error) {
         console.error('Failed to fetch properties:', error);
@@ -200,17 +189,17 @@ const HomeScreen = ({ navigation }) => {
     Communications.text(phoneNumber, 'Hello, this is a test message.');
     console.log('Sending SMS to:', phoneNumber);
   };
-  
+
   const callNumber = (phoneNumber) => {
     Communications.phonecall(phoneNumber, true);
     console.log('Calling number:', phoneNumber);
   };
-  
+
   const openWhatsApp = (phoneNumber) => {
     let msg = 'Hello, this is a test message.';
     let mobile =
       Platform.OS === 'ios' ? phoneNumber : `+${phoneNumber}`;
-  
+
     if (mobile) {
       let url = 'whatsapp://send?text=' + msg + '&phone=' + mobile;
       Linking.openURL(url)
@@ -249,7 +238,7 @@ const HomeScreen = ({ navigation }) => {
 
   const handleFilterChange = (filterName, filterValue) => {
     setFilterForm((prevForm) => ({ ...prevForm, [filterName]: filterValue }));
-  };  
+  };
 
   const handleTopListingPress = useCallback((item) => {
     showImageViewer(item.images, item.videos, item);
@@ -257,14 +246,14 @@ const HomeScreen = ({ navigation }) => {
 
   const renderPropertyItem = ({ item }) => {
     return (
-      <RenderPropertyItem 
-        item={item} 
-        showImageViewer={showImageViewer} 
+      <RenderPropertyItem
+        item={item}
+        showImageViewer={showImageViewer}
         openCommentsModal={openCommentsModal}
       />
     );
   };
-  
+
   const renderImageViewerModal = () => {
     return (
       <HomeImageViewerModal
@@ -275,10 +264,10 @@ const HomeScreen = ({ navigation }) => {
         selectedProperty={selectedProperty}
         terminateFetchInterval={terminateFetchInterval}
         openFeatureLink={function openFeatureLink(params) {
-          
+
         }}
         openMap={function openMap(params) {
-          
+
         }}
         sendSMS={sendSMS}
         callNumber={callNumber}
@@ -287,16 +276,7 @@ const HomeScreen = ({ navigation }) => {
       />
     );
   };
-  // Ad Request Configuration
-  const adRequest = new AdRequest({
-    age: '20',
-    contextQuery: 'context-query',
-    contextTags: ['context-tag'],
-    gender: Gender.Male,
-    location: new Location(55.734202, 37.588063),
-    adTheme: AdTheme.Dark,
-  });
-  
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="white-content" />
@@ -322,25 +302,13 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.featuredSectionTitle}>This might help you</Text>
             <FeaturedItems />
           </View>
-          
-         {/* Display Yandex ads here */}
 
-          {/* Yandex Banner Ad */}
-          {adSize && (
-            <BannerView
-              size={adSize}
-              adUnitId={'R-M-14060536-1'} // Replace with your actual ad unit ID
-              adRequest={adRequest}
-              onAdLoaded={() => console.log('Ad loaded successfully')}
-              onAdFailedToLoad={(event) => console.log(`Ad failed to load: ${JSON.stringify(event.nativeEvent)}`)}
-              onAdClicked={() => console.log('Ad clicked')}
-              onAdImpression={(event) => console.log(`Ad impression tracked: ${JSON.stringify(event.nativeEvent.impressionData)}`)}
-            />
-          )}
+         {/* Display ads here */}
 
+          {/* <YandexInterstitialAd/> */}
           {/* Top Listing of Boosted Posts */}
           <TopListing
-            properties={hot_properties ? hot_properties.slice(0, 10) : []} 
+            properties={hot_properties ? hot_properties.slice(0, 10) : []}
             loading={loading}
             onPress={handleTopListingPress}
           />
@@ -362,8 +330,8 @@ const HomeScreen = ({ navigation }) => {
             navigation={navigation}
           />
           {/* Top Listing for Boosted Posts */}
-          <TopListingClassic 
-            properties={hot_properties_c ? hot_properties_c.slice(0, 10):[]} 
+          <TopListingClassic
+            properties={hot_properties_c ? hot_properties_c.slice(0, 10):[]}
             loading={loading}
             onPress={handleTopListingPress}
           />
@@ -393,7 +361,7 @@ const HomeScreen = ({ navigation }) => {
         setNumBaths={setNumBaths}
       />
       {renderImageViewerModal()}
-      <CommentsModal 
+      <CommentsModal
         visible={isCommentsModalVisible}
         postId={selectedItemId}
         onClose={closeCommentsModal}

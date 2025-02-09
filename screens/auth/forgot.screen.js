@@ -50,7 +50,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
   return (
     <LinearGradient
-      colors={['#ffff', '#02206f']}
+      colors={['#4158D0', '#C850C0', '#FFCC70']}
       style={styles.container}
     >
       <KeyboardAvoidingView
@@ -63,11 +63,11 @@ const ForgotPasswordScreen = ({ navigation }) => {
           <Text style={styles.subtitle}>Enter your email to reset</Text>
         </View>
         <View style={styles.inputContainer}>
-          <Feather name="mail" size={20} color="#02206f" style={styles.inputIcon} />
+          <Feather name="mail" size={20} color="#C850C0" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Email"
-            placeholderTextColor="#02206f"
+            placeholderTextColor="#C850C0"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     color: '#FFF',
   },
   button: {
-    backgroundColor: '#02206f',
+    backgroundColor: '#C850C0',
     paddingVertical: 12,
     paddingHorizontal: 35,
     borderRadius: 30,

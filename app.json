@@ -8,7 +8,17 @@
     "icon": "./assets/icon/logo.png",
     "userInterfaceStyle": "light",
     "plugins": [
-      "expo-image-picker"
+      "expo-image-picker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraManifestPlaceholders": {
+              "AD_ID_PERMISSION": "false"
+            }
+          }
+        }
+      ]
     ],
     "splash": {
       "image": "./assets/splash.png",
