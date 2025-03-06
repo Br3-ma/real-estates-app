@@ -2,7 +2,8 @@ import React from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-// import { BannerAd, BannerAdSize } from 'yandex-mobile-ads';
+import { BannerAd, BannerAdSize } from 'yandex-mobile-ads';
+import YandexInterstitialAd from '../components/yandex-ads';
 
 // Screen imports
 import HomeScreen from './home.screen';
@@ -57,14 +58,15 @@ const MainScreen = () => {
       </Tab.Navigator>
 
       {/* Add Yandex Banner Ad at the bottom */}
-      {/* <View style={styles.adContainer}>
-        <BannerAd 
-          adUnitId="R-M-14060536-1" // Replace with your Yandex Ad Unit ID
+      <YandexInterstitialAd/>
+      <View style={styles.adContainer}>
+        <BannerAd
+          adUnitId="R-M-14068848-2" // Replace with your Yandex Ad Unit ID
           size={BannerAdSize.BANNER_320x50}
           onAdLoaded={() => console.log('Ad loaded')}
           onAdFailedToLoad={(error) => console.log('Ad failed to load', error)}
         />
-      </View> */}
+      </View>
     </>
   );
 };

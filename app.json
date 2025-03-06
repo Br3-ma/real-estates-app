@@ -45,7 +45,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.br3mah.square",
-      "versionCode": 16
+      "versionCode": 17
     },
     "web": {
       "favicon": "./assets/icon/logo.png"
