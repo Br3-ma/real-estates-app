@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, ScrollView, Image, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
-import { Card, Button } from 'react-native-elements';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { View, ScrollView, Image, TouchableOpacity, Text, StyleSheet, Dimensions, Pressable } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import moment from 'moment';
@@ -8,12 +7,14 @@ import { SERVER_BASE_URL } from '../confg/config';
 import ShareModal from './share-modal';
 import { Video } from 'expo-av';
 import StatusFlag from './status-flag';
+import ProfileBottomSheet from './poster-profile';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
   const [favorites, setFavorites] = useState([]);
   const [isShareModalVisible, setShareModalVisible] = useState(false);
+  const [isProfileVisible, setProfileVisible] = useState(false);
 
   useEffect(() => {
     loadFavorites();
@@ -50,10 +51,9 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
   const isFavorite = favorites.some(fav => fav.id === item.id);
 
   const getImageStyle = (imageCount) => ({
-    width: imageCount === 1 ? width - 20 : (width - 40) / Math.min(imageCount, 3),
-    height: 250,
+    width: width,
+    height: height * 0.5,
     resizeMode: 'cover',
-    marginRight: 0,
   });
 
   const truncateText = (text, maxLength) => {
@@ -71,167 +71,264 @@ const RenderPropertyItem = ({ item, showImageViewer, openCommentsModal }) => {
     setShareModalVisible(false);
   };
 
+  const openProfileSheet = () => {
+    setProfileVisible(true);
+  };
+
+  const closeProfileSheet = () => {
+    setProfileVisible(false);
+  };
+
   return (
-    <Card containerStyle={styles.fullWidthCard}>
-      <StatusFlag status={item.verified_status} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContainer}>
-        {item.images.map((img, index) => (
-          <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.videos, item)}>
-            <Image
-              source={{
-                uri: img?.path
-                  ? `${SERVER_BASE_URL}/storage/app/` + img.path
-                  : `${SERVER_BASE_URL}/storage/app/images/no-img.png`, 
-              }}
-              style={getImageStyle(item.images.length)}
-            />
-          </TouchableOpacity>
-        ))}
-        {item.videos.map((video, index) => (
-          <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.videos, item)}>
-            <Video
-              source={{ uri: `${SERVER_BASE_URL}/storage/app/` + video.path }}
-              style={getImageStyle(item.videos.length)}
-              resizeMode="cover"
-              isMuted
-            />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-      <View style={styles.titleHeaders}>
-        <Text style={styles.postTitle}>{item.title}</Text>
-        <Text style={styles.ribbonTag}>{`Posted by ${item?.user?.name} \u2024 ${moment(item.created_at).fromNow()}`}</Text>
+    <View style={styles.container}>
+      <View style={styles.mediaContainer}>
+        <StatusFlag status={item.verified_status} style={styles.statusFlag} />
+        <ScrollView 
+          horizontal 
+          pagingEnabled
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.scrollContainer}
+        >
+          {item.images.map((img, index) => (
+            <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.videos, item)}>
+              <Image
+                source={{
+                  uri: img?.path
+                    ? `${SERVER_BASE_URL}/storage/app/` + img.path
+                    : `${SERVER_BASE_URL}/storage/app/images/no-img.png`, 
+                }}
+                style={getImageStyle(item.images.length)}
+              />
+              <View style={styles.imageCounter}>
+                <Text style={styles.imageCounterText}>{index + 1}/{item.images.length + item.videos.length}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+          {item.videos.map((video, index) => (
+            <TouchableOpacity key={`video-${index}`} onPress={() => showImageViewer(item.images, item.videos, item)}>
+              <Video
+                source={{ uri: `${SERVER_BASE_URL}/storage/app/` + video.path }}
+                style={getImageStyle(1)}
+                resizeMode="cover"
+                isMuted
+              />
+              <View style={styles.videoIndicator}>
+                <MaterialIcons name="play-circle-fill" size={40} color="white" />
+              </View>
+              <View style={styles.imageCounter}>
+                <Text style={styles.imageCounterText}>{item.images.length + index + 1}/{item.images.length + item.videos.length}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-      <View style={styles.detailsContainer}>
-        <View style={styles.priceLocationRow}>
-          <Text style={styles.priceText}>K{parseFloat(item.price).toLocaleString()}</Text>
-          <TouchableOpacity>
-            <Text style={styles.locationText}>
-              <MaterialIcons name="place" size={20} color="#333" />
-              {truncateText(item.location, 18)}
+
+      <View style={styles.contentContainer}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.postTitle}>{item.title}</Text>
+          <TouchableOpacity onPress={openProfileSheet}>
+            <Text style={styles.posterInfo}>
+              Posted by <Text style={styles.posterName}>{item?.user?.name}</Text> • {moment(item.created_at).fromNow()}
             </Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.iconRow}>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="hotel" size={20} color="#333" />
-            <Text style={styles.iconText}>{item.bedrooms} Beds</Text>
+
+        <View style={styles.priceLocationContainer}>
+          <Text style={styles.priceText}>K{parseFloat(item.price).toLocaleString()}</Text>
+          <View style={styles.locationContainer}>
+            <MaterialIcons name="place" size={16} color="#555" />
+            <Text style={styles.locationText}>
+              {truncateText(item.location, 25)}
+            </Text>
           </View>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="bathtub" size={20} color="#333" />
-            <Text style={styles.iconText}>{item.bathrooms} Baths</Text>
+        </View>
+
+        <View style={styles.featuresContainer}>
+          <View style={styles.featureItem}>
+            <MaterialIcons name="hotel" size={20} color="#555" />
+            <Text style={styles.featureText}>{item.bedrooms} Beds</Text>
           </View>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="aspect-ratio" size={20} color="#333" />
-            <Text style={styles.iconText}>{item.area} sqft</Text>
+          <View style={styles.featureDivider} />
+          <View style={styles.featureItem}>
+            <MaterialIcons name="bathtub" size={20} color="#555" />
+            <Text style={styles.featureText}>{item.bathrooms} Baths</Text>
+          </View>
+          <View style={styles.featureDivider} />
+          <View style={styles.featureItem}>
+            <MaterialIcons name="aspect-ratio" size={20} color="#555" />
+            <Text style={styles.featureText}>{item.area} sqft</Text>
           </View>
         </View>
       </View>
-      <View style={styles.buttonRow}>
-        <Button
-          type="clear"
-          style={styles.buttonCover}
-          icon={<MaterialIcons name={isFavorite ? "favorite" : "favorite-border"} size={20} color={isFavorite ? "#FFCC70" : "gray"} />}
+
+      <View style={styles.actionContainer}>
+        <TouchableOpacity 
+          style={styles.actionButton} 
           onPress={() => toggleFavorite(item)}
-          
-        />
-        <Button
-          type="clear"
-          style={styles.buttonCover}
-          icon={<MaterialIcons name="comment" size={20} color="gray" />}
+        >
+          <MaterialIcons 
+            name={isFavorite ? "favorite" : "favorite-border"} 
+            size={24} 
+            color={isFavorite ? "#FF5A5F" : "#555"} 
+          />
+          <Text style={styles.actionText}>Save</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionButton}
           onPress={() => openCommentsModal(item.id)}
-        />
-        <Button
-          type="clear"
-          style={styles.buttonCover}
-          icon={<MaterialIcons name="share" size={20} color="gray" />}
+        >
+          <MaterialIcons name="comment" size={24} color="#555" />
+          <Text style={styles.actionText}>Comment</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.actionButton}
           onPress={openShareModal}
-        />
+        >
+          <MaterialIcons name="share" size={24} color="#555" />
+          <Text style={styles.actionText}>Share</Text>
+        </TouchableOpacity>
       </View>
+
       <ShareModal
         isVisible={isShareModalVisible}
         onClose={closeShareModal}
         item={item}
         serverBaseUrl={SERVER_BASE_URL}
       />
-    </Card>
+
+      <ProfileBottomSheet 
+        isVisible={isProfileVisible}
+        onClose={closeProfileSheet}
+        userData={item.user}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  fullWidthCard: {
+  container: {
     width: '100%',
-    margin: 0,
-    marginBottom:17,
-    padding: 0,
-    borderRadius: 5,
-    overflow: 'hidden',
+    marginBottom: 20,
+    backgroundColor: 'white',
     elevation: 1,
   },
-  postTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#333',
+  mediaContainer: {
+    position: 'relative',
+    width: '100%',
+    height: height * 0.5,
   },
   scrollContainer: {
-    paddingLeft: 0,
-    paddingRight: 0,
+    flexGrow: 0,
   },
-  titleHeaders: {
-    paddingHorizontal: 0,
-    paddingVertical: 10,
-    backgroundColor: '#f8f8f8',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+  statusFlag: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    zIndex: 10,
   },
-  ribbonTag: {
-    color: '#666',
+  imageCounter: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  imageCounterText: {
+    color: 'white',
+    fontSize: 12,
+  },
+  videoIndicator: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginLeft: -20,
+    marginTop: -20,
+  },
+  contentContainer: {
+    padding: 16,
+  },
+  headerContainer: {
+    marginBottom: 12,
+  },
+  postTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 6,
+  },
+  posterInfo: {
     fontSize: 14,
+    color: '#777',
   },
-  detailsContainer: {
-    paddingHorizontal: 0,
-    paddingVertical: 10,
+  posterName: {
+    color: '#4A90E2',
+    fontWeight: '500',
   },
-  priceLocationRow: {
+  priceLocationContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
   },
   priceText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#C850C0',
+    color: '#FF5A5F',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   locationText: {
     fontSize: 14,
-    color: '#333',
+    color: '#555',
+    marginLeft: 4,
   },
-  iconRow: {
+  featuresContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 5,
+    alignItems: 'center',
+    backgroundColor: '#F9F9F9',
+    borderRadius: 8,
+    padding: 12,
   },
-  iconTextContainer: {
+  featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
-  iconText: {
-    marginLeft: 5,
+  featureDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#DDD',
+  },
+  featureText: {
+    marginLeft: 8,
     fontSize: 14,
-    color: '#333',
+    color: '#555',
+    fontWeight: '500',
   },
-  buttonRow: {
+  actionContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingVertical: 1,
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    backgroundColor: '#f8f8f8',
+    borderTopColor: '#eee',
+    paddingVertical: 12,
   },
-  buttonCover: {
-    paddingHorizontal: 5,
+  actionButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  actionText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#555',
   },
 });
 

@@ -20,6 +20,7 @@ import EditProfileModal from '../../../components/update-profile-modal';
 // import TimedAdModal from '../../../components/ad-ad-common';
 import TimedAdPopup from '../../../components/ad-timed-modal';
 import StatusFlag from '../../../components/status-flag';
+import LoadingOverlay from '../../../components/preloader';
 
 const { width, height } = Dimensions.get('window');
 const MyPropertyScreen = ({ navigation }) => {
@@ -27,7 +28,8 @@ const MyPropertyScreen = ({ navigation }) => {
   const [properties, setProperties] = useState([]);
   const [isCommentsModalVisible, setCommentsModalVisible] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [currentImages, setCurrentImages] = useState([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -154,6 +156,7 @@ const MyPropertyScreen = ({ navigation }) => {
 
 const MAX_VIDEO_SIZE = 25 * 1024 * 1024; 
 const uploadPost = useCallback(async () => {
+  // setProcessing(true);
   console.log('Uploading post........');
   console.log(propertyDetails);
   setUploading(true);
@@ -275,6 +278,10 @@ const uploadPost = useCallback(async () => {
     });
   } finally {
     setUploading(false);
+    setProcessing(false);
+    setModalVisible(false);
+    setUploadImages([]);
+    setUploadVideos([]);
   }
 }, [propertyDetails, uploadImages, uploadVideos, userInfo]);
 
@@ -468,6 +475,7 @@ return (
       />
       
       {userInfo?.isSub === 0 && <TimedAdPopup/>}
+      <LoadingOverlay visible={processing} message="Processing..." />
     </SafeAreaView>
   </Provider>
 );

@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   bodyContent: {
-    paddingHorizontal: 5,
+    paddingHorizontal: 0,
   },
   loader: {
     padding: 15,

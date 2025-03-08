@@ -12,17 +12,15 @@ import ForgotPasswordScreen from './screens/auth/forgot.screen';
 import OTPVerificationScreen from './screens/auth/otp-verification.screen';
 import ChangePasswordScreen from './screens/auth/reset.screen';
 import SignupsquareateAgentScreen from './screens/auth/register.screen';
-
-
 import SearchResultScreen from './screens/search/search-result.screen';
 import OverviewScreen from './screens/onboarding/overview.screen';
 import KYCScreen from './screens/onboarding/kyc.screen';
 import OTPScreen from './screens/onboarding/otp.screen';
 import MainScreen from './screens/main.screen';
+import { MobileAds } from 'react-native-google-mobile-ads'; // Correct import
+// import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency'; // this crushes
 
 const Stack = createStackNavigator();
-// console.disableYellowBox = true;
-// LogBox.ignoreAllLogs(true);
 
 const LoadingContext = createContext();
 export const useLoading = () => useContext(LoadingContext);
@@ -49,9 +47,31 @@ const App = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Check authentication on mount
   useEffect(() => {
-
     checkAuthentication();
+  }, []);
+
+  // Initialize AdMob SDK and tracking permissions
+  useEffect(() => {
+    const initializeAdMob = async () => {
+      try {
+        // Request tracking permissions (if needed for iOS ATT)
+        const { status: trackingStatus } = await requestTrackingPermissionsAsync();
+        if (trackingStatus !== 'granted') {
+          console.log('Tracking permission not granted');
+          // Handle this case if needed (e.g., disable personalized ads)
+        }
+
+        // Initialize AdMob SDK
+        const adapterStatuses = await MobileAds().initialize();
+        console.log('AdMob SDK initialized successfully:', adapterStatuses);
+      } catch (error) {
+        console.error('Failed to initialize AdMob SDK or tracking:', error);
+      }
+    };
+
+    initializeAdMob();
   }, []);
 
   const checkAuthentication = async () => {
@@ -59,19 +79,19 @@ const App = () => {
       console.log('----------OnLoad----------');
       const userInfoString = await AsyncStorage.getItem('userInfo');
       const userInfo = userInfoString ? JSON.parse(userInfoString) : null;
-  
+
       if (!userInfo) {
         throw new Error('User info not found');
       }
 
       const phoneNumber = userInfo.phone || userInfo.user?.phone;
-  
+
       if (!phoneNumber) {
         throw new Error('Phone number not found in user info');
       }
       const url = `${API_BASE_URL}/connectx`;
       const response = await axios.post(url, { phone: phoneNumber });
-      
+
       console.log(url);
       console.log(response);
       setAuthenticated(response.data.status);

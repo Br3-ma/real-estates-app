@@ -4,6 +4,7 @@ import ReactNativeModal from 'react-native-modal';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import axios from 'axios';
 import { API_BASE_URL } from '../confg/config';
+import LoadingOverlay from './preloader';
 
 const { height, width } = Dimensions.get('window');
 
@@ -179,9 +180,7 @@ const SearchModal = ({
           </TouchableOpacity>
 
           {isLoading && (
-            <View style={styles.fullScreenLoading}>
-              <ActivityIndicator size="large" color="#C850C0" />
-            </View>
+            <LoadingOverlay visible={isLoading} message="Processing..." />
           )}
         </ScrollView>
       </View>

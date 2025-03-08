@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, ImageBackground, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
+import { fetchUserInfo } from '../../controllers/auth/userController';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import axios from 'axios';
+import { API_BASE_URL } from './../../confg/config';
 
 const RoleOption = ({ icon, title, isSelected, onSelect }) => {
   return (
@@ -23,17 +25,50 @@ const RoleOption = ({ icon, title, isSelected, onSelect }) => {
 
 const KYCScreen = ({ navigation }) => {
   const [selectedRole, setSelectedRole] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
 
   useEffect(() => {
-     AsyncStorage.setItem('onboardingStatus', 'ktc');
+    const loadUserInfo = async () => {
+      AsyncStorage.setItem('onboardingStatus', 'kyc');
+      try {
+        const user = await fetchUserInfo();
+        console.log('User fetched (onboarding):', user);
+        setUserInfo(user);
+        console.log(userInfo);
+      } catch (error) {
+        console.error('Failed to fetch user info (onboarding):', error);
+      } finally {
+      }
+    };
+
+    loadUserInfo();
   }, []);
 
   const handleNext = async () => {
-    if (selectedRole) {
-      navigation.navigate('Main');
-      // navigation.navigate('Main', { userRole: selectedRole });
+    if (!selectedRole || !userInfo?.id) {
+      console.warn('Please select a role before proceeding.');
+      return;
+    }
+  
+    try {
+      const response = await axios.get(`${API_BASE_URL}/update-role`, {
+        params: {
+          user_id: userInfo.id,
+          role: selectedRole
+        }
+      });
+  
+      if (response.data.success) {
+        console.log('User role updated successfully:', response.data);
+        navigation.navigate('Main');
+      } else {
+        console.error('Failed to update role:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error updating user role:', error);
     }
   };
+  
 
   return (
       <View style={styles.overlay}>
@@ -45,7 +80,7 @@ const KYCScreen = ({ navigation }) => {
         <View style={styles.rolesContainer}>
           <RoleOption
             icon="home"
-            title="Property Owner"
+            title="Home Owner"
             isSelected={selectedRole === 'owner'}
             onSelect={() => setSelectedRole('owner')}
           />
@@ -57,9 +92,15 @@ const KYCScreen = ({ navigation }) => {
           />
           <RoleOption
             icon="briefcase"
-            title="Agent"
+            title="Realtor/Agent"
             isSelected={selectedRole === 'agent'}
             onSelect={() => setSelectedRole('agent')}
+          />
+          <RoleOption
+            icon="briefcase"
+            title="Buyer/Investor"
+            isSelected={selectedRole === 'buyer'}
+            onSelect={() => setSelectedRole('buyer')}
           />
         </View>
 

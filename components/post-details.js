@@ -13,6 +13,7 @@ import BidWizardModal from './bidwiz-modal';
 import Toast from 'react-native-toast-message';
 import axios from 'axios';
 import StatusFlag from './status-flag';
+import InlineAd from './InlineBannerAd';
 
 const { width, height } = Dimensions.get('window');
 
@@ -226,8 +227,8 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                 </View>
 
                 {/* replace this and put an  */}
-                <LongRectangleAd/>
-
+                {/* <LongRectangleAd/> */}
+                <InlineAd/>
                 <View style={styles.relatedPropertiesContainer}>
                   <Text style={styles.sectionTitle}>You might also like this</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>

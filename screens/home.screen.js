@@ -20,7 +20,7 @@ import HomeImageViewerModal from '../components/post-home-details';
 import CommentsModal from '../components/post-comments-modal';
 import TopListing from '../components/top-listing';
 import TopListingClassic from '../components/top-listing-classic';
-import YandexInterstitialAd from '../components/yandex-ads';
+import InlineAd from '../components/InlineBannerAd';
 
 const HomeScreen = ({ navigation }) => {
   const [userInfo, setUserInfo] = useState(null);
@@ -64,7 +64,6 @@ const HomeScreen = ({ navigation }) => {
       } catch (error) {
         console.error('Failed to fetch user info:', error);
       } finally {
-
       }
     };
     loadUserInfo();
@@ -285,7 +284,7 @@ const HomeScreen = ({ navigation }) => {
         style={styles.gradient}
       >
       <SearchBar
-        placeholder="Find Property"
+        placeholder="Search properties..."
         onFocus={openModal}
         value={search}
         platform={Platform.OS}
@@ -293,19 +292,18 @@ const HomeScreen = ({ navigation }) => {
         inputContainerStyle={styles.searchBarInput}
         inputStyle={{ color: '#000' }}
         searchIcon={<Icon name="search" color="#60279C" />}
-        renderPlaceholder={(focused) => <MovingPlaceholder text="Find Property" />}
+        renderPlaceholder={(focused) => <MovingPlaceholder text="Search properties..." />}
       />
         <ScrollView style={styles.homeBody} refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }>
           <View style={styles.featuredSection}>
             <Text style={styles.featuredSectionTitle}>This might help you</Text>
-            <FeaturedItems />
+            <FeaturedItems navigation={navigation} />
           </View>
 
          {/* Display ads here */}
 
-          <YandexInterstitialAd/>
           {/* Top Listing of Boosted Posts */}
           <TopListing
             properties={hot_properties ? hot_properties.slice(0, 10) : []}
@@ -372,6 +370,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
       )}
       <Toast />
+      <InlineAd/>
     </SafeAreaView>
   );
 };

@@ -15,6 +15,7 @@ import StepThree from './upload-post-step3';
 import StepFour from './upload-post-step4';
 import StepFive from './upload-post-step5';
 import StepSix from './upload-post-step6';
+import LoadingOverlay from './preloader';
 
 const { width, height } = Dimensions.get('window');
 const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPropertyDetails, uploadImages, uploadVideos, setUploadImages, setUploadVideos, uploadPost, uploading }) => {
@@ -28,6 +29,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
   const [uploadingVideos, setUploadingVideos] = useState(false);
   const [mapModalVisible, setMapModalVisible] = useState(false);
   const [amenitiesModalVisible, setAmenitiesModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   // const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [step, setStep] = useState(1);
   const titleRef = useRef(null);
@@ -230,6 +232,7 @@ const UploadPost = ({ isModalVisible, setModalVisible, propertyDetails, setPrope
         </BlurView>
       </Modal>
       <PingMapModal visible={mapModalVisible} onClose={() => setMapModalVisible(false)} onSelectLocation={handleLocationSelect} />
+      
       {/* AddAmenitiesModal goes here if needed */}
     </>
   );
