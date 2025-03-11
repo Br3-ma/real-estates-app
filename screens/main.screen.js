@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
+import { useFonts } from 'expo-font'; 
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 // import { BannerAd, BannerAdSize } from 'yandex-mobile-ads';
@@ -32,6 +33,19 @@ const TabBarIcon = ({ name, size, color, focused }) => {
 };
 
 const MainScreen = () => {
+  const [fontsLoaded] = useFonts({
+    'Montserrat': require('../assets/fonts/Montserrat-Regular.ttf'),
+    'Montserrat-Thin': require('../assets/fonts/Montserrat-Thin.ttf'),
+    'Montserrat-Light': require('../assets/fonts/Montserrat-Light.ttf'),
+    'Montserrat-Bold': require('../assets/fonts/Montserrat-Bold.ttf'),
+    'Montserrat-Bold-x2': require('../assets/fonts/Montserrat-ExtraBold.ttf'),
+    'Montserrat-Italic': require('../assets/fonts/Montserrat-Italic.ttf'),
+  });
+  
+  useEffect(() => {
+    console.log(fontsLoaded ? 'FONT LOADED' : 'FONT NOT LOADED');
+  }, [fontsLoaded]);
+
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="#8E2DE2" />
@@ -50,7 +64,7 @@ const MainScreen = () => {
       >
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="My Property" component={MyPropertyScreen} />
-        <Tab.Screen name="Search" component={SearchResultScreen} />
+        <Tab.Screen name="Search" component={SearchResultScreen} initialParams={{ results: [], searchKeyword: 'Search For House Properties' }} />
         <Tab.Screen name="Notifications" component={NotificationScreen} />
         <Tab.Screen name="Profile" component={MeScreen} />
       </Tab.Navigator>
@@ -78,8 +92,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#E0E0E0',
   },
   tabBarLabelStyle: {
-    fontSize: 12,
+    fontSize: 8,
     fontWeight: '600',
+    fontFamily: 'Montserrat-Bold',
   },
   adContainer: {
     alignItems: 'center',

@@ -1,29 +1,20 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  ScrollView, 
-  TouchableOpacity, 
-  Text, 
-  StyleSheet, 
-  View, 
-  Dimensions, 
-  Modal, 
-  ActivityIndicator 
-} from 'react-native';
+import { ScrollView, TouchableOpacity, Text, StyleSheet, View, Dimensions } from 'react-native';
 import { Icon } from 'react-native-elements';
 import axios from 'axios';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { API_BASE_URL } from '../confg/config';
+// import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import LoadingOverlay from './preloader';
 
 const { width } = Dimensions.get('window');
-const ITEM_WIDTH = width * 0.18; 
+const ITEM_WIDTH = width * 0.18; // Reduced from 0.22 for more compact layout
 
-const FeaturedItems = ({ navigation }) => {
+const FeaturedItems = ({navigation}) => {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  // const navigation = useNavigation();
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -60,8 +51,6 @@ const FeaturedItems = ({ navigation }) => {
   }, []);
 
   const handlePress = useCallback(async (categoryId) => {
-    setIsProcessing(true); // Show loading overlay
-
     const searchData = new FormData();
     searchData.append('property_type_id', categoryId);
 
@@ -73,17 +62,13 @@ const FeaturedItems = ({ navigation }) => {
         },
         body: JSON.stringify(Object.fromEntries(searchData)),
       });
-
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-
       const data = await response.json();
       navigation.navigate('SearchResultScreen', { results: data, searchKeyword: 'Search Results' });
     } catch (err) {
       console.error('Error during search:', err);
-    } finally {
-      setIsProcessing(false); // Hide loading overlay
     }
   }, [navigation]);
 
@@ -117,7 +102,7 @@ const FeaturedItems = ({ navigation }) => {
         horizontal 
         showsHorizontalScrollIndicator={false} 
         contentContainerStyle={styles.container}
-        snapToInterval={ITEM_WIDTH + 8} // Smooth snapping
+        snapToInterval={ITEM_WIDTH + 8} // Added smooth snapping
         decelerationRate="fast"
       >
         {Array.isArray(categories) && categories.map((category) => (
@@ -142,25 +127,6 @@ const FeaturedItems = ({ navigation }) => {
           </TouchableOpacity>
         ))}
       </ScrollView>
-
-      {/* Full-Screen Loading Modal */}
-      {/* <Modal visible={visible} transparent animationType="fade">
-        <View style={styles.loadingOverlay}>
-          <View style={styles.loadingContainer}>
-            <View style={styles.glowContainer}>
-              <ActivityIndicator size="large" color="#3B82F6" />
-            </View>
-            <Text style={styles.loadingText}>{message}</Text>
-            <View style={styles.dots}>
-              <View style={[styles.dot, styles.dotActive]} />
-              <View style={styles.dot} />
-              <View style={styles.dot} />
-            </View>
-          </View>
-        </View>
-      </Modal> */}
-
-      <LoadingOverlay visible={isProcessing} message="Processing..." />
     </View>
   );
 };
@@ -172,7 +138,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginVertical: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
@@ -184,7 +153,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     paddingHorizontal: 12,
     letterSpacing: 0.3,
-    fontFamily: 'Montserrat-Bold',
   },
   container: {
     paddingHorizontal: 8,
@@ -207,7 +175,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F7FAFC',
     marginBottom: 4,
     shadowColor: '#4FACFE',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.15,
     shadowRadius: 3.84,
     elevation: 3,
@@ -244,56 +215,6 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontWeight: '500',
   },
-  // Preloader effect theme
-  // loadingOverlay: {
-  //   flex: 1,
-  //   backgroundColor: 'rgba(0,0,0,0.7)',
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  // },
-  // loadingContainer: {
-  //   backgroundColor: 'rgba(30,30,30,0.9)',
-  //   borderRadius: 16,
-  //   padding: 24,
-  //   alignItems: 'center',
-  //   minWidth: 150,
-  //   shadowColor: '#000',
-  //   shadowOffset: { width: 0, height: 4 },
-  //   shadowOpacity: 0.3,
-  //   shadowRadius: 8,
-  //   elevation: 10,
-  //   borderWidth: 1,
-  //   borderColor: 'rgba(255,255,255,0.1)',
-  // },
-  // glowContainer: {
-  //   width: 70,
-  //   height: 70,
-  //   borderRadius: 35,
-  //   justifyContent: 'center',
-  //   alignItems: 'center',
-  //   backgroundColor: 'rgba(59,130,246,0.1)',  // Very subtle blue glow
-  // },
-  // loadingText: {
-  //   marginTop: 16,
-  //   color: '#fff',
-  //   fontSize: 16,
-  //   fontWeight: '600',
-  //   letterSpacing: 0.5,
-  // },
-  // dots: {
-  //   flexDirection: 'row',
-  //   marginTop: 12,
-  // },
-  // dot: {
-  //   width: 8,
-  //   height: 8,
-  //   borderRadius: 4,
-  //   backgroundColor: 'rgba(255,255,255,0.2)',
-  //   marginHorizontal: 3,
-  // },
-  // dotActive: {
-  //   backgroundColor: '#3B82F6',
-  // },
 });
 
 export default FeaturedItems;

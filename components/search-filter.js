@@ -4,6 +4,7 @@ import ReactNativeModal from 'react-native-modal';
 import BouncyCheckbox from 'react-native-bouncy-checkbox';
 import axios from 'axios';
 import { API_BASE_URL } from '../confg/config';
+import LoadingOverlay from './preloader';
 
 const { height, width } = Dimensions.get('window');
 
@@ -130,10 +131,10 @@ const SearchModal = ({
                 <BouncyCheckbox
                   key={`bedrooms-${num}`}
                   size={25}
-                  fillColor="#4a90e2"
+                  fillColor="#C850C0"
                   unfillColor="#FFFFFF"
                   text={`${num}`}
-                  iconStyle={{ borderColor: '#4a90e2' }}
+                  iconStyle={{ borderColor: '#FFCC70' }}
                   onPress={(isChecked) => {
                     handleFilterChange(`bedrooms${num}`, isChecked);
                     setNumBeds(isChecked ? num : 0);
@@ -150,10 +151,10 @@ const SearchModal = ({
                 <BouncyCheckbox
                   key={`bathrooms-${num}`}
                   size={25}
-                  fillColor="#4a90e2"
+                  fillColor="#C850C0"
                   unfillColor="#FFFFFF"
                   text={`${num}`}
-                  iconStyle={{ borderColor: '#4a90e2' }}
+                  iconStyle={{ borderColor: '#FFCC70' }}
                   onPress={(isChecked) => {
                     handleFilterChange(`bathrooms${num}`, isChecked);
                     setNumBaths(isChecked ? num : 0);
@@ -179,9 +180,7 @@ const SearchModal = ({
           </TouchableOpacity>
 
           {isLoading && (
-            <View style={styles.fullScreenLoading}>
-              <ActivityIndicator size="large" color="#0000ff" />
-            </View>
+            <LoadingOverlay visible={isLoading} message="Processing..." />
           )}
         </ScrollView>
       </View>
@@ -243,13 +242,13 @@ const styles = StyleSheet.create({
   },
   searchButton: {
     width: '100%',
-    backgroundColor: '#438ab5',
+    backgroundColor: '#C850C0',
     paddingVertical: 10,
     borderRadius: 10,
     alignItems: 'center',
   },
   searchButtonText: {
-    color: '#C1D5E1',
+    color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },

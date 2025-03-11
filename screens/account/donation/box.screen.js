@@ -252,8 +252,8 @@ const NotificationScreen = () => {
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
     backgroundColor: '#f0f0f0',
+    fontFamily:'Montserrat',
   },
   header: {
     position: 'absolute',
@@ -272,6 +272,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
+    fontFamily:'Montserrat-Bold-x2',
   },
   clearButton: {
     padding: 8,
@@ -285,9 +286,9 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   notificationItem: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 12,
+    marginHorizontal: 0,
+    marginBottom: 5,
+    borderRadius: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -297,6 +298,7 @@ const styles = StyleSheet.create({
   notificationContent: {
     padding: 16,
     borderRadius: 12,
+    fontFamily:'Montserrat',
   },
   notificationHeader: {
     flexDirection: 'row',
@@ -318,6 +320,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
     marginRight: 24,
+    fontFamily:'Montserrat',
   },
   chevronIcon: {
     position: 'absolute',

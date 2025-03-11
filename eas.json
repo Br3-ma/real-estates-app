@@ -2,7 +2,7 @@
   "build": {
     "preview": {
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       },
       "ios": {
         "distribution": "internal"
@@ -10,7 +10,7 @@
     },
     "preview2": {
       "android": {
-        "gradleCommand": ":app:assembleRelease"
+        "gradleCommand": ":app:assembleRelease" 
       },
       "ios": {
         "distribution": "internal"

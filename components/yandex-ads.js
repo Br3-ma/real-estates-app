@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Button } from 'react-native';
-import { 
-  InterstitialAdLoader, 
-  AdRequestConfiguration, 
-  Gender, 
-  Location 
-} from 'yandex-mobile-ads';
+import { View } from 'react-native';
+import { InterstitialAdLoader, AdRequestConfiguration } from 'yandex-mobile-ads';
 
 const YandexInterstitialAd = () => {
   const [interstitialAd, setInterstitialAd] = useState(null);
@@ -19,14 +14,7 @@ const YandexInterstitialAd = () => {
       let loader = await InterstitialAdLoader.create();
       if (!loader) return;
 
-      let adRequestConfig = new AdRequestConfiguration(
-        'demo-interstitial-yandex', // Replace with your Yandex Ad Unit ID  
-        '20',
-        'context-query',
-        ['context-tag'],
-        Gender.Female,
-        new Location(55.734202, 37.588063)
-      );
+      let adRequestConfig = new AdRequestConfiguration('R-M-14068848-1'); // Test ID
 
       let ad = await loader.loadAd(adRequestConfig);
       if (ad) {
@@ -44,24 +32,17 @@ const YandexInterstitialAd = () => {
     ad.onAdClicked = () => console.log('Ad Clicked');
     ad.onAdDismissed = () => {
       console.log('Ad Dismissed');
-      loadInterstitialAd(); // Reload ad after dismissal
+      setTimeout(() => loadInterstitialAd(), 15000); // Reload ad after 15 seconds
     };
-    ad.onAdImpression = (impressionData) => console.log('Ad Impression:', impressionData);
   };
 
-  const showAd = () => {
+  useEffect(() => {
     if (interstitialAd) {
       interstitialAd.show();
-    } else {
-      console.warn('Ad not loaded yet');
     }
-  };
+  }, [interstitialAd]);
 
-  return (
-    <View style={{ padding: 20 }}>
-      <Button title="Show Interstitial Ad" onPress={showAd} />
-    </View>
-  );
+  return <View />;
 };
 
 export default YandexInterstitialAd;

@@ -11,18 +11,16 @@ import SignInScreen from './screens/auth/login.screen';
 import ForgotPasswordScreen from './screens/auth/forgot.screen';
 import OTPVerificationScreen from './screens/auth/otp-verification.screen';
 import ChangePasswordScreen from './screens/auth/reset.screen';
-import SignupsquareateAgentScreen from './screens/auth/register.screen';
-
-
+import SignupAgentScreen from './screens/auth/register.screen';
+import { useFonts } from 'expo-font';
 import SearchResultScreen from './screens/search/search-result.screen';
 import OverviewScreen from './screens/onboarding/overview.screen';
 import KYCScreen from './screens/onboarding/kyc.screen';
 import OTPScreen from './screens/onboarding/otp.screen';
 import MainScreen from './screens/main.screen';
+import { MobileAds } from 'react-native-google-mobile-ads'; 
 
 const Stack = createStackNavigator();
-// console.disableYellowBox = true;
-// LogBox.ignoreAllLogs(true);
 
 const LoadingContext = createContext();
 export const useLoading = () => useContext(LoadingContext);
@@ -48,38 +46,72 @@ const App = () => {
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [fontsLoaded] = useFonts({
+    'Montserrat-Thin': require('./assets/fonts/Montserrat-Thin.ttf'),
+    'Montserrat-Bold': require('./assets/fonts/Montserrat-Bold.ttf'),
+  });
 
   useEffect(() => {
-
     checkAuthentication();
   }, []);
+
+  useEffect(() => {
+    const initializeAdMob = async () => {
+      try {
+        // Request tracking permissions (if needed for iOS ATT)
+        const { status: trackingStatus } = await requestTrackingPermissionsAsync();
+        if (trackingStatus !== 'granted') {
+          console.log('Tracking permission not granted');
+          // Handle this case if needed (e.g., disable personalized ads)
+        }
+
+        // Initialize AdMob SDK
+        const adapterStatuses = await MobileAds().initialize();
+        console.log('AdMob SDK initialized successfully:', adapterStatuses);
+      } catch (error) {
+        console.error('Failed to initialize AdMob SDK or tracking:', error);
+      }
+    };
+
+    initializeAdMob();
+    console.log(fontsLoaded ? 'FONT LOADED' : 'FONT NOT LOADED');
+  }, [fontsLoaded]);
 
   const checkAuthentication = async () => {
     try {
       console.log('----------OnLoad----------');
       const userInfoString = await AsyncStorage.getItem('userInfo');
       const userInfo = userInfoString ? JSON.parse(userInfoString) : null;
-  
+
       if (!userInfo) {
         throw new Error('User info not found');
       }
 
       const phoneNumber = userInfo.phone || userInfo.user?.phone;
-  
+
       if (!phoneNumber) {
         throw new Error('Phone number not found in user info');
       }
+
       const url = `${API_BASE_URL}/connectx`;
       const response = await axios.post(url, { phone: phoneNumber });
-      
+
       console.log(url);
       console.log(response);
       setAuthenticated(response.data.status);
     } catch (error) {
       console.log(error);
-    }
+    } 
     setShowSplashScreen(false);
   };
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#415D77" />
+      </View>
+    );
+  }
 
   if (showSplashScreen) {
     return (
@@ -100,7 +132,7 @@ const App = () => {
         ) : (
           <Stack.Navigator initialRouteName="SignIn" screenOptions={{ headerShown: false }}>
             <Stack.Screen name="SignIn" component={withLoading(SignInScreen)} />
-            <Stack.Screen name="RegisterByOTP" component={withLoading(SignupsquareateAgentScreen)} />
+            <Stack.Screen name="RegisterByOTP" component={withLoading(SignupAgentScreen)} />
             <Stack.Screen name="ForgotPasswordScreen" component={withLoading(ForgotPasswordScreen)} />
             <Stack.Screen name="OTPVerification" component={withLoading(OTPVerificationScreen)} />
             <Stack.Screen name="ChangePasswordScreen" component={withLoading(ChangePasswordScreen)} />
@@ -112,7 +144,7 @@ const App = () => {
         )}
         {isLoading && (
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#415D77" />
+            <ActivityIndicator size="large" color="#8E2DE2" />
           </View>
         )}
       </NavigationContainer>
@@ -125,7 +157,7 @@ const MyTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#415D77',
+    primary: '#8E2DE2',
   },
 };
 

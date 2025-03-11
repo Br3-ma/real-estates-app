@@ -157,6 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginLeft: 12,
     color: '#333',
+    fontFamily: 'Montserrat-Bold-x2',
   },
   itemContainer: {
     width: 280,
@@ -181,6 +182,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     color: '#333',
+    fontFamily:'Montserrat-Light'
   },
   userLocation: {
     fontSize: 10,
@@ -234,17 +236,20 @@ const styles = StyleSheet.create({
   },
   infoContainer: {
     padding: 12,
+    fontFamily:'Montserrat'
   },
   title: {
     fontSize: 14,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
+    fontFamily:'Montserrat-Bold',
   },
   price: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#60279C',
+    fontFamily:'Montserrat-Bold',
   },
   address: {
     fontSize: 12,
@@ -276,6 +281,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 10,
     color: '#999',
+    fontFamily:'Montserrat',
   },
   placeholder: {
     width: 280,

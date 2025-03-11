@@ -232,6 +232,7 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.2)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 4,
+    fontFamily: 'Montserrat-Bold',
   },
   titleHighlight: {
     color: '#FFD700',
@@ -255,7 +256,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
     fontSize: 12,
     fontWeight: '500',
-    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    fontFamily: 'Montserrat-Thin',
   },
   notificationContainer: {
     marginLeft: 16,

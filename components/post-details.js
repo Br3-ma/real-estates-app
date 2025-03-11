@@ -13,6 +13,7 @@ import BidWizardModal from './bidwiz-modal';
 import Toast from 'react-native-toast-message';
 import axios from 'axios';
 import StatusFlag from './status-flag';
+import InlineAd from './InlineBannerAd';
 
 const { width, height } = Dimensions.get('window');
 
@@ -134,7 +135,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
         <SafeAreaView style={styles.container}>
           <View style={styles.header}>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <MaterialIcons name="arrow-back" size={24} color="#8E2DE2" />
+              <MaterialIcons name="arrow-back" size={24} color="#e0e0e0" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Property Info</Text>
             <View style={styles.adminActions}>
@@ -224,10 +225,7 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                     ))}
                   </View>
                 </View>
-
-                {/* replace this and put an  */}
-                <LongRectangleAd/>
-
+                <InlineAd/>
                 <View style={styles.relatedPropertiesContainer}>
                   <Text style={styles.sectionTitle}>You might also like this</Text>
                   <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -325,6 +323,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     flex: 1,
     marginLeft: 15,
+    fontFamily: 'Montserrat-Bold',
   },
   adminActions: {
     flexDirection: 'row',
@@ -382,44 +381,52 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 15,
+    fontFamily: 'Montserrat',
   },
   propertyTitle: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
+    fontFamily: 'Montserrat-Bold-x2',
   },
   propertyPrice: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: '#C850C0',
     marginBottom: 15,
+    fontFamily: 'Montserrat-Bold',
   },
   propertyDetailsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
+    fontFamily: 'Montserrat',
   },
   propertyDetailsItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    fontFamily: 'Montserrat',
   },
   propertyDetailsText: {
     fontSize: 14,
     color: '#333',
     marginLeft: 5,
+    fontFamily: 'Montserrat',
   },
   propertyDescription: {
     fontSize: 16,
     color: '#666',
     lineHeight: 24,
     marginBottom: 20,
+    fontFamily: 'Montserrat',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#333',
+    fontFamily: 'Montserrat-Bold',
   },
   mapContainer: {
     marginBottom: 20,
@@ -436,6 +443,7 @@ const styles = StyleSheet.create({
   },
   amenitiesContainer: {
     marginBottom: 20,
+    fontFamily: 'Montserrat',
   },
   amenitiesList: {
     flexDirection: 'row',
@@ -451,9 +459,11 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontSize: 14,
     color: '#666',
+    fontFamily: 'Montserrat',
   },
   promoContainer: {
     marginBottom: 20,
+    fontFamily: 'Montserrat',
   },
   promoBox: {
     backgroundColor: '#FFF9C4',
@@ -480,10 +490,12 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 14,
     fontWeight: 'bold',
+    fontFamily: 'Montserrat-Bold',
   },
   relatedPropertyPrice: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: '#FFC041',
+    fontFamily: 'Montserrat-Bold',
   },
   actionButtons: {
     flexDirection: 'row',
@@ -491,10 +503,11 @@ const styles = StyleSheet.create({
     padding: 10,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
+    fontFamily: 'Montserrat-Bold',
   },
   actionButton: {
     alignItems: 'center',
-    backgroundColor: '#165F56',
+    backgroundColor: '#8E2DE2',
     borderRadius: 8,
     padding: 8,
     minWidth: 70,
@@ -502,6 +515,7 @@ const styles = StyleSheet.create({
   buttonLabel: {
     fontSize: 12,
     color: '#fff',
+    fontFamily: 'Montserrat',
   },
   loadingContainer: {
     position: 'absolute',

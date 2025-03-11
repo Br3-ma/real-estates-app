@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "17491977739",
+    "project_id": "squaredev-30c05",
+    "storage_bucket": "squaredev-30c05.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:17491977739:android:c2e040b80135aa90f1490e",
+        "android_client_info": {
+          "package_name": "com.br3mah.square"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHkhSw-vksXoOsyJMFmJEBimdA4P03O7s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

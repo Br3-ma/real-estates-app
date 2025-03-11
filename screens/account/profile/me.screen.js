@@ -452,11 +452,13 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: '#F0F2F5',
+    fontFamily:'Montserrat',
   },
   profileHeader: {
     position: 'relative',
     height: 320,
     overflow: 'hidden',
+    fontFamily:'Montserrat-Bold-x2',
   },
   coverImage: {
     width: '100%',
@@ -524,6 +526,7 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: -1, height: 1 },
     textShadowRadius: 10,
     marginBottom: 8,
+    fontFamily:'Montserrat-Bold',
   },
   profileBio: {
     fontSize: 16,
@@ -531,6 +534,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: '80%',
     lineHeight: 22,
+    fontFamily:'Montserrat',
   },
   profileStats: {
     flexDirection: 'row',
@@ -545,6 +549,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
+    fontFamily:'Montserrat-Bold',
   },
   statItem: {
     alignItems: 'center',
