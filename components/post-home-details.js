@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   View, 
   Dimensions, 
@@ -17,7 +17,7 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SERVER_BASE_URL } from '../confg/config';
 import { LinearGradient } from 'expo-linear-gradient';
-
+import { useFonts } from 'expo-font';
 const { width, height } = Dimensions.get('window');
 
 const HomeImageViewerModal = ({
@@ -36,8 +36,15 @@ const HomeImageViewerModal = ({
 }) => {
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const scrollViewRef = useRef(null);
-
   const allMedia = [...currentImages, ...currentVideos];
+  const [fontsLoaded] = useFonts({
+    'Montserrat-Thin': require('../assets/fonts/Montserrat-Thin.ttf'),
+    'Montserrat-Bold': require('../assets/fonts/Montserrat-Bold.ttf'),
+  });
+
+  useEffect(() => {
+    console.log(fontsLoaded ? 'FONT LOADED' : 'FONT NOT LOADED');
+  }, [fontsLoaded]);
 
   const handleScroll = (event) => {
     const contentOffsetX = event.nativeEvent.contentOffset.x;
@@ -218,7 +225,7 @@ const HomeImageViewerModal = ({
             )}
             
             {/* Agent Contact Card */}
-            <View style={styles.agentCard}>
+            {/* <View style={styles.agentCard}>
               <View style={styles.agentHeader}>
                 <Text style={styles.agentTitle}>Property Agent</Text>
                 <TouchableOpacity style={styles.agentProfileButton}>
@@ -235,7 +242,7 @@ const HomeImageViewerModal = ({
                   <Text style={styles.agentPhone}>{selectedProperty?.phone}</Text>
                 </View>
               </View>
-            </View>
+            </View> */}
             
             {/* Bottom space for action buttons */}
             <View style={{ height: 80 }} />
@@ -282,6 +289,7 @@ const styles = {
   container: {
     flex: 1,
     backgroundColor: '#FFF',
+    fontFamily: 'Montserrat-Bold',
   },
   mediaContainer: {
     height: height * 0.6,
@@ -351,6 +359,7 @@ const styles = {
     fontWeight: '800',
     color: '#C850C0',
     marginBottom: 8,
+    fontFamily: 'Montserrat-Bold',
   },
   titleContainer: {
     flexDirection: 'row',

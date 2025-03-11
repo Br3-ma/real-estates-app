@@ -22,8 +22,8 @@ const RenderItem = ({
         <Avatar.Image
           size={36}
           source={
-            item?.user?.avatar
-              ? { uri: `${SERVER_BASE_URL}/storage/app/users/${item?.user?.avatar}` }
+            item?.user?.picture
+              ? { uri: `${SERVER_BASE_URL}/storage/app/users/${item?.user?.picture}` }
               : require('../assets/img/user.png')
           }
         />
@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderRadius: 12,
     overflow: 'hidden',
+    fontFamily:'Montserrat',
   },
   header: {
     flexDirection: 'row',
@@ -187,11 +188,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 15,
     color: '#333',
+    fontFamily:'Montserrat-Bold',
   },
   location: {
     fontSize: 13,
     color: '#666',
     marginTop: 1,
+    fontFamily:'Montserrat-Light',
   },
   mediaContainer: {
     width: width,
@@ -216,11 +219,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 6,
+    fontFamily:'Montserrat-Light',
   },
   priceText: {
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 16,
+    fontFamily:'Montserrat',
   },
   infoContainer: {
     flexDirection: 'row',
@@ -234,12 +239,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
+    fontFamily:'Montserrat-Bold',
   },
   infoText: {
     color: '#333',
     marginLeft: 4,
     fontSize: 13,
     fontWeight: '500',
+    fontFamily:'Montserrat',
   },
   mediaCount: {
     flexDirection: 'row',
@@ -288,6 +295,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderTopWidth: 0.5,
     borderTopColor: '#f0f0f0',
+    fontFamily:'Montserrat-Light',
   },
   actionButton: {
     flex: 1,

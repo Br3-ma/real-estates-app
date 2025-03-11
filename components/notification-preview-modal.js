@@ -102,11 +102,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    fontFamily:'Montserrat',
   },
   previewContainer: {
     borderRadius: 20,
-    width: width - 40,
-    maxHeight: height - 80,
+    width: width - 50,
+    maxHeight: height - 90,
     overflow: 'hidden',
   },
   scrollContent: {
@@ -128,6 +129,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     color: '#000',
     textAlign: 'center',
+    fontFamily:'Montserrat-Bold',
   },
   previewDate: {
     fontSize: 14,

@@ -242,6 +242,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    fontFamily:'Montserrat',
   },
   modalContent: {
     backgroundColor: '#ffffff',
@@ -255,6 +256,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 20,
+    fontFamily:'Montserrat',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -265,16 +267,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
     paddingBottom: 15,
+    fontFamily:'Montserrat',
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#69209c',
+    fontFamily:'Montserrat-Bold',
   },
   modalScrollView: {
     flexGrow: 1,
     paddingHorizontal: 5,
     paddingVertical: 2,
+    fontFamily:'Montserrat',
   },
   bottomToolbar: {
     flexDirection: 'row',
@@ -297,6 +302,7 @@ const styles = StyleSheet.create({
   toolbarButtonText: {
     color: '#fff',
     fontWeight: '600',
+    fontFamily:'Montserrat',
   },
 });
 export default UploadPost;

@@ -9,17 +9,17 @@ const { width, height } = Dimensions.get('window');
 const ProfileBottomSheet = ({ isVisible, onClose, userData }) => {
   // Mock additional profile data that wasn't in the original data
   const profileData = {
-    bio: userData?.bio !== "No bio" ? userData?.bio : "Real estate professional with years of experience.",
+    bio: userData?.bio !== "No bio" ? userData?.bio : "Hello, I am using Square.",
     totalListings: userData?.total_active_posts_count ?? 0,
     verifiedSince: new Date(userData?.created_at).toLocaleDateString(),
     responseRate: userData?.response_rate ?? "80%",
     responseTime: "Within 2 hours",
-    languages: ["English", "Bemba", "Nyanja"],
+    languages: ["English"],
     contact: {
       phone: userData?.phone ? `+26${userData.phone}` : "Not available",
       email: userData?.email ?? "Not available",
     },
-    rating: 4.8,
+    rating: 4.3,
     reviewCount: 37,
   };
 
@@ -113,11 +113,11 @@ const ProfileBottomSheet = ({ isVisible, onClose, userData }) => {
         </ScrollView>
         
         <View style={styles.actionButtons}>
-          <TouchableOpacity onPress={() => Linking.openURL(`sms:${profileData?.phone}`)} style={styles.messageButton}>
+          <TouchableOpacity onPress={() => Linking.openURL(`sms:${profileData?.contact.phone}`)} style={styles.messageButton}>
             <MaterialIcons name="message" size={20} color="#FFFFFF" />
             <Text style={styles.messageButtonText}>Message</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => Linking.openURL(`tel:26${profileData?.phone}`)} style={styles.callButton}>
+          <TouchableOpacity onPress={() => Linking.openURL(`tel:26${profileData?.contact.phone}`)} style={styles.callButton}>
             <MaterialIcons name="phone" size={20} color="#FFFFFF" />
             <Text style={styles.callButtonText}>Call</Text>
           </TouchableOpacity>

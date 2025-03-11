@@ -96,7 +96,8 @@
         {
           "userTrackingPermission": "Allow this app to collect app-related data that can be used for tracking you or your device and deliver personalized ads to you."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "splash": {
       "image": "./assets/splash.png",
@@ -185,7 +186,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.br3mah.square",
-      "versionCode": 19,
+      "versionCode": 22,
       "googleServicesFile": "./googleServices.json"
     },
     "web": {

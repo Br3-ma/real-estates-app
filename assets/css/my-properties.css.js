@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
     zIndex: 10,
+    fontFamily: 'Montserrat',
   },
   kabutton: {
     padding: 8,
@@ -76,6 +77,7 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.xlarge,
     fontWeight: '700',
     color: COLORS.accent,
+    fontFamily: 'Montserrat-Bold',
   },
   locationText: {
     fontSize: TYPOGRAPHY.medium,
@@ -91,6 +93,7 @@ const styles = StyleSheet.create({
   iconTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    fontFamily: 'Montserrat-Bold',
   },
   iconText: {
     marginLeft: 5,
@@ -248,12 +251,14 @@ const styles = StyleSheet.create({
     color: '#333', // Darker gray text color
     textAlign: 'center',
     marginTop: 12,
+    fontFamily: 'Montserrat',
   },
   emptyStateDescription: {
     fontSize: 16,
     color: '#757575', // Lighter gray description color
     textAlign: 'center',
     marginTop: 8,
+    fontFamily: 'Montserrat',
   },
   floatingButton: {
     position: 'absolute',

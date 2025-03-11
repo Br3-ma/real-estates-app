@@ -85,11 +85,13 @@ const styles = {
     color: '#FFFFFF',
     textAlign: 'center',
     marginBottom: 6,
+    fontFamily:'Montserrat-Bold',
   },
   subtitle: {
     fontSize: 16,
     color: '#E0E0E0',
     textAlign: 'center',
+    fontFamily:'Montserrat-Light',
   },
   imageContainer: {
     position: 'relative',
@@ -109,6 +111,7 @@ const styles = {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
+    fontFamily:'Montserrat',
   },
   paragraph: {
     fontSize: 15,
@@ -116,6 +119,7 @@ const styles = {
     lineHeight: 22,
     marginBottom: 16,
     textAlign: 'center',
+    fontFamily:'Montserrat',
   },
   button: {
     backgroundColor: '#FFFFFF',
@@ -134,6 +138,7 @@ const styles = {
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 4,
+    fontFamily:'Montserrat-Bold',
   },
   buttonIcon: {
     marginRight: 8,

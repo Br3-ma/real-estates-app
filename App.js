@@ -11,14 +11,14 @@ import SignInScreen from './screens/auth/login.screen';
 import ForgotPasswordScreen from './screens/auth/forgot.screen';
 import OTPVerificationScreen from './screens/auth/otp-verification.screen';
 import ChangePasswordScreen from './screens/auth/reset.screen';
-import SignupsquareateAgentScreen from './screens/auth/register.screen';
+import SignupAgentScreen from './screens/auth/register.screen';
+import { useFonts } from 'expo-font';
 import SearchResultScreen from './screens/search/search-result.screen';
 import OverviewScreen from './screens/onboarding/overview.screen';
 import KYCScreen from './screens/onboarding/kyc.screen';
 import OTPScreen from './screens/onboarding/otp.screen';
 import MainScreen from './screens/main.screen';
-import { MobileAds } from 'react-native-google-mobile-ads'; // Correct import
-// import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency'; // this crushes
+import { MobileAds } from 'react-native-google-mobile-ads'; 
 
 const Stack = createStackNavigator();
 
@@ -46,13 +46,15 @@ const App = () => {
   const [showSplashScreen, setShowSplashScreen] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [fontsLoaded] = useFonts({
+    'Montserrat-Thin': require('./assets/fonts/Montserrat-Thin.ttf'),
+    'Montserrat-Bold': require('./assets/fonts/Montserrat-Bold.ttf'),
+  });
 
-  // Check authentication on mount
   useEffect(() => {
     checkAuthentication();
   }, []);
 
-  // Initialize AdMob SDK and tracking permissions
   useEffect(() => {
     const initializeAdMob = async () => {
       try {
@@ -72,7 +74,8 @@ const App = () => {
     };
 
     initializeAdMob();
-  }, []);
+    console.log(fontsLoaded ? 'FONT LOADED' : 'FONT NOT LOADED');
+  }, [fontsLoaded]);
 
   const checkAuthentication = async () => {
     try {
@@ -89,6 +92,7 @@ const App = () => {
       if (!phoneNumber) {
         throw new Error('Phone number not found in user info');
       }
+
       const url = `${API_BASE_URL}/connectx`;
       const response = await axios.post(url, { phone: phoneNumber });
 
@@ -97,9 +101,17 @@ const App = () => {
       setAuthenticated(response.data.status);
     } catch (error) {
       console.log(error);
-    }
+    } 
     setShowSplashScreen(false);
   };
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#415D77" />
+      </View>
+    );
+  }
 
   if (showSplashScreen) {
     return (
@@ -120,7 +132,7 @@ const App = () => {
         ) : (
           <Stack.Navigator initialRouteName="SignIn" screenOptions={{ headerShown: false }}>
             <Stack.Screen name="SignIn" component={withLoading(SignInScreen)} />
-            <Stack.Screen name="RegisterByOTP" component={withLoading(SignupsquareateAgentScreen)} />
+            <Stack.Screen name="RegisterByOTP" component={withLoading(SignupAgentScreen)} />
             <Stack.Screen name="ForgotPasswordScreen" component={withLoading(ForgotPasswordScreen)} />
             <Stack.Screen name="OTPVerification" component={withLoading(OTPVerificationScreen)} />
             <Stack.Screen name="ChangePasswordScreen" component={withLoading(ChangePasswordScreen)} />
@@ -132,7 +144,7 @@ const App = () => {
         )}
         {isLoading && (
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#415D77" />
+            <ActivityIndicator size="large" color="#8E2DE2" />
           </View>
         )}
       </NavigationContainer>
@@ -145,7 +157,7 @@ const MyTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: '#415D77',
+    primary: '#8E2DE2',
   },
 };
 

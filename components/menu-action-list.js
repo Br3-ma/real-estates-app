@@ -151,20 +151,17 @@ const styles = StyleSheet.create({
   menuItem: {
     height: 48,
     justifyContent: 'center',
-    color:'#000'
+    color:'#000',
+    fontFamily: 'Montserrat',
   },
   deleteItem: {
     borderTopWidth: 0.5,
     borderTopColor: '#E0E0E0',
   },
-  menuItem: {
-    height: 48,
-    justifyContent: 'center',
-    color: '#000'
-  },
   verificationText: {
     fontSize: 14,
     fontWeight: '500',
+    fontFamily: 'Montserrat',
   },
 });
 

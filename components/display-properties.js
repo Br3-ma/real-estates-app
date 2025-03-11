@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   },
   statusFlag: {
     position: 'absolute',
-    top: 10,
+    top: 15,
     left: 10,
     zIndex: 10,
   },
@@ -259,6 +259,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#222',
     marginBottom: 6,
+    fontFamily:'Montserrat-Bold-x2',
   },
   posterInfo: {
     fontSize: 14,
@@ -267,17 +268,20 @@ const styles = StyleSheet.create({
   posterName: {
     color: '#4A90E2',
     fontWeight: '500',
+    fontFamily:'Montserrat-Bold',
   },
   priceLocationContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
+    fontFamily:'Montserrat',
   },
   priceText: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FF5A5F',
+    fontFamily:'Montserrat-Bold',
   },
   locationContainer: {
     flexDirection: 'row',
@@ -312,6 +316,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
     fontWeight: '500',
+    fontFamily:'Montserrat-Bold',
   },
   actionContainer: {
     flexDirection: 'row',
@@ -319,11 +324,17 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
     paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 8, // for Android
   },
   actionButton: {
     flexDirection: 'column',
     alignItems: 'center',
     paddingVertical: 8,
+    fontFamily:'Montserrat',
   },
   actionText: {
     marginTop: 4,

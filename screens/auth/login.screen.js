@@ -11,6 +11,7 @@ import { API_BASE_URL } from '../../confg/config';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font'; 
 
 const theme = {
   ...DefaultTheme,
@@ -27,6 +28,14 @@ const SignInScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [fontsLoaded] = useFonts({
+    'Montserrat': require('../../assets/fonts/Montserrat-Regular.ttf'),
+    'Montserrat-Thin': require('../../assets/fonts/Montserrat-Thin.ttf'),
+    'Montserrat-Light': require('../../assets/fonts/Montserrat-Light.ttf'),
+    'Montserrat-Bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
+    'Montserrat-Bold-x2': require('../../assets/fonts/Montserrat-ExtraBold.ttf'),
+    'Montserrat-Italic': require('../../assets/fonts/Montserrat-Italic.ttf'),
+  });
 
   const handleSignIn = async () => {
     setLoading(true);
@@ -48,7 +57,7 @@ const SignInScreen = ({ navigation }) => {
 
   useEffect(() => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }).start();
-  }, [fadeAnim]);
+  }, [fadeAnim, fontsLoaded]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -95,9 +104,9 @@ const styles = StyleSheet.create({
   gradient: { flex: 1 },
   scrollView: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 12 },
   surface: { padding: 12, width: '85%', maxWidth: 320, alignItems: 'center', borderRadius: 10, backgroundColor: 'rgba(255, 255, 255, 0.95)', elevation: 3 },
-  title: { fontSize: 20, fontWeight: '600', color: theme.colors.primary, marginVertical: 2 },
-  input: { width: '100%', marginBottom: 8, backgroundColor: 'white', height: 42 },
-  button: { width: '100%', marginTop: 4, borderRadius: 3 },
+  title: { fontFamily:'Montserrat-Bold-x2',fontSize: 20, fontWeight: '600', color: theme.colors.primary, marginVertical: 2 },
+  input: { width: '100%', marginBottom: 8, backgroundColor: 'white', height: 42, fontFamily:'Montserrat-Light' },
+  button: { fontFamily:'Montserrat', width: '100%', marginTop: 4, borderRadius: 3 },
   buttonContent: { paddingVertical: 4 },
   buttonLabel: { fontSize: 13 },
   textButton: { marginTop: 6 },
@@ -106,7 +115,7 @@ const styles = StyleSheet.create({
   facebookButton: { width: '100%', marginTop: 8, backgroundColor: '#4267B2' },
   socialButtonContent: { height: 40 },
   socialButtonLabel: { fontSize: 12, color: '#FFF' },
-  privacyPolicyLink: { marginTop: 12, fontSize: 11, color: theme.colors.accent },
+  privacyPolicyLink: { marginTop: 12, fontSize: 11, color: theme.colors.accent, fontFamily:'Montserrat' },
 });
 
 export default SignInScreen;

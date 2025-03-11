@@ -21,6 +21,7 @@ import EditProfileModal from '../../../components/update-profile-modal';
 import TimedAdPopup from '../../../components/ad-timed-modal';
 import StatusFlag from '../../../components/status-flag';
 import LoadingOverlay from '../../../components/preloader';
+import InlineAd from '../../../components/InlineBannerAd';
 
 const { width, height } = Dimensions.get('window');
 const MyPropertyScreen = ({ navigation }) => {
@@ -434,6 +435,7 @@ return (
       >
         <MaterialIcons name="add" size={30} color="white" />
       </TouchableOpacity>
+      <InlineAd/>
       <UploadPost
         isModalVisible={isModalVisible}
         setModalVisible={setModalVisible}

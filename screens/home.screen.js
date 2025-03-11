@@ -292,7 +292,7 @@ const HomeScreen = ({ navigation }) => {
         inputContainerStyle={styles.searchBarInput}
         inputStyle={{ color: '#000' }}
         searchIcon={<Icon name="search" color="#60279C" />}
-        renderPlaceholder={(focused) => <MovingPlaceholder text="Search properties..." />}
+        renderPlaceholder={(focused) => <MovingPlaceholder text="Find properties" />}
       />
         <ScrollView style={styles.homeBody} refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

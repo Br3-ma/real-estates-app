@@ -378,6 +378,7 @@ const styles = StyleSheet.create({
     color: '#1A202C',
     marginLeft: 10,
     letterSpacing: 0.5,
+    fontFamily: 'Montserrat-Bold',
   },
   modal: {
     justifyContent: 'flex-end',

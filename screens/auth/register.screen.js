@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
 import Toast from 'react-native-toast-message';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font'; 
 
 const theme = {
   ...DefaultTheme,
@@ -26,6 +27,14 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [fontsLoaded] = useFonts({
+    'Montserrat': require('../../assets/fonts/Montserrat-Regular.ttf'),
+    'Montserrat-Thin': require('../../assets/fonts/Montserrat-Thin.ttf'),
+    'Montserrat-Light': require('../../assets/fonts/Montserrat-Light.ttf'),
+    'Montserrat-Bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
+    'Montserrat-Bold-x2': require('../../assets/fonts/Montserrat-ExtraBold.ttf'),
+    'Montserrat-Italic': require('../../assets/fonts/Montserrat-Italic.ttf'),
+  });
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -35,7 +44,7 @@ const SignupsquareateAgentScreen = ({ navigation }) => {
     }).start();
 
     loadSavedValues();
-  }, []);
+  }, [fontsLoaded]);
 
   const loadSavedValues = async () => {
     try {
@@ -221,17 +230,20 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: theme.colors.primary,
-    marginVertical: 4,
+    marginVertical: 4, 
+    fontFamily:'Montserrat-Bold'
   },
   subtitle: {
     fontSize: 12,
     color: '#666',
-    marginBottom: 16,
+    marginBottom: 16, 
+    fontFamily:'Montserrat-Light'
   },
   input: {
     width: '100%',
     marginBottom: 8,
-    backgroundColor: 'white',
+    backgroundColor: 'white', 
+    fontFamily:'Montserrat-Light'
   },
   progressBar: {
     width: '100%',
@@ -248,14 +260,16 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: 'bold', 
+    fontFamily:'Montserrat-Light'
   },
   textButton: {
     marginTop: 10,
   },
   textButtonLabel: {
     fontSize: 12,
-    color: theme.colors.primary,
+    color: theme.colors.primary, 
+    fontFamily:'Montserrat-Light'
   },
 });
 

@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     marginBottom: 5,
     color: '#000',
+    fontFamily: 'Montserrat-Thin',
   },
   bodyContent: {
     paddingHorizontal: 0,
