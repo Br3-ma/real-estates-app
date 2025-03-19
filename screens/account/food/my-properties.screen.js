@@ -17,10 +17,10 @@ import BidWizardModal from '../../../components/bidwiz-modal';
 import Toast from 'react-native-toast-message';
 import MenuContainer from '../../../components/menu-action-list';
 import EditProfileModal from '../../../components/update-profile-modal';
-// import TimedAdModal from '../../../components/ad-ad-common';
 import TimedAdPopup from '../../../components/ad-timed-modal';
 import StatusFlag from '../../../components/status-flag';
 import LoadingOverlay from '../../../components/preloader';
+import BlankView from '../../../components/blank-bottom';
 import InlineAd from '../../../components/InlineBannerAd';
 
 const { width, height } = Dimensions.get('window');
@@ -181,30 +181,6 @@ const uploadPost = useCallback(async () => {
     formData.append('category_id', propertyDetails.category_id);
     formData.append('status_id', 1);
 
-    // // Append support_file[]
-    // for (let index = 0; index < propertyDetails.support_file.length; index++) {
-    //   const file = propertyDetails.support_file[index];
-    //   const newFileUri = Platform.OS === 'android' ? file.uri : file.uri.replace('file://', '');
-    //   const fileType = mime.getType(newFileUri) || 'application/octet-stream';
-    //   formData.append(`support_file[${index}]`, {
-    //     name: file.name || `support_file_${index}`,
-    //     type: fileType,
-    //     uri: newFileUri,
-    //   });
-    // }
-
-    // // Append utility_file[]
-    // for (let index = 0; index < propertyDetails.utility_file.length; index++) {
-    //   const file = propertyDetails.utility_file[index];
-    //   const newFileUri = Platform.OS === 'android' ? file.uri : file.uri.replace('file://', '');
-    //   const fileType = mime.getType(newFileUri) || 'application/octet-stream';
-    //   formData.append(`utility_file[${index}]`, {
-    //     name: file.name || `utility_file_${index}`,
-    //     type: fileType,
-    //     uri: newFileUri,
-    //   });
-    // }
-
     // Append images
     for (let index = 0; index < uploadImages.length; index++) {
       const image = uploadImages[index];
@@ -300,187 +276,202 @@ const renderPropertyItem = useCallback(({ item }) => {
   const closeMenu = (id) => setMenuVisible(prevState => ({ ...prevState, [id]: false }));
 
   return (
-    <Card>
-      <Card.Title>{item.name}</Card.Title>
+    <View style={styles.propertyContainer}>
+    <View style={styles.headerContainer}>
+      <Text style={styles.propertyTitle}>{item.title}</Text>
       <View style={styles.menuContainer}>
-      <MenuContainer 
-        itemId={item.id} 
-        hideFromPosts={hideFromPosts} 
-        openSetBidModal={openSetBidModal} 
-        editProperty={handleEditProperty}
-        handleDeleteProperty={handleDeleteProperty}
-        item={item}
-      />
-      </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <StatusFlag status={item?.verified_status} />
-        {item.images.length > 0 ? (
-          item.images.map((img, index) => (
-            <TouchableOpacity key={index} onPress={() => showImageViewer(item.images, item.id, item)}>
-              <Image source={{ uri: `${SERVER_BASE_URL}/storage/app/` + img.path }} style={styles.cardImage} />
-            </TouchableOpacity>
-          ))
-        ) : (
-          <Image
-            source={{ uri: 'https://bearhomes.com/wp-content/uploads/2019/01/default-featured.png' }}
-            style={styles.illustrativeImage}
-          />
-        )}
-      </ScrollView>
-      <View>
-        <View style={styles.priceLocationRow}>
-          <Text style={styles.priceText}>K{item.price}</Text>
-          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <MaterialIcons name="place" size={20} color="#000" />
-            <Text style={{ marginLeft: 5 }}>{item.location}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.iconRow}>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="hotel" size={20} color="#000" />
-            <Text style={styles.iconText}>{item.bedrooms} Beds</Text>
-          </View>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="bathtub" size={20} color="#000" />
-            <Text style={styles.iconText}>{item.bathrooms} Baths</Text>
-          </View>
-          <View style={styles.iconTextContainer}>
-            <MaterialIcons name="aspect-ratio" size={20} color="#000" />
-            <Text style={styles.iconText}>{item.area} Sqm</Text>
-          </View>
-        </View>
-      </View>
-      <View style={styles.buttonRow}>
-          <Button
-            type="clear"
-            title="Boost Post"
-            icon={() => <MaterialIcons name="trending-up" size={24} color="white" />}
-            onPress={() => openSetBidModal(item.id)} 
-            buttonStyle={{
-              borderColor: 'white',
-              borderWidth: 1,
-              borderRadius: 10, 
-              paddingVertical: 5, 
-              paddingHorizontal: 10, 
-              backgroundColor: 'purple', 
-              shadowColor: '#ffff',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 3,
-              elevation: 2,
-            }}
-            titleStyle={{
-              color: 'white',
-              fontWeight: 'bold', 
-            }}
-          />
-
-        <Button type="clear" icon={() => <MaterialIcons name="comment" size={24} color="blue" />} onPress={() => openCommentsModal(item.id)} />
-        <Button
-          type="clear"
-          icon={() => deleting ? <ActivityIndicator size="small" color="red" /> : <MaterialIcons name="delete" size={24} color="red" />}
-          onPress={() => handleDeleteProperty(item.id)}
+        <MenuContainer 
+          itemId={item.id} 
+          hideFromPosts={() => {}}
+          openSetBidModal={openSetBidModal} 
+          editProperty={() => {}}
+          handleDeleteProperty={handleDeleteProperty}
+          item={item}
         />
       </View>
-    </Card>
+    </View>
+
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+      style={styles.imageScrollView}
+    >
+      <StatusFlag status={item?.verified_status} />
+      {item.images.length > 0 ? (
+        item.images.map((img, index) => (
+          <TouchableOpacity 
+            key={index} 
+            onPress={() => showImageViewer(item.images, item.id, item)}
+            activeOpacity={0.9}
+          >
+            <Image 
+              source={{ uri: `${SERVER_BASE_URL}/storage/app/` + img.path }} 
+              style={styles.propertyImage} 
+            />
+            {index === 0 && item.images.length > 1 && (
+              <View style={styles.imageCounter}>
+                <Text style={styles.imageCounterText}>{item.images.length} Photos</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        ))
+      ) : (
+        <Image
+          source={{ uri: 'https://bearhomes.com/wp-content/uploads/2019/01/default-featured.png' }}
+          style={styles.propertyImage}
+        />
+      )}
+    </ScrollView>
+
+    <View style={styles.detailsContainer}>
+      <View style={styles.priceLocationRow}>
+        <Text style={styles.priceText}>K{item.price}</Text>
+        <TouchableOpacity style={styles.locationContainer}>
+          <MaterialIcons name="place" size={20} color="#7B8794" />
+          <Text style={styles.locationText}>{item.location}</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.iconRow}>
+        <View style={styles.iconTextContainer}>
+          <MaterialIcons name="hotel" size={20} color="#7B8794" />
+          <Text style={styles.iconText}>{item.bedrooms} Beds</Text>
+        </View>
+        <View style={styles.iconTextContainer}>
+          <MaterialIcons name="bathtub" size={20} color="#7B8794" />
+          <Text style={styles.iconText}>{item.bathrooms} Baths</Text>
+        </View>
+        <View style={styles.iconTextContainer}>
+          <MaterialIcons name="aspect-ratio" size={20} color="#7B8794" />
+          <Text style={styles.iconText}>{item.area} Sqm</Text>
+        </View>
+      </View>
+    </View>
+
+    <View style={styles.actionButtonsContainer}>
+      <TouchableOpacity 
+        style={styles.boostButton}
+        onPress={() => openSetBidModal(item.id)}
+      >
+        <MaterialIcons name="trending-up" size={20} color="white" />
+        <Text style={styles.boostButtonText}>Boost Post</Text>
+      </TouchableOpacity>
+
+      <View style={styles.secondaryButtons}>
+        <TouchableOpacity style={styles.commentButton} onPress={() => openCommentsModal(item.id)}>
+          <MaterialIcons name="comment" size={24} color="#4C6EF5" />
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteProperty(item.id)}>
+          {deleting ? 
+            <ActivityIndicator size="small" color="#FF4757" /> : 
+            <MaterialIcons name="delete" size={24} color="#FF4757" />
+          }
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
   );
 }, [deleting, showImageViewer, handleDeleteProperty, openCommentsModal, menuVisible]);
-const renderEmptyState = () => (
-  <View style={styles.emptyStateContainer}>
-    <Image source={require('../../../assets/gifs/empty.gif')} style={styles.emptyStateImage} />
-    <Text style={styles.emptyStateText}>No properties available. Start by adding your first property!</Text>
-  </View>
-);
 
-return (
-  <Provider>
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#3D6DCC']}  />
-        }>
-        {/* {userInfo?.isSub === 0 && <TimedAdModal />} */}
-        {properties.length === 0 ? (
-            renderEmptyState() // Render empty state if no properties
-          ) : (
-            properties.map((property, index) => (
-              <View key={index}>
-                {/* Render individual property item */}
-                {renderPropertyItem({ item: property })}
-              </View>
-            ))
-          )}
-      </ScrollView>
 
-      {/* Smaller floating button for refreshing */}
-      <TouchableOpacity
-        onPress={onRefresh}
-        style={{
-          position: 'absolute',
-          right: 20,
-          bottom: 80,
-          backgroundColor: '#7c209c',
-          padding: 10,
-          borderRadius: 50,
-          elevation: 5,
-        }}
-      >
-        <MaterialIcons name="refresh" size={24} color="#FFF" />
-      </TouchableOpacity>
-      
-      {/* Floating button to open UploadPost modal */}
-      <TouchableOpacity
-        style={styles.floatingButton}
-        onPress={() => setModalVisible(true)}
-      >
-        <MaterialIcons name="add" size={30} color="white" />
-      </TouchableOpacity>
-      <InlineAd/>
-      <UploadPost
-        isModalVisible={isModalVisible}
-        setModalVisible={setModalVisible}
-        propertyDetails={propertyDetails}
-        setPropertyDetails={setPropertyDetails}
-        uploadImages={uploadImages}
-        uploadVideos={uploadVideos}
-        setUploadImages={setUploadImages}
-        setUploadVideos={setUploadVideos}
-        uploadPost={uploadPost}
-        uploading={uploading}
-      />
-      {/* {selectedProperty && (
-        <EditProfileModal
-          isVisible={isEditModalVisible}
-          onClose={() => setIsEditModalVisible(false)}
-          property={selectedProperty}
-           onUpdate={handleUpdateProperty}
+
+  const renderEmptyState = () => (
+    <View style={styles.emptyStateContainer}>
+      <Image source={require('../../../assets/gifs/empty.gif')} style={styles.emptyStateImage} />
+      <Text style={styles.emptyStateText}>No properties available. Start by adding your first property!</Text>
+    </View>
+  );
+
+  return (
+    <Provider>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#3D6DCC']}  />
+          }>
+          {/* {userInfo?.isSub === 0 && <TimedAdModal />} */}
+          {properties.length === 0 ? (
+              renderEmptyState() // Render empty state if no properties
+            ) : (
+              properties.map((property, index) => (
+                <View key={index}>
+                  {/* Render individual property item */}
+                  {renderPropertyItem({ item: property })}
+                </View>
+              ))
+            )}
+        </ScrollView>
+
+        {/* Smaller floating button for refreshing */}
+        <TouchableOpacity
+          onPress={onRefresh}
+          style={{
+            position: 'absolute',
+            right: 20,
+            bottom: 80,
+            backgroundColor: '#7c209c',
+            padding: 10,
+            borderRadius: 50,
+            elevation: 5,
+          }}
+        >
+          <MaterialIcons name="refresh" size={24} color="#FFF" />
+        </TouchableOpacity>
+        
+        {/* Floating button to open UploadPost modal */}
+        <TouchableOpacity
+          style={styles.floatingButton}
+          onPress={() => setModalVisible(true)}
+        >
+          <MaterialIcons name="add" size={30} color="white" />
+        </TouchableOpacity>
+        <InlineAd/>
+        
+        <UploadPost
+          isModalVisible={isModalVisible}
+          setModalVisible={setModalVisible}
+          propertyDetails={propertyDetails}
+          setPropertyDetails={setPropertyDetails}
+          uploadImages={uploadImages}
+          uploadVideos={uploadVideos}
+          setUploadImages={setUploadImages}
+          setUploadVideos={setUploadVideos}
+          uploadPost={uploadPost}
+          uploading={uploading}
         />
-      )} */}
-      <PostViewerModal
-        visible={isPostViewerModalVisible}
-        images={currentImages}
-        property={selectedProperty}
-        allProperties={properties}
-        openCommentsModal={openCommentsModal}
-        onClose={() => setPostViewerModalVisible(false)}
-        fetchProperties={fetchProperties}
-      />
-      <CommentsModal
-        visible={isCommentsModalVisible}
-        postId={selectedItemId}
-        onClose={closeCommentsModal}
-      />
-      <BidWizardModal 
-        visible={isBidModalVisible} 
-        onDismiss={() => setBidModalVisible(false)} 
-        property={bidPropertyId}  
-      />
-      
-      {userInfo?.isSub === 0 && <TimedAdPopup/>}
-      <LoadingOverlay visible={processing} message="Processing..." />
-    </SafeAreaView>
-  </Provider>
-);
+        {/* {selectedProperty && (
+          <EditProfileModal
+            isVisible={isEditModalVisible}
+            onClose={() => setIsEditModalVisible(false)}
+            property={selectedProperty}
+            onUpdate={handleUpdateProperty}
+          />
+        )} */}
+        <PostViewerModal
+          visible={isPostViewerModalVisible}
+          images={currentImages}
+          property={selectedProperty}
+          allProperties={properties}
+          openCommentsModal={openCommentsModal}
+          onClose={() => setPostViewerModalVisible(false)}
+          fetchProperties={fetchProperties}
+        />
+        <CommentsModal
+          visible={isCommentsModalVisible}
+          postId={selectedItemId}
+          onClose={closeCommentsModal}
+        />
+        <BidWizardModal 
+          visible={isBidModalVisible} 
+          onDismiss={() => setBidModalVisible(false)} 
+          property={bidPropertyId}  
+        />
+        {/* {userInfo?.isSub === 0 && <TimedAdPopup/>} */}
+        {userInfo?.isSub === 0 && <TimedAdPopup/>}
+        <LoadingOverlay visible={processing} message="Processing..." />
+      </SafeAreaView>
+    </Provider>
+  );
 };
 
 export default MyPropertyScreen;

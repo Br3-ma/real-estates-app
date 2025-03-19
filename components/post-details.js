@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { usePropertyActions } from '../tools/api/PropertyActions';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fetchUserInfo } from '../controllers/auth/userController';
+import { Video } from 'expo-av';
 import moment from 'moment';
 import { SERVER_BASE_URL, API_BASE_URL } from '../confg/config';
 import Communications from 'react-native-communications';
@@ -169,7 +170,6 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                   <Text style={styles.adminButtonText}>Delete</Text>
                 </TouchableOpacity>
               )}
-              <StatusFlag status={property?.verified_status} />
 
             </View>
           </View>
@@ -178,6 +178,8 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
             contentContainerStyle={styles.modalContent}
             ref={scrollViewRef} 
           >
+            
+            <StatusFlag style={styles.statusFlag} status={property?.verified_status} />
             <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.imageSlider}>
               {images.map((image, index) => (
                 <ImageBackground
@@ -189,6 +191,15 @@ const PostViewerModal = ({ visible, images, property, onClose, openCommentsModal
                     <Text style={styles.imageCount}>{`${index + 1}/${images.length}`}</Text>
                   </View>
                 </ImageBackground>
+              ))}
+              {property?.videos?.map((video, index) => (
+                <Video
+                  key={`video-${index}`}
+                  source={{ uri: `${SERVER_BASE_URL}/storage/app/${video.path}` }}
+                  style={styles.mediaItem}
+                  useNativeControls
+                  resizeMode="cover"
+                />
               ))}
             </ScrollView>
 
@@ -367,6 +378,11 @@ const styles = StyleSheet.create({
     width: width,
     height: '100%',
   },
+  mediaItem: {
+    width,
+    height: '100%',
+    backgroundColor: '#000',
+  },
   imageOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.2)',
@@ -527,6 +543,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
+  statusFlag:{
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderTopLeftRadius: 4,
+    borderBottomRightRadius: 12,
+    zIndex: 1,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 1,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
+    flexDirection: 'row',
+    alignItems: 'center',
+  }
 });
 
 export default PostViewerModal;

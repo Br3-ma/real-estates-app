@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking, Image, ScrollView, D
 import Modal from 'react-native-modal';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { SERVER_BASE_URL } from '../confg/config';
+import InlineAd from './InlineBannerAd';
 
 const { width, height } = Dimensions.get('window');
 
@@ -16,7 +17,7 @@ const ProfileBottomSheet = ({ isVisible, onClose, userData }) => {
     responseTime: "Within 2 hours",
     languages: ["English"],
     contact: {
-      phone: userData?.phone ? `+26${userData.phone}` : "Not available",
+      phone: userData?.phone ? `26${userData.phone}` : "Not available",
       email: userData?.email ?? "Not available",
     },
     rating: 4.3,
@@ -117,12 +118,14 @@ const ProfileBottomSheet = ({ isVisible, onClose, userData }) => {
             <MaterialIcons name="message" size={20} color="#FFFFFF" />
             <Text style={styles.messageButtonText}>Message</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => Linking.openURL(`tel:26${profileData?.contact.phone}`)} style={styles.callButton}>
+          <TouchableOpacity onPress={() => Linking.openURL(`tel:${profileData?.contact.phone}`)} style={styles.callButton}>
             <MaterialIcons name="phone" size={20} color="#FFFFFF" />
             <Text style={styles.callButtonText}>Call</Text>
           </TouchableOpacity>
         </View>
       </View>
+      
+      <InlineAd/>
     </Modal>
   );
 };

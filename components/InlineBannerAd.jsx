@@ -16,31 +16,25 @@ const InlineAd = () => {
       {adFailed ? (
         <Text style={{ textAlign: 'center' }}>No ad available</Text>
       ) : (
-        <BannerAd
-          unitId={__DEV__ ? TestIds.BANNER : productionID}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-            requestOptions={{
-              requestNonPersonalizedAdsOnly: true,
-              keywords: ['real estate', 'apartments', 'jobs', 'news', 'kids', 'games'],
-            }}
-            onAdLoaded={() => {
-              console.log('Ad loaded');
-              if (__DEV__) {
-                // Development mode
-                console.log("App is in Development Mode");
-              } else {
-                // Production mode
-                console.log("App is in Production Mode");
-              }
-              setIsAdLoaded(true);
-              setAdFailed(false);
-            }}
-            onAdFailedToLoad={(error) => {
-              console.error('Ad failed to load:', error);
-              setIsAdLoaded(false);
-              setAdFailed(true);
-            }}
-        />
+        <>
+        {/* This will display google test ads */}          
+          {/* This should display production ready ads */}
+          <BannerAd
+            unitId={productionID}
+            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+              onAdLoaded={() => {
+                console.log('Ad loaded');
+                console.log(__DEV__ ? "App is in Development Mode" : "App is in Production Mode");
+                setIsAdLoaded(true);
+                setAdFailed(false);
+              }}
+              onAdFailedToLoad={(error) => {
+                console.error('Ad failed to load:', error);
+                setIsAdLoaded(false);
+                setAdFailed(true);
+              }}
+          />
+        </>
       )}
     </View>
   );

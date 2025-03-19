@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Image, Animated } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import InterstitialAdSQ from './InterstialAdLink';
+import InlineAd from './InlineBannerAd';
 
 const TimedAdPopup = () => {
   const [visible, setVisible] = useState(false);
@@ -120,38 +122,21 @@ const TimedAdPopup = () => {
 
         <View style={{ borderRadius: 10, overflow: 'hidden' }}>
           <View style={{
-            height: 180,
+            minHeight: 50,
             backgroundColor: '#f0f0f0',
             justifyContent: 'center',
             alignItems: 'center',
           }}>
-            <Image
-              source={{ 
-                uri: 'https://ocdn.eu/images/pulscms/OTc7MDA_/57ca6a5294e50c13d980a6ff4243b115.jpeg'
-              }}
-              style={{
-                width: '100%',
-                height: '100%',
-                resizeMode: 'cover',
-              }} 
-            />
+            <InterstitialAdSQ/>
           </View>
 
           <View style={{ padding: 12 }}>
-            <Text style={{ 
-              fontSize: 16, 
-              fontWeight: '600',
-              color: '#333',
-              marginBottom: 4 
-            }}>
-              Get your ride today
-            </Text>
             <Text style={{ 
               fontSize: 14,
               color: '#666',
               marginBottom: 12 
             }}>
-              Yango starts a contest to reward a loyal driver with a Renault Stepway. Double Tap to Close this Ad
+              Double Tap to Close this Ad
             </Text>
             <TouchableOpacity
               style={{
@@ -165,9 +150,6 @@ const TimedAdPopup = () => {
                 console.log('Ad clicked');
               }}
             >
-              <Text style={{ color: 'white', fontWeight: '500' }}>
-                Learn More
-              </Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -18,7 +18,7 @@ import OverviewScreen from './screens/onboarding/overview.screen';
 import KYCScreen from './screens/onboarding/kyc.screen';
 import OTPScreen from './screens/onboarding/otp.screen';
 import MainScreen from './screens/main.screen';
-import { MobileAds } from 'react-native-google-mobile-ads'; 
+// import { MobileAds } from 'react-native-google-mobile-ads'; 
 
 const Stack = createStackNavigator();
 
@@ -56,24 +56,24 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    const initializeAdMob = async () => {
-      try {
-        // Request tracking permissions (if needed for iOS ATT)
-        const { status: trackingStatus } = await requestTrackingPermissionsAsync();
-        if (trackingStatus !== 'granted') {
-          console.log('Tracking permission not granted');
-          // Handle this case if needed (e.g., disable personalized ads)
-        }
+    // const initializeAdMob = async () => {
+    //   try {
+    //     // Request tracking permissions (if needed for iOS ATT)
+    //     const { status: trackingStatus } = await requestTrackingPermissionsAsync();
+    //     if (trackingStatus !== 'granted') {
+    //       console.log('Tracking permission not granted');
+    //       // Handle this case if needed (e.g., disable personalized ads)
+    //     }
 
-        // Initialize AdMob SDK
-        const adapterStatuses = await MobileAds().initialize();
-        console.log('AdMob SDK initialized successfully:', adapterStatuses);
-      } catch (error) {
-        console.error('Failed to initialize AdMob SDK or tracking:', error);
-      }
-    };
+    //     // Initialize AdMob SDK
+    //     const adapterStatuses = await MobileAds().initialize();
+    //     console.log('AdMob SDK initialized successfully:', adapterStatuses);
+    //   } catch (error) {
+    //     console.error('Failed to initialize AdMob SDK or tracking:', error);
+    //   }
+    // };
 
-    initializeAdMob();
+    // initializeAdMob();
     console.log(fontsLoaded ? 'FONT LOADED' : 'FONT NOT LOADED');
   }, [fontsLoaded]);
 
@@ -107,12 +107,10 @@ const App = () => {
 
   if (!fontsLoaded) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#415D77" />
-      </View>
+      console.log('loading fonts...')
     );
   }
-
+  
   if (showSplashScreen) {
     return (
       <View style={styles.centered}>

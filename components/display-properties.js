@@ -213,7 +213,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor: 'white',
     elevation: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc', // Adjust color as needed
   },
+  
   mediaContainer: {
     position: 'relative',
     width: '100%',
@@ -324,11 +327,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
     paddingVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 8, // for Android
   },
   actionButton: {
     flexDirection: 'column',

@@ -1,63 +1,54 @@
+import React, { useEffect } from 'react';
+import { Alert } from 'react-native';
 import * as Device from 'expo-device';
-import { Link } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { View, Button, Text } from 'react-native';
-import { AdEventType, InterstitialAd, TestIds } from 'react-native-google-mobile-ads';
+import {
+  InterstitialAd,
+  AdEventType,
+  TestIds,
+} from 'react-native-google-mobile-ads';
 
+const androidAdmobInterstitial = "ca-app-pub-6203298272391383/2896750365";
 const iosAdmobInterstitial = "";
-const androidAdmobInterstitial = "ca-app-pub-6203298272391383/6608047080";
 const productionID = Device.osName === 'Android' ? androidAdmobInterstitial : iosAdmobInterstitial;
-const adUnitId = __DEV__ ? TestIds.INTERSTITIAL : productionID;
-// Make sure to always use a test ID when not in production 
 
+const interstitial = InterstitialAd.createForAdRequest(
+  __DEV__ ? TestIds.INTERSTITIAL : productionID,
+  {
+    requestNonPersonalizedAdsOnly: true,
+  }
+);
 
-const interstitial = InterstitialAd.createForAdRequest(adUnitId, {
-  keywords: ['real estate', 'education', 'trading'], // Update based on the most relevant keywords for app/users, these are just random examples
-  requestNonPersonalizedAdsOnly: true, // Update based on the initial tracking settings from initialization earlier
-});
-
-
-// Destination url and the react component to render in the link
-const InterstitialAdLink = ({destination, children}) => {
-
-  const [loaded, setLoaded] = useState<boolean>(false);
-
+const InterstitialAdSQ = () => {
   useEffect(() => {
-    // Event listener for when the ad is loaded
-    const unsubscribeLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
-      setLoaded(true);
-    });
-
-    // Event listener for when the ad is closed
-    const unsubscribeClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
-      setLoaded(false);
-
-      // Load a new ad when the current ad is closed
+    const loadAd = () => {
       interstitial.load();
+    };
+
+    const showAd = () => {
+      if (interstitial.loaded) {
+        interstitial.show();
+      } else {
+        Alert.alert("Ad not ready", "The ad is still loading. Try again later.");
+      }
+    };
+
+    const eventListener = interstitial.addAdEventListener(AdEventType.LOADED, () => {
+      console.log("Interstitial ad loaded");
     });
 
-    // Start loading the interstitial ad straight away
-    interstitial.load();
+    interstitial.addAdEventListener(AdEventType.CLOSED, () => {
+      console.log("Interstitial ad closed");
+      loadAd(); // Preload next ad after closing
+    });
 
-    // Unsubscribe from events on unmount
+    loadAd(); // Load ad on component mount
+
     return () => {
-      unsubscribeLoaded();
-      unsubscribeClosed();
+      eventListener(); // Remove event listener on unmount
     };
   }, []);
 
-
-  return (
-    <Link asChild href={`${destination}`}>
-      <Button onPress={() => {
-        if (loaded) { interstitial.show(); }
-      }}>
-        <>
-          {children}
-        </>
-      </Button>
-    </Link>
-  );
+  return null; // No UI needed, it runs in the background
 };
 
-export default InterstitialAdLink;
+export default InterstitialAdSQ;

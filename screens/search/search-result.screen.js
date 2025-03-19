@@ -18,6 +18,7 @@ import RenderLocationCarousel from '../../components/carousel-locations';
 import RenderCategoryCarousel from '../../components/carousel-categories';
 import EmptyStateView from '../../components/empty-state';
 import ShimmerSearchLoading from '../../components/shimmer-loader-search';
+import InlineAd from '../../components/InlineBannerAd';
 
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 const { width, height } = Dimensions.get('window');
@@ -282,6 +283,7 @@ const SearchResultScreen = ({ route, navigation }) => {
         />
       )}
 
+      <In lineAd/>
       <PostViewerModal
         visible={isPostViewerModalVisible}
         images={currentImages}

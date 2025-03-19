@@ -11,6 +11,7 @@ import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import { API_BASE_URL } from '../../../confg/config';
 import NotificationPreviewModal from '../../../components/notification-preview-modal';
 import PostNotifyViewerModal from '../../../components/post-notification-details';
+import InlineAd from '../../../components/InlineBannerAd';
 
 const NotificationScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -206,6 +207,7 @@ const NotificationScreen = () => {
           </TouchableOpacity>
         </LinearGradient>
       </Animated.View>
+      <InlineAd/>
       <View style={styles.container}>
         {loading ? (
           renderShimmer()
@@ -246,6 +248,7 @@ const NotificationScreen = () => {
         />
       </View>
       <WarningPopup />
+      <InlineAd/>
     </SafeAreaView>
   );
 };

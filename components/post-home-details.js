@@ -10,7 +10,8 @@ import {
   SafeAreaView, 
   Image,
   StatusBar,
-  FlatList
+  FlatList,
+  ActivityIndicator
 } from 'react-native';
 import { Video } from 'expo-av';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -18,6 +19,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { SERVER_BASE_URL } from '../confg/config';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFonts } from 'expo-font';
+import { Icon, Avatar } from 'react-native-elements';
+import ProfileBottomSheet from './poster-profile';
 const { width, height } = Dimensions.get('window');
 
 const HomeImageViewerModal = ({
@@ -37,6 +40,7 @@ const HomeImageViewerModal = ({
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const scrollViewRef = useRef(null);
   const allMedia = [...currentImages, ...currentVideos];
+  const [isProfileVisible, setProfileVisible] = useState(false);
   const [fontsLoaded] = useFonts({
     'Montserrat-Thin': require('../assets/fonts/Montserrat-Thin.ttf'),
     'Montserrat-Bold': require('../assets/fonts/Montserrat-Bold.ttf'),
@@ -55,6 +59,14 @@ const HomeImageViewerModal = ({
   const goToMedia = (index) => {
     scrollViewRef.current?.scrollTo({ x: index * width, animated: true });
     setCurrentMediaIndex(index);
+  };
+
+  const openProfileSheet = () => {
+    setProfileVisible(true);
+  };
+
+  const closeProfileSheet = () => {
+    setProfileVisible(false);
   };
 
   return (
@@ -225,24 +237,33 @@ const HomeImageViewerModal = ({
             )}
             
             {/* Agent Contact Card */}
-            {/* <View style={styles.agentCard}>
+            <View style={styles.agentCard}>
               <View style={styles.agentHeader}>
                 <Text style={styles.agentTitle}>Property Agent</Text>
-                <TouchableOpacity style={styles.agentProfileButton}>
+                <TouchableOpacity onPress={openProfileSheet} style={styles.agentProfileButton}>
                   <Text style={styles.agentProfileText}>View Profile</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.agentInfo}>
                 <View style={styles.agentAvatar}>
-                  <MaterialIcons name="person" size={30} color="#8E2DE2" />
+                  <Avatar
+                    rounded
+                    source={{
+                      uri: `${SERVER_BASE_URL}/storage/app/${selectedProperty?.user?.picture}`
+                    }}
+                    placeholderStyle={{ backgroundColor: '#8E2DE2' }}
+                    PlaceholderContent={<ActivityIndicator />}
+                    size="small"
+                  />
+                  {/* <MaterialIcons name="person" size={30} color="#8E2DE2" /> */}
                 </View>
                 <View style={styles.agentDetails}>
-                  <Text style={styles.agentName}>Agent Name</Text>
-                  <Text style={styles.agentCompany}>Real Estate Company</Text>
-                  <Text style={styles.agentPhone}>{selectedProperty?.phone}</Text>
+                  <Text style={styles.agentName}>{selectedProperty?.user.name}</Text>
+                  <Text style={styles.agentCompany}>{selectedProperty?.user.bio}</Text>
+                  <Text style={styles.agentPhone}> +26 {selectedProperty?.user.phone}</Text>
                 </View>
               </View>
-            </View> */}
+            </View>
             
             {/* Bottom space for action buttons */}
             <View style={{ height: 80 }} />
@@ -253,7 +274,7 @@ const HomeImageViewerModal = ({
         <View style={styles.actionButtons}>
           <TouchableOpacity 
             style={styles.primaryActionButton} 
-            onPress={() => callNumber(selectedProperty?.phone)}
+            onPress={() => callNumber(selectedProperty?.user?.phone)}
           >
             <MaterialIcons name="call" size={20} color="#FFF" />
             <Text style={styles.primaryActionText}>Call</Text>
@@ -268,7 +289,7 @@ const HomeImageViewerModal = ({
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.secondaryActionButton, { backgroundColor: '#25D366' }]} 
-              onPress={() => openWhatsApp(selectedProperty?.phone)}
+              onPress={() => openWhatsApp(selectedProperty?.user?.phone)}
             >
               <MaterialCommunityIcons name="whatsapp" size={22} color="#FFF" />
             </TouchableOpacity>
@@ -280,8 +301,15 @@ const HomeImageViewerModal = ({
             </TouchableOpacity>
           </View>
         </View>
+
+        <ProfileBottomSheet 
+          isVisible={isProfileVisible}
+          onClose={closeProfileSheet}
+          userData={selectedProperty?.user}
+        />
       </SafeAreaView>
     </Modal>
+    
   );
 };
 
@@ -456,6 +484,7 @@ const styles = {
     fontWeight: '700',
     color: '#1A1A1A',
     marginBottom: 16,
+    fontFamily:'Montserrat-Bold'
   },
   highlightsList: {
     paddingVertical: 5,
@@ -463,7 +492,7 @@ const styles = {
   highlightCard: {
     backgroundColor: '#F8F9FA',
     borderRadius: 15,
-    padding: 16,
+    padding: 10,
     alignItems: 'center',
     width: 130,
     marginRight: 12,
@@ -486,7 +515,7 @@ const styles = {
   description: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#444',
+    color: '#444'
   },
   amenitiesContainer: {
     paddingHorizontal: 20,
@@ -508,7 +537,7 @@ const styles = {
   amenityText: {
     fontSize: 15,
     color: '#444',
-    marginLeft: 8,
+    marginLeft: 8
   },
   agentCard: {
     marginHorizontal: 20,

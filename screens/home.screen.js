@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View,Linking, ActivityIndicator, Text, ScrollView, SafeAreaView, Platform, StatusBar, Keyboard, RefreshControl } from 'react-native';
 import { Icon, SearchBar } from 'react-native-elements';
+import { useFonts } from 'expo-font';
 import ShimmerPlaceholder from 'react-native-shimmer-placeholder';
 import FeaturedItems from './../components/featured-categories';
 import Toast from 'react-native-toast-message';
@@ -51,6 +52,10 @@ const HomeScreen = ({ navigation }) => {
   const [btnOptions, setButtons] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const isMountedRef = useRef(true);
+  const [fontsLoaded] = useFonts({
+    'Montserrat-Thin': require('../assets/fonts/Montserrat-Thin.ttf'),
+    'Montserrat-Bold': require('../assets/fonts/Montserrat-Bold.ttf'),
+  });
   
 
   useEffect(() => {
@@ -70,7 +75,7 @@ const HomeScreen = ({ navigation }) => {
     return () => {
       isMountedRef.current = false;
     };
-  }, []);
+  }, [fontsLoaded]);
 
   useEffect(() => {
     // Log userInfo after it’s been set
