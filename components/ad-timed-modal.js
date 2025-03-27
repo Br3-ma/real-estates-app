@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Image, Animated } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import InterstitialAdSQ from './InterstialAdLink';
-import InlineAd from './InlineBannerAd';
 
 const TimedAdPopup = () => {
   const [visible, setVisible] = useState(false);

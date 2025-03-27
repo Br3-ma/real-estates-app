@@ -283,7 +283,7 @@ const SearchResultScreen = ({ route, navigation }) => {
         />
       )}
 
-      <In lineAd/>
+      <InlineAd/>
       <PostViewerModal
         visible={isPostViewerModalVisible}
         images={currentImages}

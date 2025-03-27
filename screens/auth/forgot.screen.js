@@ -1,24 +1,64 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Dimensions, 
+  KeyboardAvoidingView, 
+  Platform,
+  Animated
+} from 'react-native';
+import { TextInput, Button } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Feather } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
-import { ToastProvider, useToast } from 'react-native-toast-notifications';
+import Toast from 'react-native-toast-message';
+import { useFonts } from 'expo-font';
 import { API_BASE_URL } from '../../confg/config';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const toast = useToast();
+
+  // Animation references
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+
+  // Fonts
+  const [fontsLoaded] = useFonts({
+    'Montserrat-Regular': require('../../assets/fonts/Montserrat-Regular.ttf'),
+    'Montserrat-Bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
+    'Montserrat-Light': require('../../assets/fonts/Montserrat-Light.ttf'),
+  });
+
+  // Animate entrance
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        tension: 40,
+        useNativeDriver: true
+      })
+    ]).start();
+  }, []);
 
   const handleForgotPassword = async () => {
     if (!email) {
-      toast.show('Please enter your email address', {
-        type: 'warning',
-        placement: 'top',
-        duration: 3000,
+      Toast.show({
+        type: 'error',
+        text1: 'Validation Error',
+        text2: 'Please enter your email address'
       });
       return;
     }
@@ -27,20 +67,20 @@ const ForgotPasswordScreen = ({ navigation }) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/signup/request-otp`, { email });
       if (response.status === 200) {
-        toast.show('OTP sent to your email. Please check your inbox.', {
+        Toast.show({
           type: 'success',
-          placement: 'top',
-          duration: 4000,
+          text1: 'OTP Sent',
+          text2: 'Check your email for the verification code'
         });
         navigation.navigate('OTPVerification', { email });
       } else {
         throw new Error('Failed to send OTP');
       }
     } catch (error) {
-      toast.show('Failed to send OTP. Please try again.', {
-        type: 'danger',
-        placement: 'top',
-        duration: 4000,
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to send OTP. Please try again.'
       });
       console.error('Forgot Password Error:', error);
     } finally {
@@ -49,147 +89,191 @@ const ForgotPasswordScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient
-      colors={['#4158D0', '#C850C0', '#FFCC70']}
-      style={styles.container}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.content}
+    <SafeAreaView style={styles.safeArea}>
+      <LinearGradient
+        colors={['#4158D0', '#C850C0', '#FFCC70']}
+        style={styles.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <View style={styles.header}>
-          <Feather name="lock" size={30} color="#FFF" style={styles.icon} />
-          <Text style={styles.title}>Forgot Password</Text>
-          <Text style={styles.subtitle}>Enter your email to reset</Text>
-        </View>
-        <View style={styles.inputContainer}>
-          <Feather name="mail" size={20} color="#C850C0" style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#C850C0"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleForgotPassword}
-          disabled={loading}
+        <StatusBar style="light" />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.container}
         >
-          {loading ? (
-            <ActivityIndicator size="small" color="#FFF" />
-          ) : (
-            <Text style={styles.buttonText}>Send Reset Link</Text>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.navigate('SignIn')}
-        >
-          <Feather name="arrow-left" size={18} color="#FFF" />
-          <Text style={styles.backButtonText}>Back to Login</Text>
-        </TouchableOpacity>
-        <Text style={styles.footerText}>version. 13</Text>
-      </KeyboardAvoidingView>
-    </LinearGradient>
+          <Animated.View 
+            style={[
+              styles.content, 
+              { 
+                opacity: fadeAnim,
+                transform: [
+                  { scale: scaleAnim }
+                ]
+              }
+            ]}
+          >
+            <View style={styles.logoContainer}>
+              <MaterialCommunityIcons 
+                name="lock-reset" 
+                size={50} 
+                color="#6C63FF" 
+                style={styles.icon} 
+              />
+              <Text style={styles.title}>Forgot Password</Text>
+              <Text style={styles.subtitle}>Enter your email to reset password</Text>
+            </View>
+
+            <View style={styles.formContainer}>
+              <TextInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                mode="outlined"
+                style={styles.input}
+                theme={{ 
+                  colors: { 
+                    primary: '#6C63FF',
+                    background: 'white'
+                  } 
+                }}
+                left={
+                  <TextInput.Icon 
+                    icon={() => (
+                      <MaterialCommunityIcons 
+                        name="email-outline" 
+                        size={20} 
+                        color="#6C63FF" 
+                      />
+                    )} 
+                  />
+                }
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+
+              <Button 
+                mode="contained" 
+                onPress={handleForgotPassword} 
+                loading={loading}
+                style={styles.resetButton}
+                labelStyle={styles.resetButtonLabel}
+              >
+                Send Reset Link
+              </Button>
+
+              <TouchableOpacity 
+                style={styles.backToLoginContainer}
+                onPress={() => navigation.navigate('SignIn')}
+              >
+                <MaterialCommunityIcons 
+                  name="arrow-left" 
+                  size={18} 
+                  color="#6C63FF" 
+                />
+                <Text style={styles.backToLoginText}>Back to Login</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.versionText}>version 13</Text>
+          </Animated.View>
+        </KeyboardAvoidingView>
+        <Toast />
+      </LinearGradient>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  safeArea: { 
+    flex: 1 
   },
-  content: {
+  gradient: { 
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    alignItems: 'center'
   },
-  header: {
+  container: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  content: {
+    width: '90%',
+    maxWidth: 400,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 15,
+    padding: 20,
     alignItems: 'center',
-    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 5,
+      },
+    })
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 25
   },
   icon: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(108, 99, 255, 0.1)',
     borderRadius: 50,
     padding: 15,
-    marginBottom: 10,
+    marginBottom: 10
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFF',
-    marginBottom: 5,
+    fontFamily: 'Montserrat-Bold',
+    fontSize: 24,
+    color: '#6C63FF',
+    marginBottom: 5
   },
   subtitle: {
+    fontFamily: 'Montserrat-Light',
     fontSize: 14,
-    color: '#fff',
-    textAlign: 'center',
-    opacity: 0.8,
-    maxWidth: 250,
+    color: '#666',
+    textAlign: 'center'
   },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 10,
-    marginBottom: 20,
-    width: width * 0.85,
-    paddingHorizontal: 12,
-  },
-  inputIcon: {
-    marginRight: 8,
+  formContainer: {
+    width: '100%'
   },
   input: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: '#FFF',
+    marginBottom: 20,
+    backgroundColor: 'white',
+    fontFamily: 'Montserrat-Regular'
   },
-  button: {
-    backgroundColor: '#C850C0',
-    paddingVertical: 12,
-    paddingHorizontal: 35,
-    borderRadius: 30,
-    width: width * 0.85,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 6,
-    marginBottom: 15,
+  resetButton: {
+    marginTop: 10,
+    borderRadius: 10,
+    paddingVertical: 5
   },
-  buttonText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: 'bold',
+  resetButtonLabel: {
+    fontFamily: 'Montserrat-Bold',
+    fontSize: 16
   },
-  backButton: {
+  backToLoginContainer: {
     flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 25,
+    marginTop: 15
   },
-  backButtonText: {
-    color: '#fff',
+  backToLoginText: {
+    fontFamily: 'Montserrat-Regular',
+    color: '#6C63FF',
     fontSize: 14,
-    marginLeft: 5,
+    marginLeft: 5
   },
-  footerText: {
+  versionText: {
+    marginTop: 15,
+    fontFamily: 'Montserrat-Light',
     fontSize: 12,
-    color: '#bfcfd9',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
+    color: '#666'
+  }
 });
 
-const Screen = ({ navigation }) => (
-  <ToastProvider>
-    <ForgotPasswordScreen navigation={navigation} />
-  </ToastProvider>
-);
-
-export default Screen;
+export default ForgotPasswordScreen;

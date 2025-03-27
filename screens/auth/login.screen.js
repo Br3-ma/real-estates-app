@@ -1,10 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, Animated, View, Linking } from 'react-native';
-import { Provider as PaperProvider, DefaultTheme, TextInput, Button, Text, Title, Surface } from 'react-native-paper';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  StyleSheet, 
+  ScrollView, 
+  Animated, 
+  View, 
+  Linking, 
+  Dimensions,
+  TouchableOpacity,
+  Platform 
+} from 'react-native';
+import { TextInput, Button, Text, Title } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../../confg/config';
@@ -13,29 +20,41 @@ import Toast from 'react-native-toast-message';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font'; 
 
-const theme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: '#6C63FF',
-    accent: '#FF6584',
-    background: 'transparent',
-  },
-};
+const { width, height } = Dimensions.get('window');
 
 const SignInScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(0));
+  const [secureTextEntry, setSecureTextEntry] = useState(true);
+
+  // Animation references
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+
+  // Fonts
   const [fontsLoaded] = useFonts({
-    'Montserrat': require('../../assets/fonts/Montserrat-Regular.ttf'),
-    'Montserrat-Thin': require('../../assets/fonts/Montserrat-Thin.ttf'),
-    'Montserrat-Light': require('../../assets/fonts/Montserrat-Light.ttf'),
+    'Montserrat-Regular': require('../../assets/fonts/Montserrat-Regular.ttf'),
     'Montserrat-Bold': require('../../assets/fonts/Montserrat-Bold.ttf'),
-    'Montserrat-Bold-x2': require('../../assets/fonts/Montserrat-ExtraBold.ttf'),
-    'Montserrat-Italic': require('../../assets/fonts/Montserrat-Italic.ttf'),
+    'Montserrat-Light': require('../../assets/fonts/Montserrat-Light.ttf'),
   });
+
+  // Animate entrance
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        tension: 40,
+        useNativeDriver: true
+      })
+    ]).start();
+  }, []);
 
   const handleSignIn = async () => {
     setLoading(true);
@@ -43,54 +62,158 @@ const SignInScreen = ({ navigation }) => {
       const response = await axios.post(`${API_BASE_URL}/signin`, { email, password });
       if (response.data.message === 'success') {
         await AsyncStorage.setItem('userInfo', JSON.stringify(response.data.user));
-        Toast.show({ type: 'success', text1: 'Sign In Successful', text2: 'Welcome back!' });
+        Toast.show({ 
+          type: 'success', 
+          text1: 'Welcome Back', 
+          text2: 'You are now connected' 
+        });
         navigation.navigate('Main');
       } else {
-        Toast.show({ type: 'error', text1: 'Sign In Failed', text2: response.data.message });
+        Toast.show({ 
+          type: 'error', 
+          text1: 'Connection Failed', 
+          text2: response.data.message 
+        });
       }
     } catch (error) {
-      Toast.show({ type: 'error', text1: 'Oops!', text2: 'Your Password or Username is wrong' });
+      Toast.show({ 
+        type: 'error', 
+        text1: 'Oops!', 
+        text2: 'Check your credentials' 
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }).start();
-  }, [fadeAnim, fontsLoaded]);
-
   return (
     <SafeAreaView style={styles.safeArea}>
-      <LinearGradient colors={['#4158D0', '#C850C0', '#FFCC70']} style={styles.gradient}>
-        <StatusBar style="dark" />
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          <Animated.View style={[styles.surface, { opacity: fadeAnim }]}>
-            <Title style={styles.title}>Square</Title>
-            <TextInput
-              label="Email" value={email} onChangeText={setEmail} mode="outlined"
-              style={styles.input} theme={{ colors: { primary: theme.colors.primary } }}
-              left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="email" size={18} color={theme.colors.primary} />} />}
-            />
-            <TextInput
-              label="Password" value={password} onChangeText={setPassword} secureTextEntry
-              mode="outlined" style={styles.input} theme={{ colors: { primary: theme.colors.primary } }}
-              left={<TextInput.Icon icon={() => <MaterialCommunityIcons name="lock" size={18} color={theme.colors.primary} />} />}
-            />
-            <Button
-              mode="contained" onPress={handleSignIn} loading={loading}
-              style={styles.button} contentStyle={styles.buttonContent} labelStyle={styles.buttonLabel}
+      <LinearGradient 
+        colors={['#4158D0', '#C850C0', '#FFCC70']} 
+        style={styles.gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <StatusBar style="light" />
+        <ScrollView 
+          contentContainerStyle={styles.scrollView}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View 
+            style={[
+              styles.container, 
+              { 
+                opacity: fadeAnim,
+                transform: [
+                  { scale: scaleAnim }
+                ]
+              }
+            ]}
+          >
+            <View style={styles.logoContainer}>
+              <Title style={styles.title}>Square</Title>
+              <Text style={styles.subtitle}>Connect to your community</Text>
+            </View>
+
+            <View style={styles.formContainer}>
+              <TextInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                mode="outlined"
+                style={styles.input}
+                theme={{ 
+                  colors: { 
+                    primary: '#6C63FF',
+                    background: 'white'
+                  } 
+                }}
+                left={
+                  <TextInput.Icon 
+                    icon={() => (
+                      <MaterialCommunityIcons 
+                        name="email-outline" 
+                        size={20} 
+                        color="#6C63FF" 
+                      />
+                    )} 
+                  />
+                }
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+
+              <TextInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={secureTextEntry}
+                mode="outlined"
+                style={styles.input}
+                theme={{ 
+                  colors: { 
+                    primary: '#6C63FF',
+                    background: 'white'
+                  } 
+                }}
+                left={
+                  <TextInput.Icon 
+                    icon={() => (
+                      <MaterialCommunityIcons 
+                        name="lock-outline" 
+                        size={20} 
+                        color="#6C63FF" 
+                      />
+                    )} 
+                  />
+                }
+                right={
+                  <TextInput.Icon 
+                    icon={() => (
+                      <MaterialCommunityIcons 
+                        name={secureTextEntry ? "eye-off" : "eye"} 
+                        size={20} 
+                        color="#6C63FF" 
+                      />
+                    )}
+                    onPress={() => setSecureTextEntry(!secureTextEntry)}
+                  />
+                }
+              />
+
+              <TouchableOpacity 
+                style={styles.forgotPassword}
+                onPress={() => navigation.navigate('ForgotPasswordScreen')}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+              </TouchableOpacity>
+
+              <Button 
+                mode="contained" 
+                onPress={handleSignIn} 
+                loading={loading}
+                style={styles.signInButton}
+                labelStyle={styles.signInButtonLabel}
+              >
+                Sign In
+              </Button>
+
+              <View style={styles.signUpContainer}>
+                <Text style={styles.signUpText}>Do not have an account? </Text>
+                <TouchableOpacity 
+                  onPress={() => navigation.navigate('RegisterByOTP')}
+                >
+                  <Text style={styles.signUpLink}>Sign Up</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              onPress={() => Linking.openURL('https://square.twalitso.com/privacy-policy')}
             >
-              Sign In
-            </Button>
-            <Button onPress={() => navigation.navigate('ForgotPasswordScreen')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
-              Forgot Password?
-            </Button>
-            <Button onPress={() => navigation.navigate('RegisterByOTP')} style={styles.textButton} labelStyle={styles.textButtonLabel}>
-              Don't have an account? Sign Up
-            </Button>
-            <Text onPress={() => Linking.openURL('https://square.twalitso.com/privacy-policy')} style={styles.privacyPolicyLink}>
-              Privacy Policy
-            </Text>
+              <Text style={styles.privacyLink}>Privacy Policy</Text>
+            </TouchableOpacity>
           </Animated.View>
         </ScrollView>
         <Toast />
@@ -100,22 +223,101 @@ const SignInScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
-  gradient: { flex: 1 },
-  scrollView: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 12 },
-  surface: { padding: 12, width: '85%', maxWidth: 320, alignItems: 'center', borderRadius: 10, backgroundColor: 'rgba(255, 255, 255, 0.95)', elevation: 3 },
-  title: { fontFamily:'Montserrat-Bold-x2',fontSize: 20, fontWeight: '600', color: theme.colors.primary, marginVertical: 2 },
-  input: { width: '100%', marginBottom: 8, backgroundColor: 'white', height: 42, fontFamily:'Montserrat-Light' },
-  button: { fontFamily:'Montserrat', width: '100%', marginTop: 4, borderRadius: 3 },
-  buttonContent: { paddingVertical: 4 },
-  buttonLabel: { fontSize: 13 },
-  textButton: { marginTop: 6 },
-  textButtonLabel: { fontSize: 11, color: theme.colors.primary },
-  googleButton: { width: '100%', marginTop: 6, borderRadius: 3, backgroundColor: '#4285F4', borderWidth: 1, borderColor: '#4285F4' },
-  facebookButton: { width: '100%', marginTop: 8, backgroundColor: '#4267B2' },
-  socialButtonContent: { height: 40 },
-  socialButtonLabel: { fontSize: 12, color: '#FFF' },
-  privacyPolicyLink: { marginTop: 12, fontSize: 11, color: theme.colors.accent, fontFamily:'Montserrat' },
+  safeArea: { 
+    flex: 1 
+  },
+  gradient: { 
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  scrollView: { 
+    flexGrow: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    width: width 
+  },
+  container: {
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 15,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 15,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 6,
+      },
+      android: {
+        elevation: 5,
+      },
+    })
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 25
+  },
+  title: {
+    fontFamily: 'Montserrat-Bold',
+    fontSize: 24,
+    color: '#6C63FF',
+    marginBottom: 5
+  },
+  subtitle: {
+    fontFamily: 'Montserrat-Light',
+    fontSize: 14,
+    color: '#666'
+  },
+  formContainer: {
+    width: '100%'
+  },
+  input: {
+    marginBottom: 15,
+    backgroundColor: 'white',
+    fontFamily: 'Montserrat-Regular'
+  },
+  forgotPassword: {
+    alignSelf: 'flex-end',
+    marginBottom: 15
+  },
+  forgotPasswordText: {
+    fontFamily: 'Montserrat-Regular',
+    color: '#6C63FF',
+    fontSize: 12
+  },
+  signInButton: {
+    marginTop: 10,
+    borderRadius: 10,
+    paddingVertical: 5
+  },
+  signInButtonLabel: {
+    fontFamily: 'Montserrat-Bold',
+    fontSize: 16
+  },
+  signUpContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 15
+  },
+  signUpText: {
+    fontFamily: 'Montserrat-Regular',
+    fontSize: 12
+  },
+  signUpLink: {
+    fontFamily: 'Montserrat-Bold',
+    color: '#6C63FF',
+    fontSize: 12
+  },
+  privacyLink: {
+    marginTop: 20,
+    fontFamily: 'Montserrat-Light',
+    color: '#666',
+    fontSize: 11
+  }
 });
 
 export default SignInScreen;
